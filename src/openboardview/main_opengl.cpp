@@ -6,7 +6,7 @@
 #include "imgui_impl_sdl_gl3.h"
 #include <stdio.h>
 #include <GL/gl3w.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "platform.h"
 #include "resource.h"
 
