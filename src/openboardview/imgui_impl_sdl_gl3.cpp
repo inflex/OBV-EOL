@@ -10,11 +10,11 @@
 #include "imgui_impl_sdl_gl3.h"
 
 // SDL,GL3W
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 #include <GL/gl3w.h>
 #ifdef __APPLE__
-#include <gl3ext.h>
+#include <OpenGL/gl3ext.h>
 #else
 #include <GL/glext.h>
 #endif

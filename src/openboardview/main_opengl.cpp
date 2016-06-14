@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <GL/gl3w.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "platform.h"
 #include "resource.h"
 
