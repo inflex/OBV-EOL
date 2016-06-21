@@ -11,7 +11,7 @@
 #include "platform.h"
 #include "resource.h"
 
-int main(int, char**)
+int main(int argc, char **argv)
 {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -45,10 +45,13 @@ int main(int, char**)
 	 app.History_set_filename("openboardview.history");
 	 app.History_load();
 
+	 fprintf(stderr,"%d parameters", argc);
+
     ImVec4 clear_color = ImColor(20, 20, 30);
 
     // Main loop
     bool done = false;
+	 bool preload_required = (argc == 2)?true:false;
     while (!done)
     {
         SDL_Event event;
@@ -62,6 +65,10 @@ int main(int, char**)
 		  if  (SDL_GetWindowFlags(window) & (SDL_WINDOW_MINIMIZED|SDL_WINDOW_HIDDEN)) { usleep(50000); continue; } // stops OVB/SDL consuming masses of CPU when it should be idling.
 
         ImGui_ImplSdlGL3_NewFrame(window);
+		  if (preload_required) { 
+			app.LoadFile(strdup(argv[1]));
+			preload_required = false;
+		  }
         app.Update();
         if (app.m_wantsQuit) {
             SDL_Event sdlevent;
