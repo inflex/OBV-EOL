@@ -43,7 +43,6 @@ int BoardView::History_load( void ) {
 	if (history.fname) {
 		FILE *f;
 
-		fprintf(stderr,"Loading history...");
 		f = fopen(history.fname,"r");
 		history.count = 0;
 		if (!f) return 0;
@@ -66,7 +65,6 @@ int BoardView::History_load( void ) {
 			}
 		}
 		fclose(f);
-		fprintf(stderr,"done\n");
 	} else {
 		return -1;
 	}
@@ -81,7 +79,6 @@ int BoardView::History_prepend_save( char *newfile ) {
 		if (f) {
 			int i;
 
-			fprintf(stderr,"Adding new file to history (%s)\n", newfile);
 			fprintf(f,"%s\n", newfile);
 			for (i = 0; i < history.count; i++) {
 				// Don't create duplicate entries, so check each one against the newfile
