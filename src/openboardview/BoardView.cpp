@@ -718,7 +718,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 		}
 
       if (show_text) {
-        sprintf(pin_number, "%d", pin->number);
+        snprintf(pin_number, sizeof(pin_number), "%d", pin->number);
 
         ImVec2 text_size = ImGui::CalcTextSize(pin_number);
         ImVec2 pos_adj =
