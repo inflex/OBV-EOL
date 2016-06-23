@@ -63,10 +63,13 @@ int main(int argc, char **argv)
 		  if  (SDL_GetWindowFlags(window) & (SDL_WINDOW_MINIMIZED|SDL_WINDOW_HIDDEN)) { usleep(50000); continue; } // stops OVB/SDL consuming masses of CPU when it should be idling.
 
         ImGui_ImplSdlGL3_NewFrame(window);
+
+		  // If we have a board to view being passed from command line, then "inject" it here.
 		  if (preload_required) { 
 			app.LoadFile(strdup(argv[1]));
 			preload_required = false;
 		  }
+
         app.Update();
         if (app.m_wantsQuit) {
             SDL_Event sdlevent;

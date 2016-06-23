@@ -85,6 +85,7 @@ struct BoardView {
 	int History_prepend_save( char *newfile);
 	void CenterView(void);
 	void Zoom( float osd_x, float osd_y, float zoom );
+	void Rotate( double *px, double *py, double ox, double oy, double theta );
 
 
   Pin *m_pinSelected = nullptr;
