@@ -24,15 +24,10 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
     : m_file(boardFile) {
   // TODO: strip / trim all strings, especially those used as keys
   // TODO: just loop through original arrays?
-  vector<BRDPart> m_parts(m_file->num_parts);
-  vector<BRDPin> m_pins(m_file->num_pins);
-  vector<BRDNail> m_nails(m_file->num_nails);
-  vector<BRDPoint> m_points(m_file->num_format);
-
-  m_parts.assign(m_file->parts, m_file->parts + m_file->num_parts);
-  m_pins.assign(m_file->pins, m_file->pins + m_file->num_pins);
-  m_nails.assign(m_file->nails, m_file->nails + m_file->num_nails);
-  m_points.assign(m_file->format, m_file->format + m_file->num_format);
+  vector<BRDPart> m_parts = m_file->parts;
+  vector<BRDPin> m_pins = m_file->pins;
+  vector<BRDNail> m_nails = m_file->nails;
+  vector<BRDPoint> m_points = m_file->format;
 
   // Set outline
   {

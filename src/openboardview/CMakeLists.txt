@@ -31,8 +31,8 @@ if(MINGW)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNICODE -D_UNICODE")
 endif()
 
-
 set(SOURCES
+	BDVFile.cpp
 	BoardView.cpp
 	BRDBoard.cpp
 	BRDFile.cpp
