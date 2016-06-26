@@ -18,10 +18,10 @@ using namespace std;
 BRDBoard::BRDBoard(const BRDFile* boardFile) 
 	: m_file(boardFile)
 {
-	m_parts.assign(m_file->parts, m_file->parts + m_file->num_parts);
-	m_pins.assign(m_file->pins, m_file->pins + m_file->num_pins);
-	m_nails.assign(m_file->nails, m_file->nails + m_file->num_nails);
-    m_points.assign(m_file->format, m_file->format + m_file->num_format);
+	m_parts = m_file->parts;
+	m_pins = m_file->pins;
+	m_nails = m_file->nails;
+	m_points = m_file->format;
 
 	// sort NET names alphabetically and make vec unique
 	m_netUnique = m_nails;
