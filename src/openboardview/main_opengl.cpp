@@ -5,6 +5,8 @@
 
 #include "imgui_impl_sdl_gl3.h"
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <GL/gl3w.h>
 #include <SDL.h>
@@ -59,8 +61,11 @@ int main(int argc, char **argv)
             ImGui_ImplSdlGL3_ProcessEvent(&event);
 
 				if (event.type == SDL_DROPFILE) {
-					app.LoadFile(strdup(event.drop.file));
-					fprintf(stdout,"%s\n", event.drop.file);
+					// Validate the file before replacing the current one, not that we should have to, but always better to be safe
+					struct stat buffer;   
+					if (stat (event.drop.file, &buffer) == 0) { 
+						app.LoadFile(strdup(event.drop.file));
+					}
 				}
 
             if (event.type == SDL_QUIT) done = true;
