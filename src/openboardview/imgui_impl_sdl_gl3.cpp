@@ -13,7 +13,11 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <GL/gl3w.h>
+#ifdef __APPLE__
+#include <gl3ext.h>
+#else
 #include <GL/glext.h>
+#endif
 
 #include "platform.h"
 #include "TextureDDS.h"
@@ -204,7 +208,9 @@ static bool ImGui_ImplSdlGL3_CreateAssetTexture(int global_id, const char* filen
     unsigned char *buf = (unsigned char*)file_as_buffer(&size, filename);
     TextureDDS *texture = new TextureDDS(buf);
 
+#ifndef _WIN32
     if(!texture->glLoad()) return false;
+#endif
     TextureIDs[global_id] = texture->get();
 
     free(buf);

@@ -105,7 +105,6 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 				else
 					part.type = 5; // SMD part on bottom
 				part.end_of_pins = 0;
-				part.annotation = "";
 				parts.push_back(part);
 			} else {
 				BRDPin pin;
