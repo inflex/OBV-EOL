@@ -858,7 +858,6 @@ int BoardView::ConvexHullOrientation( ImVec2 p, ImVec2 q, ImVec2 r) {
     return (val > 0)? 1: 2; // clock or counterclock wise
 }
  
-// Prints convex hull of a set of n points. returns how many points
 int BoardView::ConvexHull(ImVec2 hull[], ImVec2 points[], int n ) {
 
 	int hpc = 0;
@@ -901,7 +900,7 @@ int BoardView::ConvexHull(ImVec2 hull[], ImVec2 points[], int n ) {
         // result 'hull'
         p = q;
  
-    } while (p != l);  // While we don't come to first point
+    } while ((p != l)&&(hpc < n));  // While we don't come to first point
  
 	 return hpc;
 }
@@ -958,6 +957,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
   for (auto &part : m_board->Components()) {
 	 int pincount = 0;
 	 int part_is_orthagonal = 0;
+	 double min_x, min_y, max_x, max_y;
     auto p_part = part.get();
 
     if (!ComponentIsVisible(p_part))
@@ -966,15 +966,20 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
     if (part->is_dummy())
       continue;
 
-    // scale box around pins as a fallback, else either use polygon or convex hull for better shape fidelity
-    float min_x = part->pins[0]->position.x;
-    float min_y = part->pins[0]->position.y;
-    float max_x = min_x;
-    float max_y = min_y;
+
 
 	 ppp = &pva[0];
     for (auto pin : part->pins) {
 		 pincount++;
+
+    // scale box around pins as a fallback, else either use polygon or convex hull for better shape fidelity
+		 if (pincount == 1) {
+		    min_x = pin->position.x;
+		    min_y = pin->position.y;
+		    max_x = min_x;
+		    max_y = min_y;
+		 }
+
 
 		 if (pincount < 1000) {
 		 ppp->x = pin->position.x;
@@ -1084,7 +1089,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
   //  max.x += 0.5f;
 	
 	 // If we have a rotated part that is a C or R, hopefully with 2 pins ?
-	 if ((!part_is_orthagonal) && (pincount < 4) && ( ((p_part->name[0] == 'C')||(p_part->name[0] == 'R')||(p_part->name[0] == 'L')||(p_part->name[0] == 'D')) ) ) {
+	 if ((!part_is_orthagonal) && (pincount < 3) && ( ((p_part->name[0] == 'C')||(p_part->name[0] == 'R')||(p_part->name[0] == 'L')||(p_part->name[0] == 'D')) ) ) {
 			ImVec2 a,b,c,d;
 			double dx, dy;
 			double tx, ty;
@@ -1123,21 +1128,24 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 		 // If we have (typically) a connector with a non uniform pin distribution
 		 // then we can try use the minimal bounding box algorithm to give it a 
 		 // more sane outline
-		 if ((pincount >4)&&((part->name[0] == 'J'))) {
+		 if ((pincount >4)&&((part->name[0] == 'J')||(strncmp(part->name.c_str(),"CN",2)==0))) {
 			 ImVec2 *hull;
 			 int hpc;
 
 			 hull = (ImVec2 *)malloc( sizeof(ImVec2) *pincount ); // massive overkill since our hull will only require the perimeter points
 			 if (hull) {
 				 hpc = ConvexHull(hull, pva, pincount); // (hpc = hull pin count)
-				 if (hpc) {
+				 if (hpc > 0) {
 					ImVec2 bbox[4];
 
 					// first, tighten the hull, removes any small angle segments, such as a sequence of pins in a line 
 					hpc = TightenHull(hull, hpc, 0.1f); // tighten the hull a bit more, this might be an overkill
 					 MBBCalculate(bbox, hull, hpc, pin_radius *m_scale);
 					 draw->AddPolyline(bbox, 4, color, true, 1.0f, true);
+				 } else {
+					draw->AddRect(min, max, color);
 				 }
+
 				 free(hull);
 			 } else {
 				 fprintf(stderr,"ERROR: Cannot allocate memory for convex hull generation (%s)", strerror(errno));
