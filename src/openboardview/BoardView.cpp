@@ -169,7 +169,9 @@ void BoardView::Update() {
         open_file = true;
       }
 
+
 		/// Generate file history - PLD20160618-2028
+		ImGui::Separator();
 		{ 
 			int i;
 			for (i = 0; i < history.count; i++) {
@@ -179,6 +181,7 @@ void BoardView::Update() {
 				}
 			}
 		}
+		ImGui::Separator();
 
 
       if (ImGui::MenuItem("Quit")) {
@@ -1023,6 +1026,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 	struct ImVec2 pva[1000], *ppp;
     uint32_t color = m_colors.boxColor;
 	 int rendered = 0;
+	 char p0, p1; // first two characters of the part name, code-writing convenience more than anything else
 
   for (auto &part : m_board->Components()) {
 	 int pincount = 0;
@@ -1035,6 +1039,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
     if (part->is_dummy())
       continue;
+
 
 
 
@@ -1141,9 +1146,13 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
     ImVec2 min     = CoordToScreen(min_x, min_y);
     ImVec2 max     = CoordToScreen(max_x, max_y);
 	
+	 p0 = p_part->name[0];
+	 p1 = p_part->name[1];
+
 	 // If we have a rotated part that is a C or R, hopefully with 2 pins ?
 	 //if ((!part_is_orthagonal) && (pincount < 3) && ( ((p_part->name[0] == 'C')||(p_part->name[0] == 'R')||(p_part->name[0] == 'L')||(p_part->name[0] == 'D')) ) ) {
-	 if ((pincount < 3) && ( ((p_part->name[0] == 'C')||(p_part->name[0] == 'R')||(p_part->name[0] == 'L')||(p_part->name[0] == 'D')) ) ) {
+	 if ((pincount < 3) && ( (strchr("CRLD", p0)||(strchr("CRLD",p1))))) {
+	//	 (p0 == 'C')||(p0 == 'R')||(p0 == 'L')||(p0 == 'D')) ) ) {
 			ImVec2 a,b,c,d;
 			double dx, dy;
 			double tx, ty;
@@ -1153,12 +1162,12 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			dy = part->pins[1]->position.y -part->pins[0]->position.y;
 			angle = atan2( dy, dx );
 
-			if ((p_part->name[0] == 'L')&&(distance > 50)) {
+			if (((p0 == 'L')||(p1 == 'L'))&&(distance > 50)) {
 				pin_radius = 15;
 				for (auto pin : part->pins) { pin->diameter = pin_radius *0.05; }
 			  	army = distance/2; armx = pin_radius; 
 		  	}
-			else if ((p_part->name[0] == 'C')&&(distance > 90)) {
+			else if (((p0 == 'C')||(p1 == 'C'))&&(distance > 90)) {
 				double mpx, mpy;
 				int segments;
 				ImVec2 mp;
@@ -1211,7 +1220,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 		 // If we have (typically) a connector with a non uniform pin distribution
 		 // then we can try use the minimal bounding box algorithm to give it a 
 		 // more sane outline
-		 if ((pincount >4)&&((part->name[0] == 'J')||(strncmp(part->name.c_str(),"CN",2)==0))) {
+		 if ((pincount >= 4)&&((p0 == 'J')||(strncmp(part->name.c_str(),"CN",2)==0)||((p0 == 'L')||(p1 == 'L')))) {
 			 ImVec2 *hull;
 			 int hpc;
 
