@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <GL/gl3w.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "platform.h"
 #include "resource.h"
 
@@ -42,7 +42,8 @@ int main(int argc, char **argv)
 
     // Load Fonts
     ImGuiIO &io = ImGui::GetIO();
-    io.Fonts->AddFontFromFileTTF("asset/FiraSans-Medium.ttf", 20.0f);
+    std::string fontpath = get_asset_path("FiraSans-Medium.ttf");
+    io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f);
 
     BoardView app{};
 	 app.History_set_filename("openboardview.history");

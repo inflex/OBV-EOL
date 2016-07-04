@@ -10,11 +10,11 @@
 #include "imgui_impl_sdl_gl3.h"
 
 // SDL,GL3W
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 #include <GL/gl3w.h>
 #ifdef __APPLE__
-#include <gl3ext.h>
+#include <OpenGL/gl3ext.h>
 #else
 #include <GL/glext.h>
 #endif
@@ -220,7 +220,8 @@ static bool ImGui_ImplSdlGL3_CreateAssetTexture(int global_id, const char* filen
 
 static bool ImGui_ImplSdlGL3_CreateCircleTexture() {
     bool result = true;
-    result &= ImGui_ImplSdlGL3_CreateAssetTexture(1, "asset/empty_circle.dds");
+    std::string path = get_asset_path("empty_circle.dds");
+    result &= ImGui_ImplSdlGL3_CreateAssetTexture(1, path.c_str());
     return result;
 }
 
