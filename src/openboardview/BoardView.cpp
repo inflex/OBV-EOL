@@ -13,6 +13,7 @@
 #include "BRDBoard.h"
 #include "BRDFile.h"
 #include "BDVFile.h"
+#include "FZFile.h"
 #include "imgui/imgui.h"
 
 #include "NetList.h"
@@ -132,6 +133,8 @@ int BoardView::LoadFile( char *filename ) {
           file = new BRDFile(buffer, buffer_size);
         else if (!strcmp(ext, ".bdv"))
           file = new BDVFile(buffer, buffer_size);
+        else if (!strcmp(ext, ".fz"))
+          file = new FZFile(buffer, buffer_size);
 
         if (file && file->valid) {
           SetFile(file);
