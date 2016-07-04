@@ -138,6 +138,7 @@
     <ClInclude Include="..\imgui\stb_textedit.h" />
     <ClInclude Include="..\imgui\stb_truetype.h" />
     <ClInclude Include="..\json11\json11.hpp" />
+    <ClInclude Include="..\openboardview\BDVFile.h" />
     <ClInclude Include="..\openboardview\Board.h" />
     <ClInclude Include="..\openboardview\BoardView.h" />
     <ClInclude Include="..\openboardview\BRDBoard.h" />
@@ -153,6 +154,7 @@
     <ClCompile Include="..\imgui\imgui.cpp" />
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\json11\json11.cpp" />
+    <ClCompile Include="..\openboardview\BDVFile.cpp" />
     <ClCompile Include="..\openboardview\BoardView.cpp" />
     <ClCompile Include="..\openboardview\BRDBoard.cpp" />
     <ClCompile Include="..\openboardview\BRDFile.cpp" />

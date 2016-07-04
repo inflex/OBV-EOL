@@ -6,7 +6,9 @@
 #include <memory>
 #include <stdio.h>
 #include <iostream>
+#ifndef _WIN32 // SDL not used on Windows
 #include <SDL.h>
+#endif
 
 #include "BRDBoard.h"
 #include "BRDFile.h"
