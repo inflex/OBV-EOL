@@ -19,16 +19,24 @@ target_link_libraries(gl3w ${PLATFORM_TARGET_LIBS})
 install(TARGETS gl3w DESTINATION ${INSTALL_LIBRARY_DIR})
 
 ## imgui ##
+execute_process(
+	COMMAND git submodule update --init src/imgui
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
 add_library(imgui SHARED imgui/imgui.cpp imgui/imgui_draw.cpp)
 target_link_libraries(imgui ${PLATFORM_TARGET_LIBS})
 install(TARGETS imgui DESTINATION ${INSTALL_LIBRARY_DIR})
 
 ## JSON11 ##
+execute_process(
+	COMMAND git submodule update --init src/json11
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
 add_library(json11 SHARED json11/json11.cpp)
 #target_include_directories(json11 ${CMAKE_CURRENT_SOURCE_DIR}/json11)
 target_compile_options(json11
-  PUBLIC -std=c++11
-  PRIVATE -fno-rtti -fno-exceptions -Wall -Wextra -Werror)
+	PUBLIC -std=c++11
+	PRIVATE -fno-rtti -fno-exceptions -Wall -Wextra -Werror)
 
 install(TARGETS json11 DESTINATION ${INSTALL_LIBRARY_DIR})
 
