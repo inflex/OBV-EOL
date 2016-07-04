@@ -114,7 +114,7 @@ struct Pin : BoardElement {
   EPinType type;
 
   // Pin number / Nail count.
-  int number;
+  string number;
 
   // Position according to board file. (probably in inches)
   Point position;
@@ -129,7 +129,7 @@ struct Pin : BoardElement {
   Component *component;
 
   string UniqueId() const {
-    return kBoardPinPrefix + std::to_string(number);
+    return kBoardPinPrefix + number;
   }
 };
 
