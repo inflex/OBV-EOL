@@ -24,6 +24,7 @@ include_directories(
 	${SDL2_INCLUDE_DIR}
 	${GTK3_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -72,10 +73,10 @@ target_link_libraries(openboardview
 	imgui
 	gl3w
 	json11
-	z
 	${COCOA_LIBRARY}
 	${SDL2_LIBRARY}
 	${GTK3_LIBRARIES}
+	${ZLIB_LIBRARIES}
 )
 
 install(TARGETS
