@@ -24,6 +24,7 @@ include_directories(
 	${SDL2_INCLUDE_DIR}
 	${GTK3_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIRS}
 )
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -36,6 +37,7 @@ set(SOURCES
 	BoardView.cpp
 	BRDBoard.cpp
 	BRDFile.cpp
+	FZFile.cpp
 	imgui_impl_sdl_gl3.cpp
 	main_opengl.cpp
 	NetList.cpp
@@ -74,6 +76,7 @@ target_link_libraries(openboardview
 	${COCOA_LIBRARY}
 	${SDL2_LIBRARY}
 	${GTK3_LIBRARIES}
+	${ZLIB_LIBRARIES}
 )
 
 install(TARGETS
