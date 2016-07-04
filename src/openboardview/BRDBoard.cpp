@@ -133,7 +133,8 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
         part_idx = brd_pin.part;
         pin_idx  = 1;
       }
-      pin->number = pin_idx;
+      if (brd_pin.snum) pin->number = brd_pin.snum;
+      else pin->number = std::to_string(pin_idx);
 
       // copy position
       pin->position = Point(brd_pin.pos.x, brd_pin.pos.y);
@@ -161,13 +162,15 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
           }
         } else {
           // not sure this can happen -> no info
-          pin->net  = nullptr;
-          pin->type = Pin::kPinTypeUnkown;
+          // It does happen in .fz apparently and produces a SEGFAULT… Use unconnected net.
+          pin->net  = net_map[kNetUnconnectedPrefix].get();
+          pin->type = Pin::kPinTypeNotConnected;
         }
       }
 
       // TODO: should either depend on file specs or type etc
-      pin->diameter = 0.5f;
+      if(brd_pin.radius) pin->diameter = brd_pin.radius; // some format (.fz) contains a radius field
+      else pin->diameter = 0.5f;
 
       pin->net->pins.push_back(pin.get());
       pins_.push_back(pin);
