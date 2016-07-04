@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <string.h>
+#include <locale.h>
 
 void decode_bdv(char* buf, size_t buffer_size) {
 	int count = 0xa0; // First key
