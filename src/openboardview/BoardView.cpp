@@ -40,6 +40,7 @@ BoardView::~BoardView() {
 
 
 int BoardView::Annotations_set_filename( char *f ) {
+	snprintf(annotations.fname, ANNOTATION_FNAME_LEN_MAX -1, "%s", f );
 	return 0;
 }
 
@@ -51,7 +52,7 @@ int BoardView::Annotations_save( void ) {
 	return 0;
 }
 
-int BoardView::Annotations_add( char *net, char *part, char *annotation ) {
+int BoardView::Annotations_add( char *net, char *part, double x, double y, char *annotation ) {
 	return 0;
 }
 

@@ -6,6 +6,24 @@
 #include <vector>
 
 
+#define ANNOTATION_NET_SIZE 256
+#define ANNOTATION_PART_SIZE 256
+#define ANNOTATION_FNAME_LEN_MAX 2048
+struct annotation {
+	char net[ANNOTATION_NET_SIZE];
+	char part[ANNOTATION_PART_SIZE];
+	double x;
+	double y;
+	int side;
+	char *comment;
+};
+
+struct annotations {
+	char fname[ANNOTATION_FNAME_LEN_MAX];
+	// vector of struct annotation
+};
+		
+
 #define HISTORY_COUNT_MAX 20
 #define HISTORY_FNAME_LEN_MAX 2048
 struct file_history {
@@ -78,6 +96,7 @@ struct BoardView {
   Board *m_board;
 
 	struct file_history history;
+	struct annotations annotations;
 	int history_file_has_changed = 0;
 	char *History_trim_filename( char *s, int stops );
 	int History_set_filename( char *f);
@@ -98,7 +117,7 @@ struct BoardView {
    int Annotations_set_filename( char *f );
    int Annotations_load( void );
    int Annotations_save( void );
-   int Annotations_add( char *net, char *part, char *annotation );
+   int Annotations_add( char *net, char *part, double x, double y, char *annotation );
    int Annotations_del( int index );
    int Annotations_update( int index, char *annotation );
 
