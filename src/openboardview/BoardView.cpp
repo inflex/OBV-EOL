@@ -542,9 +542,14 @@ void BoardView::HandleInput() {
 			m_draggingLastFrame = true;
 			m_needsRedraw       = true;
 		} else {
-			// Click to select pin:
-			if (m_file && m_board && ImGui::IsMouseReleased(0) &&
-					!m_draggingLastFrame) {
+
+			// Conext menu
+			if (m_file && m_board && ImGui::IsMouseReleased(1) && !m_draggingLastFrame) {
+				// Build context menu here, for annotations and inspection
+				// fprintf(stderr,"Context menu select\n");
+
+				// Else, click to select pin
+			} else if (m_file && m_board && ImGui::IsMouseReleased(0) && !m_draggingLastFrame) {
 				ImVec2 spos = ImGui::GetMousePos();
 				ImVec2 pos  = ScreenToCoord(spos.x, spos.y);
 				// threshold to within a pin's diameter of the pin center
@@ -1317,336 +1322,336 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 		//    draw->ChannelsSetCurrent(kChannelAnnotations);
 		//    draw->AddText(pos, m_colors.annotationPartAlias, annotation);
 		//}
-		}
+	}
+}
+
+void BoardView::DrawBoard() {
+	if (!m_file || !m_board)
+		return;
+
+	ImDrawList *draw = ImGui::GetWindowDrawList();
+	if (!m_needsRedraw) {
+		memcpy(draw, m_cachedDrawList, sizeof(ImDrawList));
+		memcpy(draw->CmdBuffer.Data, m_cachedDrawCommands.Data,
+				m_cachedDrawCommands.Size);
+		return;
 	}
 
-	void BoardView::DrawBoard() {
-		if (!m_file || !m_board)
-			return;
+	// Splitting channels, drawing onto those and merging back.
+	draw->ChannelsSplit(NUM_DRAW_CHANNELS);
+	draw->ChannelsSetCurrent(kChannelPolylines);
 
-		ImDrawList *draw = ImGui::GetWindowDrawList();
-		if (!m_needsRedraw) {
-			memcpy(draw, m_cachedDrawList, sizeof(ImDrawList));
-			memcpy(draw->CmdBuffer.Data, m_cachedDrawCommands.Data,
-					m_cachedDrawCommands.Size);
-			return;
-		}
+	// We draw the Parts before the Pins so that we can ascertain the needed pin
+	// size for the parts based on the part/pad geometry and spacing. -Inflex
+	DrawOutline(draw);
+	DrawParts(draw);
+	DrawPins(draw);
 
-		// Splitting channels, drawing onto those and merging back.
-		draw->ChannelsSplit(NUM_DRAW_CHANNELS);
-		draw->ChannelsSetCurrent(kChannelPolylines);
+	draw->ChannelsMerge();
 
-		// We draw the Parts before the Pins so that we can ascertain the needed pin
-		// size for the parts based on the part/pad geometry and spacing. -Inflex
-		DrawOutline(draw);
-		DrawParts(draw);
-		DrawPins(draw);
-
-		draw->ChannelsMerge();
-
-		// Copy the new draw list and cmd buffer:
-		memcpy(m_cachedDrawList, draw, sizeof(ImDrawList));
-		int cmds_size = draw->CmdBuffer.size() * sizeof(ImDrawCmd);
-		m_cachedDrawCommands.resize(cmds_size);
-		memcpy(m_cachedDrawCommands.Data, draw->CmdBuffer.Data, cmds_size);
-		m_needsRedraw = false;
-	}
+	// Copy the new draw list and cmd buffer:
+	memcpy(m_cachedDrawList, draw, sizeof(ImDrawList));
+	int cmds_size = draw->CmdBuffer.size() * sizeof(ImDrawCmd);
+	m_cachedDrawCommands.resize(cmds_size);
+	memcpy(m_cachedDrawCommands.Data, draw->CmdBuffer.Data, cmds_size);
+	m_needsRedraw = false;
+}
 #pragma endregion
 
-	int qsort_netstrings(const void *a, const void *b) {
-		const char *sa = *(const char **)a;
-		const char *sb = *(const char **)b;
-		return strcmp(sa, sb);
+int qsort_netstrings(const void *a, const void *b) {
+	const char *sa = *(const char **)a;
+	const char *sb = *(const char **)b;
+	return strcmp(sa, sb);
+}
+
+
+/**
+ * CenterView
+ *
+ * Resets the scale and transformation back to original.  
+ * Does NOT change the rotation (yet?)
+ *
+ * PLD20160621-1715
+ *
+ */
+void BoardView::CenterView( void ) {
+	ImVec2 view = ImGui::GetIO().DisplaySize;
+
+	float dx = 1.1f * (m_boardWidth);
+	float dy = 1.1f * (m_boardHeight);
+	float sx = dx > 0 ? view.x / dx : 1.0f;
+	float sy = dy > 0 ? view.y / dy : 1.0f;
+
+	//  m_rotation = 0;
+	m_scale       = sx < sy ? sx : sy;
+	SetTarget(m_mx, m_my);
+	m_needsRedraw = true;
+}
+
+
+void BoardView::SetFile(BRDFile *file) {
+	delete m_file;
+	delete m_board;
+
+	m_file  = file;
+	m_board = new BRDBoard(file);
+
+	m_nets = m_board->Nets();
+
+	int min_x = 1000000, max_x = 0, min_y = 1000000, max_y = 0;
+	for (int i = 0; i < m_file->num_format; i++) {
+		BRDPoint &pa = m_file->format[i];
+		if (pa.x < min_x)
+			min_x = pa.x;
+		if (pa.y < min_y)
+			min_y = pa.y;
+		if (pa.x > max_x)
+			max_x = pa.x;
+		if (pa.y > max_y)
+			max_y = pa.y;
 	}
 
+	ImVec2 view = ImGui::GetIO().DisplaySize;
 
-	/**
-	 * CenterView
-	 *
-	 * Resets the scale and transformation back to original.  
-	 * Does NOT change the rotation (yet?)
-	 *
-	 * PLD20160621-1715
-	 *
-	 */
-	void BoardView::CenterView( void ) {
-		ImVec2 view = ImGui::GetIO().DisplaySize;
+	m_mx = (float)(min_x + max_x) / 2.0f;
+	m_my = (float)(min_y + max_y) / 2.0f;
 
-		float dx = 1.1f * (m_boardWidth);
-		float dy = 1.1f * (m_boardHeight);
-		float sx = dx > 0 ? view.x / dx : 1.0f;
-		float sy = dy > 0 ? view.y / dy : 1.0f;
+	float dx = 1.1f * (max_x - min_x);
+	float dy = 1.1f * (max_y - min_y);
+	float sx = dx > 0 ? view.x / dx : 1.0f;
+	float sy = dy > 0 ? view.y / dy : 1.0f;
 
-		//  m_rotation = 0;
-		m_scale       = sx < sy ? sx : sy;
-		SetTarget(m_mx, m_my);
+	m_scale       = sx < sy ? sx : sy;
+	m_boardWidth  = max_x - min_x;
+	m_boardHeight = max_y - min_y;
+	SetTarget(m_mx, m_my);
+
+	m_pinHighlighted.reserve(m_board->Components().size());
+	m_partHighlighted.reserve(m_board->Components().size());
+	m_pinSelected = nullptr;
+
+	m_firstFrame  = true;
+	m_needsRedraw = true;
+}
+
+ImVec2 BoardView::CoordToScreen(float x, float y, float w) {
+	float side = m_current_side ? -1.0f : 1.0f;
+	float tx   = side * m_scale * (x + w * (m_dx - m_mx));
+	float ty   = -1.0f * m_scale * (y + w * (m_dy - m_my));
+	switch (m_rotation) {
+		case 0:
+			return ImVec2(tx, ty);
+		case 1:
+			return ImVec2(-ty, tx);
+		case 2:
+			return ImVec2(-tx, -ty);
+		default:
+			return ImVec2(ty, -tx);
+	}
+}
+
+ImVec2 BoardView::ScreenToCoord(float x, float y, float w) {
+	float tx, ty;
+	switch (m_rotation) {
+		case 0:
+			tx = x;
+			ty = y;
+			break;
+		case 1:
+			tx = y;
+			ty = -x;
+			break;
+		case 2:
+			tx = -x;
+			ty = -y;
+			break;
+		default:
+			tx = -y;
+			ty = x;
+			break;
+	}
+	float side     = m_current_side ? -1.0f : 1.0f;
+	float invscale = 1.0f / m_scale;
+
+	tx = tx * side * invscale + w * (m_mx - m_dx);
+	ty = ty * -1.0f * invscale + w * (m_my - m_dy);
+
+	return ImVec2(tx, ty);
+}
+
+void BoardView::Rotate(int count) {
+	// too lazy to do math
+	while (count > 0) {
+		m_rotation = (m_rotation + 1) & 3;
+		float dx   = m_dx;
+		float dy   = m_dy;
+		if (m_current_side == 0) {
+			m_dx = -dy;
+			m_dy = dx;
+		} else {
+			m_dx = dy;
+			m_dy = -dx;
+		}
+		--count;
 		m_needsRedraw = true;
 	}
-
-
-	void BoardView::SetFile(BRDFile *file) {
-		delete m_file;
-		delete m_board;
-
-		m_file  = file;
-		m_board = new BRDBoard(file);
-
-		m_nets = m_board->Nets();
-
-		int min_x = 1000000, max_x = 0, min_y = 1000000, max_y = 0;
-		for (int i = 0; i < m_file->num_format; i++) {
-			BRDPoint &pa = m_file->format[i];
-			if (pa.x < min_x)
-				min_x = pa.x;
-			if (pa.y < min_y)
-				min_y = pa.y;
-			if (pa.x > max_x)
-				max_x = pa.x;
-			if (pa.y > max_y)
-				max_y = pa.y;
+	while (count < 0) {
+		m_rotation = (m_rotation - 1) & 3;
+		float dx   = m_dx;
+		float dy   = m_dy;
+		if (m_current_side == 1) {
+			m_dx = -dy;
+			m_dy = dx;
+		} else {
+			m_dx = dy;
+			m_dy = -dx;
 		}
-
-		ImVec2 view = ImGui::GetIO().DisplaySize;
-
-		m_mx = (float)(min_x + max_x) / 2.0f;
-		m_my = (float)(min_y + max_y) / 2.0f;
-
-		float dx = 1.1f * (max_x - min_x);
-		float dy = 1.1f * (max_y - min_y);
-		float sx = dx > 0 ? view.x / dx : 1.0f;
-		float sy = dy > 0 ? view.y / dy : 1.0f;
-
-		m_scale       = sx < sy ? sx : sy;
-		m_boardWidth  = max_x - min_x;
-		m_boardHeight = max_y - min_y;
-		SetTarget(m_mx, m_my);
-
-		m_pinHighlighted.reserve(m_board->Components().size());
-		m_partHighlighted.reserve(m_board->Components().size());
-		m_pinSelected = nullptr;
-
-		m_firstFrame  = true;
+		++count;
 		m_needsRedraw = true;
 	}
+}
 
-	ImVec2 BoardView::CoordToScreen(float x, float y, float w) {
-		float side = m_current_side ? -1.0f : 1.0f;
-		float tx   = side * m_scale * (x + w * (m_dx - m_mx));
-		float ty   = -1.0f * m_scale * (y + w * (m_dy - m_my));
-		switch (m_rotation) {
-			case 0:
-				return ImVec2(tx, ty);
-			case 1:
-				return ImVec2(-ty, tx);
-			case 2:
-				return ImVec2(-tx, -ty);
-			default:
-				return ImVec2(ty, -tx);
-		}
-	}
+void BoardView::SetTarget(float x, float y) {
+	ImVec2 view  = ImGui::GetIO().DisplaySize;
+	ImVec2 coord = ScreenToCoord(view.x / 2.0f, view.y / 2.0f);
+	m_dx += coord.x - x;
+	m_dy += coord.y - y;
+}
 
-	ImVec2 BoardView::ScreenToCoord(float x, float y, float w) {
-		float tx, ty;
-		switch (m_rotation) {
-			case 0:
-				tx = x;
-				ty = y;
-				break;
-			case 1:
-				tx = y;
-				ty = -x;
-				break;
-			case 2:
-				tx = -x;
-				ty = -y;
-				break;
-			default:
-				tx = -y;
-				ty = x;
-				break;
-		}
-		float side     = m_current_side ? -1.0f : 1.0f;
-		float invscale = 1.0f / m_scale;
+inline bool BoardView::ComponentIsVisible(const Component *part) {
+	if (!part)
+		return true; // no component? => no board side info
 
-		tx = tx * side * invscale + w * (m_mx - m_dx);
-		ty = ty * -1.0f * invscale + w * (m_my - m_dy);
-
-		return ImVec2(tx, ty);
-	}
-
-	void BoardView::Rotate(int count) {
-		// too lazy to do math
-		while (count > 0) {
-			m_rotation = (m_rotation + 1) & 3;
-			float dx   = m_dx;
-			float dy   = m_dy;
-			if (m_current_side == 0) {
-				m_dx = -dy;
-				m_dy = dx;
-			} else {
-				m_dx = dy;
-				m_dy = -dx;
-			}
-			--count;
-			m_needsRedraw = true;
-		}
-		while (count < 0) {
-			m_rotation = (m_rotation - 1) & 3;
-			float dx   = m_dx;
-			float dy   = m_dy;
-			if (m_current_side == 1) {
-				m_dx = -dy;
-				m_dy = dx;
-			} else {
-				m_dx = dy;
-				m_dy = -dx;
-			}
-			++count;
-			m_needsRedraw = true;
-		}
-	}
-
-	void BoardView::SetTarget(float x, float y) {
-		ImVec2 view  = ImGui::GetIO().DisplaySize;
-		ImVec2 coord = ScreenToCoord(view.x / 2.0f, view.y / 2.0f);
-		m_dx += coord.x - x;
-		m_dy += coord.y - y;
-	}
-
-	inline bool BoardView::ComponentIsVisible(const Component *part) {
-		if (!part)
-			return true; // no component? => no board side info
-
-		if (part->board_side == kBoardSideBoth)
-			return true;
-
-		if (part->board_side == m_current_side)
-			return true;
-
-		return false;
-	}
-
-	inline bool BoardView::IsVisibleScreen(
-			float x, float y, float radius, const ImGuiIO &io) {
-		if (x < -radius || y < -radius || x - radius > io.DisplaySize.x ||
-				y - radius > io.DisplaySize.y)
-			return false;
+	if (part->board_side == kBoardSideBoth)
 		return true;
-	}
 
-	bool BoardView::PartIsHighlighted(const Component &component) {
-		bool highlighted = contains(component, m_partHighlighted);
+	if (part->board_side == m_current_side)
+		return true;
 
-		// is any pin of this part selected?
-		if (m_pinSelected)
-			highlighted |= m_pinSelected->component == &component;
+	return false;
+}
 
-		return highlighted;
-	}
+inline bool BoardView::IsVisibleScreen(
+		float x, float y, float radius, const ImGuiIO &io) {
+	if (x < -radius || y < -radius || x - radius > io.DisplaySize.x ||
+			y - radius > io.DisplaySize.y)
+		return false;
+	return true;
+}
+
+bool BoardView::PartIsHighlighted(const Component &component) {
+	bool highlighted = contains(component, m_partHighlighted);
+
+	// is any pin of this part selected?
+	if (m_pinSelected)
+		highlighted |= m_pinSelected->component == &component;
+
+	return highlighted;
+}
 
 
-	void BoardView::SetNetFilter(const char *net) {
-		strcpy(m_netFilter, net);
-		if (!m_file || !m_board)
-			return;
+void BoardView::SetNetFilter(const char *net) {
+	strcpy(m_netFilter, net);
+	if (!m_file || !m_board)
+		return;
 
-		m_pinHighlighted.clear();
-		m_partHighlighted.clear();
+	m_pinHighlighted.clear();
+	m_partHighlighted.clear();
 
-		string net_name = string(net);
+	string net_name = string(net);
 
-		if (!net_name.empty()) {
-			bool any_visible = false;
+	if (!net_name.empty()) {
+		bool any_visible = false;
 
-			for (auto &net : m_board->Nets()) {
-				if (is_prefix(net_name, net->name)) {
-					for (auto pin : net->pins) {
-						any_visible |= ComponentIsVisible(pin->component);
-						m_pinHighlighted.push_back(pin);
-						// highlighting all components that belong to this net
-						if (!contains(*pin->component, m_partHighlighted)) {
-							m_partHighlighted.push_back(pin->component);
-						}
+		for (auto &net : m_board->Nets()) {
+			if (is_prefix(net_name, net->name)) {
+				for (auto pin : net->pins) {
+					any_visible |= ComponentIsVisible(pin->component);
+					m_pinHighlighted.push_back(pin);
+					// highlighting all components that belong to this net
+					if (!contains(*pin->component, m_partHighlighted)) {
+						m_partHighlighted.push_back(pin->component);
 					}
 				}
 			}
+		}
 
-			if (m_pinHighlighted.size() > 0) {
-				if (!any_visible)
-					FlipBoard();
-				m_pinSelected = nullptr;
+		if (m_pinHighlighted.size() > 0) {
+			if (!any_visible)
+				FlipBoard();
+			m_pinSelected = nullptr;
+		}
+	}
+
+	m_needsRedraw = true;
+}
+
+void BoardView::FindComponent(const char *name) {
+	if (!m_file || !m_board)
+		return;
+
+	m_pinHighlighted.clear();
+	m_partHighlighted.clear();
+
+	string comp_name = string(name);
+
+	if (!comp_name.empty()) {
+		Component *part_found = nullptr;
+		bool any_visible      = false;
+
+		for (auto &component : m_board->Components()) {
+			if (is_prefix(comp_name, component->name)) {
+				auto p = component.get();
+				m_partHighlighted.push_back(p);
+				any_visible |= ComponentIsVisible(p);
+				part_found = p;
 			}
 		}
 
-		m_needsRedraw = true;
-	}
+		if (part_found) {
+			if (!any_visible)
+				FlipBoard();
+			m_pinSelected = nullptr;
 
-	void BoardView::FindComponent(const char *name) {
-		if (!m_file || !m_board)
-			return;
-
-		m_pinHighlighted.clear();
-		m_partHighlighted.clear();
-
-		string comp_name = string(name);
-
-		if (!comp_name.empty()) {
-			Component *part_found = nullptr;
-			bool any_visible      = false;
-
-			for (auto &component : m_board->Components()) {
-				if (is_prefix(comp_name, component->name)) {
-					auto p = component.get();
-					m_partHighlighted.push_back(p);
-					any_visible |= ComponentIsVisible(p);
-					part_found = p;
-				}
-			}
-
-			if (part_found) {
-				if (!any_visible)
-					FlipBoard();
-				m_pinSelected = nullptr;
-
-				for (auto &pin : part_found->pins) {
-					m_pinHighlighted.push_back(pin);
-				}
+			for (auto &pin : part_found->pins) {
+				m_pinHighlighted.push_back(pin);
 			}
 		}
-		m_needsRedraw = true;
 	}
+	m_needsRedraw = true;
+}
 
-	void BoardView::SetLastFileOpenName(char *name) {
-		free(m_lastFileOpenName);
-		m_lastFileOpenName = name;
+void BoardView::SetLastFileOpenName(char *name) {
+	free(m_lastFileOpenName);
+	m_lastFileOpenName = name;
+}
+
+void BoardView::FlipBoard() {
+	m_current_side ^= 1;
+	m_dx = -m_dx;
+	if (m_flipVertically) {
+		Rotate(2);
 	}
+	m_needsRedraw = true;
+}
 
-	void BoardView::FlipBoard() {
-		m_current_side ^= 1;
-		m_dx = -m_dx;
-		if (m_flipVertically) {
-			Rotate(2);
+BitVec::~BitVec() {
+	free(m_bits);
+}
+
+void BitVec::Resize(uint32_t new_size) {
+	if (new_size > m_size) {
+		uint32_t bytelen     = 4 * ((m_size + 31) / 32);
+		uint32_t new_bytelen = 4 * ((new_size + 31) / 32);
+		uint32_t *new_bits   = (uint32_t *)malloc(new_bytelen);
+		if (m_bits) {
+			memcpy(new_bits, m_bits, bytelen);
+			free(m_bits);
+			memset((char *)new_bits + bytelen, 0, new_bytelen - bytelen);
+		} else {
+			memset(new_bits, 0, new_bytelen);
 		}
-		m_needsRedraw = true;
+		m_bits = new_bits;
 	}
-
-	BitVec::~BitVec() {
-		free(m_bits);
-	}
-
-	void BitVec::Resize(uint32_t new_size) {
-		if (new_size > m_size) {
-			uint32_t bytelen     = 4 * ((m_size + 31) / 32);
-			uint32_t new_bytelen = 4 * ((new_size + 31) / 32);
-			uint32_t *new_bits   = (uint32_t *)malloc(new_bytelen);
-			if (m_bits) {
-				memcpy(new_bits, m_bits, bytelen);
-				free(m_bits);
-				memset((char *)new_bits + bytelen, 0, new_bytelen - bytelen);
-			} else {
-				memset(new_bits, 0, new_bytelen);
-			}
-			m_bits = new_bits;
-		}
-		m_size = new_size;
-	}
+	m_size = new_size;
+}
