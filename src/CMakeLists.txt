@@ -48,10 +48,10 @@ target_compile_options(json11
 install(TARGETS json11 DESTINATION ${INSTALL_LIBRARY_DIR})
 
 ## utf8.h ##
-#execute_process(
-#	COMMAND git submodule update --init src/utf8
-#	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-#)
+execute_process(
+	COMMAND git submodule update --init src/utf8
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
 
 ## zlib ##
 find_package(ZLIB)
