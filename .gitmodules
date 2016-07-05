@@ -1,6 +1,16 @@
 [submodule "json11"]
 	path = src/json11
 	url = https://github.com/dropbox/json11.git
+[submodule "src/imgui"]
+	path = src/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "src/gl3w"]
+	path = src/gl3w
+	url = https://github.com/skaslev/gl3w.git
 [submodule "src/zlib"]
 	path = src/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "src/utf8"]
+	path = src/utf8
+	url = https://github.com/OpenBoardView/utf8.h.git
+	branch = casestr
