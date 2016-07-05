@@ -13,24 +13,45 @@ else()
 endif()
 
 ## gl3w ##
-add_library(gl3w SHARED gl3w/src/gl3w.c)
-target_include_directories(gl3w PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl3w/include)
-target_link_libraries(gl3w ${PLATFORM_TARGET_LIBS})
-install(TARGETS gl3w DESTINATION ${INSTALL_LIBRARY_DIR})
+execute_process(
+	COMMAND git submodule update --init src/gl3w
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+# Download include/GL/glcorearb.h & generate src/gl3w.c and include/GL/gl3w.h
+execute_process(
+	COMMAND ./gl3w_gen.py
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/gl3w
+)
+add_subdirectory(gl3w)
 
 ## imgui ##
+execute_process(
+	COMMAND git submodule update --init src/imgui
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+add_definitions("-DImDrawIdx=unsigned int") # short is not enough for us
 add_library(imgui SHARED imgui/imgui.cpp imgui/imgui_draw.cpp)
 target_link_libraries(imgui ${PLATFORM_TARGET_LIBS})
 install(TARGETS imgui DESTINATION ${INSTALL_LIBRARY_DIR})
 
 ## JSON11 ##
+execute_process(
+	COMMAND git submodule update --init src/json11
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
 add_library(json11 SHARED json11/json11.cpp)
 #target_include_directories(json11 ${CMAKE_CURRENT_SOURCE_DIR}/json11)
 target_compile_options(json11
-  PUBLIC -std=c++11
-  PRIVATE -fno-rtti -fno-exceptions -Wall -Wextra -Werror)
+	PUBLIC -std=c++11
+	PRIVATE -fno-rtti -fno-exceptions -Wall -Wextra -Werror)
 
 install(TARGETS json11 DESTINATION ${INSTALL_LIBRARY_DIR})
+
+## utf8.h ##
+execute_process(
+	COMMAND git submodule update --init src/utf8
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
 
 ## zlib ##
 find_package(ZLIB)
