@@ -42,11 +42,11 @@ int main(int argc, char **argv)
 
     // Load Fonts
     ImGuiIO &io = ImGui::GetIO();
-    std::string fontpath = get_asset_path("FiraSans-Medium.ttf");
-    io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f);
+//    std::string fontpath = get_asset_path("FiraSans-Medium.ttf");
+ //   io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f);
 
     BoardView app{};
-	 app.History_set_filename("openboardview.history");
+//	 app.History_set_filename("openboardview.history");
 	 app.History_load();
 
     ImVec4 clear_color = ImColor(20, 20, 30);
