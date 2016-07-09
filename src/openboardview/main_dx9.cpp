@@ -28,24 +28,24 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		return true;
 
 	switch (msg) {
-	case WM_SIZE:
-		if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED) {
-			ImGui_ImplDX9_InvalidateDeviceObjects();
-			g_d3dpp.BackBufferWidth = LOWORD(lParam);
-			g_d3dpp.BackBufferHeight = HIWORD(lParam);
-			HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-			if (hr == D3DERR_INVALIDCALL)
-				IM_ASSERT(0);
-			ImGui_ImplDX9_CreateDeviceObjects();
-		}
-		return 0;
-	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+		case WM_SIZE:
+			if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED) {
+				ImGui_ImplDX9_InvalidateDeviceObjects();
+				g_d3dpp.BackBufferWidth = LOWORD(lParam);
+				g_d3dpp.BackBufferHeight = HIWORD(lParam);
+				HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
+				if (hr == D3DERR_INVALIDCALL)
+					IM_ASSERT(0);
+				ImGui_ImplDX9_CreateDeviceObjects();
+			}
 			return 0;
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+		case WM_SYSCOMMAND:
+			if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+				return 0;
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
@@ -60,21 +60,21 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	HINSTANCE instance = GetModuleHandle(NULL);
 	HICON icon = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
 	WNDCLASSEX wc = {sizeof(WNDCLASSEX),
-	                 CS_CLASSDC,
-	                 WndProc,
-	                 0L,
-	                 0L,
-	                 instance,
-	                 icon,
-	                 NULL,
-	                 NULL,
-	                 NULL,
-	                 class_name,
-	                 NULL};
+		CS_CLASSDC,
+		WndProc,
+		0L,
+		0L,
+		instance,
+		icon,
+		NULL,
+		NULL,
+		NULL,
+		class_name,
+		NULL};
 	RegisterClassEx(&wc);
 	HWND hwnd =
-	    CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-	                 CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+		CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+				CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	LPDIRECT3D9 pD3D;
@@ -92,7 +92,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Create the D3DDevice
 	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
-	                       D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) {
+				D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) {
 		pD3D->Release();
 		UnregisterClass(class_name, wc.hInstance);
 		return 0;
@@ -110,13 +110,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ImFontConfig font_cfg{};
 	font_cfg.FontDataOwnedByAtlas = false;
 	io.Fonts->AddFontFromMemoryTTF(ttf_data, ttf_size, 20.0f, &font_cfg);
-// io.Fonts->AddFontDefault();
-// io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
-// io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
-// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
-// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
-// io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL,
-// io.Fonts->GetGlyphRangesJapanese());
+	// io.Fonts->AddFontDefault();
+	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
+	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
+	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
+	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
+	// io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL,
+	// io.Fonts->GetGlyphRangesJapanese());
 #if 0
 	// Get current flag
 	int tmpFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -127,6 +127,37 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Set flag to the new value.
 	_CrtSetDbgFlag(tmpFlag);
 #endif
+
+	/*
+	io->KeyMap[ImGuiKey_Tab] = VK_TAB;
+//	io->KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+//	io->KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+//	io->KeyMap[ImGuiKey_UpArrow] = VK_UP;
+//	io->KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+	io->KeyMap[ImGuiKey_LeftArrow] = VK_NUMPAD4;
+	io->KeyMap[ImGuiKey_RightArrow] = VK_NUMPAD6;
+	io->KeyMap[ImGuiKey_UpArrow] = VK_NUMPAD8;
+	io->KeyMap[ImGuiKey_DownArrow] = VK_NUMPAD2;
+	io->KeyMap[ImGuiKey_DownArrow
+//	io->KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
+//	io->KeyMap[ImGuiKey_PageDown] = VK_NEXT;
+	io->KeyMap[ImGuiKey_Home] = VK_HOME;
+	io->KeyMap[ImGuiKey_End] = VK_END;
+	io->KeyMap[ImGuiKey_Delete] = VK_DELETE;
+	io->KeyMap[ImGuiKey_Backspace] = VK_BACK;
+	io->KeyMap[ImGuiKey_Enter] = VK_RETURN;
+	io->KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+	io->KeyMap[ImGuiKey_A] = 'A';
+	io->KeyMap[ImGuiKey_S] = 'S';
+	io->KeyMap[ImGuiKey_D] = 'D';
+	io->KeyMap[ImGuiKey_W] = 'W';
+	io->KeyMap[ImGuiKey_C] = 'C';
+	io->KeyMap[ImGuiKey_V] = 'V';
+	io->KeyMap[ImGuiKey_X] = 'X';
+	io->KeyMap[ImGuiKey_Y] = 'Y';
+	io->KeyMap[ImGuiKey_Z] = 'Z';
+	*/
+
 	BoardView app{};
 	app.History_load();
 
@@ -156,8 +187,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 		D3DCOLOR clear_col_dx =
-		    D3DCOLOR_RGBA((int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f),
-		                  (int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
+			D3DCOLOR_RGBA((int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f),
+					(int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
 		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
 		if (g_pd3dDevice->BeginScene() >= 0) {
 			ImGui::Render();
