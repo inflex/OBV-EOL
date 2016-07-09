@@ -616,8 +616,24 @@ void BoardView::HandleInput() {
 
 	if (!io.WantCaptureKeyboard) {
 #define PAN_AMOUNT 30
+		if (ImGui::IsKeyPressed(SDLK_n)) {
+		// Search for net
+			m_showNetfilterSearch = true;
+
+		} else if (ImGui::IsKeyPressed(SDLK_c)) {
+		 // Search for component
+			m_showComponentSearch = true;
+
+		} else if (ImGui::IsKeyPressed(SDLK_l)) {
+			// Show Net List
+			m_showNetList = m_showNetList ? false : true;
+
+		} else if (ImGui::IsKeyPressed(SDLK_k)) {
+		// Show Part List
+			m_showPartList = m_showPartList ? false : true;
+
+		} else if (ImGui::IsKeyPressed(SDLK_SPACE)) {
 		// Flip board:
-		if (ImGui::IsKeyPressed(SDLK_SPACE)) {
 			FlipBoard();
 
 		}  else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_0)||ImGui::IsKeyPressed(SDLK_r) ) {
@@ -625,8 +641,8 @@ void BoardView::HandleInput() {
 		// counter-clockwise
 			Rotate(1);
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_PERIOD)) {
-			Rotate(-1);
+//		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_DECIMAL)) {
+//			Rotate(-1);
 
 		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_PLUS)||ImGui::IsKeyPressed(SDLK_EQUALS)) {
 			if ( ImGui::IsKeyDown(SDL_SCANCODE_LCTRL) || ImGui::IsKeyDown(SDL_SCANCODE_RCTRL) ) {
@@ -657,21 +673,6 @@ void BoardView::HandleInput() {
 		// Center and reset zoom
 			CenterView();
 
-		} else if (ImGui::IsKeyPressed(SDLK_n)) {
-		// Search for net
-			m_showNetfilterSearch = true;
-
-		} else if (ImGui::IsKeyPressed(SDLK_c)) {
-		 // Search for component
-			m_showComponentSearch = true;
-
-		} else if (ImGui::IsKeyPressed(SDLK_l)) {
-			// Show Net List
-			m_showNetList = m_showNetList ? false : true;
-
-		} else if (ImGui::IsKeyPressed(SDLK_k)) {
-		// Show Part List
-			m_showPartList = m_showPartList ? false : true;
 		}
 	}
 }
