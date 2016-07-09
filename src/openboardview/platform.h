@@ -17,11 +17,16 @@
 #define SDL_SCANCODE_KP_6 VK_RIGHT
 #define SDL_SCANCODE_KP_8 VK_UP
 
-#define SDLK_a VK_KEY_A
-#define SDLK_s VK_KEY_S
-#define SDLK_d VK_KEY_D
-#define SDLK_w VK_KEY_W
-#define SDLK_x VK_KEY_X
+#define SDLK_a 0x41
+#define SDLK_s 0x53
+#define SDLK_d 0x44
+#define SDLK_w 0x57
+#define SDLK_x 0x58
+
+#define SDLK_l 0x4c
+#define SDLK_k 0x4b
+#define SDLK_c 0x43
+#define SDLK_n 0x4e
 
 //#define SDL_SCANCODE_KP_2 VK_NUMPAD2
 //#define SDL_SCANCODE_KP_4 VK_NUMPAD4

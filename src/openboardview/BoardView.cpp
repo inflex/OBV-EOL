@@ -657,19 +657,19 @@ void BoardView::HandleInput() {
 		// Center and reset zoom
 			CenterView();
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_N)) {
+		} else if (ImGui::IsKeyPressed(SDLK_n)) {
 		// Search for net
 			m_showNetfilterSearch = true;
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_C)) {
+		} else if (ImGui::IsKeyPressed(SDLK_c)) {
 		 // Search for component
 			m_showComponentSearch = true;
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_L)) {
+		} else if (ImGui::IsKeyPressed(SDLK_l)) {
 			// Show Net List
 			m_showNetList = m_showNetList ? false : true;
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_K)) {
+		} else if (ImGui::IsKeyPressed(SDLK_k)) {
 		// Show Part List
 			m_showPartList = m_showPartList ? false : true;
 		}
