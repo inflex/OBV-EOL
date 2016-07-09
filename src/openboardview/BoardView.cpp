@@ -617,10 +617,10 @@ void BoardView::HandleInput() {
 	if (!io.WantCaptureKeyboard) {
 #define PAN_AMOUNT 30
 		// Flip board:
-		if (ImGui::IsKeyPressed(SDL_SCANCODE_SPACE)) {
+		if (ImGui::IsKeyPressed(SDLK_SPACE)) {
 			FlipBoard();
 
-		}  else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_0)||ImGui::IsKeyPressed(SDL_SCANCODE_R) ) {
+		}  else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_0)||ImGui::IsKeyPressed(SDLK_r) ) {
 		// Rotate board: R and period rotate clockwise; comma rotates
 		// counter-clockwise
 			Rotate(1);
@@ -628,13 +628,13 @@ void BoardView::HandleInput() {
 		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_PERIOD)) {
 			Rotate(-1);
 
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_PLUS)||ImGui::IsKeyPressed(SDL_SCANCODE_EQUALS)) {
+		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_PLUS)||ImGui::IsKeyPressed(SDLK_EQUALS)) {
 			if ( ImGui::IsKeyDown(SDL_SCANCODE_LCTRL) || ImGui::IsKeyDown(SDL_SCANCODE_RCTRL) ) {
 				Zoom( m_lastWidth/2, m_lastHeight/2, 0.01f );
 			} else {
 				Zoom( m_lastWidth/2, m_lastHeight/2, 0.1f );
 			}
-		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_MINUS)||ImGui::IsKeyPressed(SDL_SCANCODE_MINUS)) {
+		} else if (ImGui::IsKeyPressed(SDL_SCANCODE_KP_MINUS)||ImGui::IsKeyPressed(SDLK_MINUS)) {
 			if ( ImGui::IsKeyDown(SDL_SCANCODE_LCTRL) || ImGui::IsKeyDown(SDL_SCANCODE_RCTRL) ) {
 				Zoom( m_lastWidth/2, m_lastHeight/2, -0.01f );
 			} else {

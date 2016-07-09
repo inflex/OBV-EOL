@@ -28,6 +28,12 @@
 #define SDLK_c 0x43
 #define SDLK_n 0x4e
 
+#define SDLK_r 0x52
+
+#define SDLK_EQUALS '='
+#define SDLK_SPACE ' '
+#define SDLK_MINUS '-'
+
 //#define SDL_SCANCODE_KP_2 VK_NUMPAD2
 //#define SDL_SCANCODE_KP_4 VK_NUMPAD4
 //#define SDL_SCANCODE_KP_5 VK_NUMPAD5
