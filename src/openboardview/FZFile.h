@@ -13,7 +13,7 @@
 	while (isspace((uint8_t)*p))                                                               \
 		++p;                                                                               \
 	s = p;                                                                                     \
-	while (!isspace((uint8_t)*p) && *p != '!') /* '!' is our delimiter */                      \
+	while (*p != '!') /* '!' is our delimiter */                                               \
 		++p;                                                                               \
 	*p++ = 0;                                                                                  \
 	var = fix_to_utf8(s, &arena, arena_end);
