@@ -1,6 +1,7 @@
 // ImGui - standalone example application for SDL2 + OpenGL
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 
+#include "history.h"
 #include "BoardView.h"
 
 #include "imgui_impl_sdl_gl3.h"
@@ -53,8 +54,8 @@ int main(int argc, char **argv)
 
 
 	BoardView app{};
-	app.History_set_filename("openboardview.history");
-	app.History_load();
+	app.history.Set_filename("openboardview.history");
+	app.history.Load();
 
 	ImVec4 clear_color = ImColor(20, 20, 30);
 
