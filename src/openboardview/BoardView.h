@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include "history.h"
 #include "Board.h"
 #include "imgui/imgui.h"
 #include <stdint.h>
@@ -70,7 +72,7 @@ struct BoardView {
   BRDFile *m_file;
   Board *m_board;
 
-	FHistory history;
+	FHistory fhistory;
 	int history_file_has_changed = 0;
 
 	void CenterView(void);

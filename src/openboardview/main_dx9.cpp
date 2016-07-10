@@ -130,8 +130,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 
 	BoardView app{};
-	app.history.set_fname("c:\\obvhistory.log");
-	app.history.load();
+	app.fhistory.Set_filename("c:/obv/obvhistory.log");
+	app.fhistory.Load();
 	
 
 	bool show_test_window = true;
