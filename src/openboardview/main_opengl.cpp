@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 
 	BoardView app{};
-	//	 app.History_set_filename("openboardview.history");
+	app.History_set_filename("openboardview.history");
 	app.History_load();
 
 	ImVec4 clear_color = ImColor(20, 20, 30);

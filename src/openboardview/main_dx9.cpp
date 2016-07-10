@@ -50,6 +50,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+string ExePath() {
+	char buffer[MAX_PATH];
+	GetModuleFileName( NULL, buffer, MAX_PATH );
+	string::size_type pos = string( buffer ).find_last_of( "\\/" );
+	return string( buffer ).substr( 0, pos);
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	// Initialize comctl
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -129,42 +136,17 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 
 
-	/*
-	io->KeyMap[ImGuiKey_Tab] = VK_TAB;
-//	io->KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-//	io->KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-//	io->KeyMap[ImGuiKey_UpArrow] = VK_UP;
-//	io->KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-	io->KeyMap[ImGuiKey_LeftArrow] = VK_NUMPAD4;
-	io->KeyMap[ImGuiKey_RightArrow] = VK_NUMPAD6;
-	io->KeyMap[ImGuiKey_UpArrow] = VK_NUMPAD8;
-	io->KeyMap[ImGuiKey_DownArrow] = VK_NUMPAD2;
-	io->KeyMap[ImGuiKey_DownArrow
-//	io->KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
-//	io->KeyMap[ImGuiKey_PageDown] = VK_NEXT;
-	io->KeyMap[ImGuiKey_Home] = VK_HOME;
-	io->KeyMap[ImGuiKey_End] = VK_END;
-	io->KeyMap[ImGuiKey_Delete] = VK_DELETE;
-	io->KeyMap[ImGuiKey_Backspace] = VK_BACK;
-	io->KeyMap[ImGuiKey_Enter] = VK_RETURN;
-	io->KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
-	io->KeyMap[ImGuiKey_A] = 'A';
-	io->KeyMap[ImGuiKey_S] = 'S';
-	io->KeyMap[ImGuiKey_D] = 'D';
-	io->KeyMap[ImGuiKey_W] = 'W';
-	io->KeyMap[ImGuiKey_C] = 'C';
-	io->KeyMap[ImGuiKey_V] = 'V';
-	io->KeyMap[ImGuiKey_X] = 'X';
-	io->KeyMap[ImGuiKey_Y] = 'Y';
-	io->KeyMap[ImGuiKey_Z] = 'Z';
-	*/
-
 	BoardView app{};
-	app.History_load();
+	{
+		char hpath[MAX_PATH];
+		snprintf(hpath,sizeof(hpath),"%s/obvhistory.log", ExePath.c_str());
+		app.History_load();
+	}
 
 	bool show_test_window = true;
 	bool show_another_window = false;
 	ImVec4 clear_col = ImColor(20, 20, 30);
+
 
 	// Main loop
 	MSG msg;
