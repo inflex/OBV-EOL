@@ -13,15 +13,24 @@
 #include <SDL2/SDL.h>
 #include "platform.h"
 #include "resource.h"
+#include "confparse.h"
 
 int main(int argc, char **argv)
 {
+	Confparse obvconfig;
+	int sizex, sizey;
+
 	// Setup SDL
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
 	{
 		printf("Error: %s\n", SDL_GetError());
 		return -1;
 	}
+
+
+	obvconfig.Load("openboardview.conf");
+	sizex = obvconfig.ParseInt("windowX", 1280);
+	sizey = obvconfig.ParseInt("windowY", 900);
 
 	// Setup window
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -33,7 +42,7 @@ int main(int argc, char **argv)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_DisplayMode current;
 	SDL_GetCurrentDisplayMode(0, &current);
-	SDL_Window *window = SDL_CreateWindow("OpenFlex Board Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+	SDL_Window *window = SDL_CreateWindow("OpenFlex Board Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sizex, sizey, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 	gl3wInit();

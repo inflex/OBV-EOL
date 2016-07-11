@@ -33,6 +33,7 @@ if(MINGW)
 endif()
 
 set(SOURCES
+	confparse.cpp
 	vectorhulls.cpp
 	history.cpp
 	BDVFile.cpp
