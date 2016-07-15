@@ -60,7 +60,9 @@ int main(int argc, char **argv)
 	std::string fontpath = get_asset_path(obvconfig.ParseStr("fontPath","DroidSans.ttf"));
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), obvconfig.ParseDouble("fontSize",20.0f));
 	//	io.Fonts->AddFontDefault();
-
+	
+	ImGuiStyle &style = ImGui::GetStyle();
+	style.AntiAliasedShapes = obvconfig.ParseBool("enableAA", true);
 
 	BoardView app{};
 	app.fhistory.Set_filename("openboardview.history");

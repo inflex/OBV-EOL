@@ -11,5 +11,6 @@ struct Confparse {
 	char *ParseStr( const char *key, char *defaultv );
 	double ParseDouble(const char *key, double defaultv );
 	int ParseInt( const char *key, int defaultv );
+	bool ParseBool( const char *key, bool defaultv );
 
 };
