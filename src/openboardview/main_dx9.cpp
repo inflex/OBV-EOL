@@ -14,13 +14,32 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <tchar.h>
+#include <shlwapi.h>
+#include <direct.h>
 #include "crtdbg.h"
 #include "platform.h"
 #include "resource.h"
+#include "confparse.h"
 
 // Data
 static LPDIRECT3DDEVICE9 g_pd3dDevice = NULL;
 static D3DPRESENT_PARAMETERS g_d3dpp;
+
+// local functions
+#ifndef S_ISDIR
+#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#endif
+uint32_t byte4swap(uint32_t x) {
+	/*
+	* used to convert RGBA -> ABGR etc
+	*/
+	return (
+		((x & 0x000000ff) << 24)
+		| ((x & 0x0000ff00) << 8)
+		| ((x & 0x00ff0000) >> 8)
+		| ((x & 0xff000000) >> 24)
+		);
+}
 
 extern LRESULT ImGui_ImplDX9_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -51,8 +70,16 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	
 	// Initialize comctl
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
+	char ss[1025];
+	char *homepath;
+	int err;
+	size_t hpsz;
+	Confparse obvconfig;
+	int sizex, sizey;
 
 	static const wchar_t *class_name = L"Openflex Board View";
 
@@ -72,6 +99,32 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		class_name,
 		NULL};
 	RegisterClassEx(&wc);
+
+	err = _dupenv_s( &homepath, &hpsz, "APPDATA");
+	if (homepath) {
+		struct stat st;
+		int sr;
+		snprintf(ss, sizeof(ss), "%s/openboardview", homepath);
+		sr = stat(ss, &st);
+		if (sr == -1) {
+			_mkdir(ss);
+			sr = stat(ss, &st);
+		}
+
+		if ((sr == 0) && (S_ISDIR(st.st_mode))) {
+			// path exists
+			//
+			snprintf(ss, sizeof(ss), "%s/openboardview/obv.conf", homepath);
+			obvconfig.Load(ss);
+
+			snprintf(ss, sizeof(ss), "%s/openboardview/obv.history", homepath);
+		}
+	}
+
+	sizex = obvconfig.ParseInt("windowX", 1280);
+	sizey = obvconfig.ParseInt("windowY", 900);
+
+
 	HWND hwnd =
 		CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
 				CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
@@ -130,9 +183,46 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 
 	BoardView app{};
-	app.fhistory.Set_filename("c:/obv/obvhistory.log");
-	app.fhistory.Load();
+	if (homepath) {
+		app.fhistory.Set_filename(ss);
+		app.fhistory.Load();
+	}
 	
+	/*
+	* Some machines (Atom etc) don't have enough CPU/GPU
+	* grunt to cope with the large number of AA'd circles
+	* generated on a large dense board like a Macbook Pro
+	* so we have the lowCPU option which will let people
+	* trade good-looks for better FPS
+	*/
+	app.slowCPU = obvconfig.ParseBool("slowCPU", false);
+	if (app.slowCPU == true) {
+		ImGuiStyle &style = ImGui::GetStyle();
+		style.AntiAliasedShapes = false;
+	}
+
+	app.showFPS = obvconfig.ParseBool("showFPS", false);
+
+	/*
+	* Colours in ImGui can be represented as a 4-byte packed uint32_t as ABGR
+	* but most humans are more accustomed to RBGA, so for the sake of readability
+	* we use the human-readable version but swap the ordering around when
+	* it comes to assigning the actual colour to ImGui.
+	*/
+	app.m_colors.backgroundColor = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
+	app.m_colors.partTextColor = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
+	app.m_colors.boardOutline = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
+	app.m_colors.boxColor = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
+	app.m_colors.pinDefault = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
+	app.m_colors.pinGround = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
+	app.m_colors.pinNotConnected = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
+	app.m_colors.pinTestPad = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
+	app.m_colors.pinSelected = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
+	app.m_colors.pinHighlighted = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
+	app.m_colors.pinHighlightSameNet = byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
+	app.m_colors.annotationPartAlias = byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
+	app.m_colors.partHullColor = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
+
 
 	bool show_test_window = true;
 	bool show_another_window = false;
