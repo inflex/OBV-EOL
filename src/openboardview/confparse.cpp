@@ -13,8 +13,9 @@ int Confparse::Load(const char *utf8_filename ) {
 	std::ifstream file;
 	file.open(utf8_filename,  std::ios::in | std::ios::binary | std::ios::ate);
 	if (!file.is_open()) {
-		std::cerr << "Error opening " << utf8_filename << ": " << strerror(errno) << std::endl;
+//		std::cerr << "Error opening " << utf8_filename << ": " << strerror(errno) << std::endl;
 		buffer_size = 0;
+		conf = NULL;
 		return 1;
 	}
 
@@ -63,7 +64,7 @@ char *Confparse::Parse( const char *key ) {
 		 * assist in making it easier for people to read it.
 		 */
 		p = p +keylen;
-		while ((p < llimit)&&(*p == '=')||(*p == ' ')||(*p == '\t')) p++; // get up to the start of the value;
+		while ((p < llimit)&&((*p == '=')||(*p == ' ')||(*p == '\t'))) p++; // get up to the start of the value;
 
 
 
