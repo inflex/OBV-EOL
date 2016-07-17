@@ -337,6 +337,14 @@ void BoardView::Update() {
 			}
 			ImGui::Columns(1);
 			ImGui::Separator();
+
+			if (ImGui::Button("Search")) {
+				FindComponent(first_button);
+				FindComponentNoClear(first_button2);
+				FindComponentNoClear(first_button3);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
 			if (ImGui::Button("Reset")) {
 				FindComponent("");
 				m_search[0] = '\0';
@@ -352,7 +360,7 @@ void BoardView::Update() {
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			ImGui::Text("ENTER to search, ESC to EXIT, TAB to next field");
+			ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
 
 			ImGui::EndPopup();
 		}
