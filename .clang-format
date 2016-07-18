@@ -1,18 +1,15 @@
 BasedOnStyle: LLVM
 PointerBindsToType: false
-AllowShortFunctionsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+IndentCaseLabels: true
 BreakBeforeBraces: Attach
-AlignAfterOpenBracket: DontAlign
 BreakConstructorInitializersBeforeComma: true
-BreakBeforeTernaryOperators: true
-
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: false
-
 AlwaysBreakTemplateDeclarations: true
-
-IndentWidth: 2
-ContinuationIndentWidth: 4
-TabWidth: 2
-UseTab: Never
-ColumnLimit: 80
+AlwaysBreakBeforeMultilineStrings: true
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+ColumnLimit: 100
