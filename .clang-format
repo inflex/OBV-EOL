@@ -5,6 +5,11 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
 IndentCaseLabels: true
+BinPackArguments: false
+BinPackParameters: false
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
+AlignEscapedNewlinesLeft: false
 BreakBeforeBraces: Attach
 BreakConstructorInitializersBeforeComma: true
 AlwaysBreakTemplateDeclarations: true
