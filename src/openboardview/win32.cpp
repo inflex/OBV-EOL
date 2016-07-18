@@ -1,11 +1,11 @@
 #ifdef _WIN32
 
 #define _CRT_SECURE_NO_WARNINGS 1
-#include "platform.h"
 #include "imgui/imgui.h"
-#include <stdint.h>
+#include "platform.h"
 #include <Windows.h>
 #include <assert.h>
+#include <stdint.h>
 
 wchar_t *utf8_to_wide(const char *s) {
 	size_t len = utf8len(s);

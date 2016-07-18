@@ -18,213 +18,214 @@ using namespace std::placeholders;
 using namespace json11;
 
 const string BRDBoard::kNetUnconnectedPrefix = "UNCONNECTED";
-const string BRDBoard::kComponentDummyName   = "...";
+const string BRDBoard::kComponentDummyName = "...";
 
 BRDBoard::BRDBoard(const BRDFile *const boardFile)
     : m_file(boardFile) {
-  // TODO: strip / trim all strings, especially those used as keys
-  // TODO: just loop through original arrays?
-  vector<BRDPart> m_parts = m_file->parts;
-  vector<BRDPin> m_pins = m_file->pins;
-  vector<BRDNail> m_nails = m_file->nails;
-  vector<BRDPoint> m_points = m_file->format;
+	// TODO: strip / trim all strings, especially those used as keys
+	// TODO: just loop through original arrays?
+	vector<BRDPart> m_parts = m_file->parts;
+	vector<BRDPin> m_pins = m_file->pins;
+	vector<BRDNail> m_nails = m_file->nails;
+	vector<BRDPoint> m_points = m_file->format;
 
-  // Set outline
-  {
-    for (auto &brdPoint : m_points) {
-      auto point = make_shared<Point>(brdPoint.x, brdPoint.y);
-      outline_.push_back(point);
-    }
-  }
+	// Set outline
+	{
+		for (auto &brdPoint : m_points) {
+			auto point = make_shared<Point>(brdPoint.x, brdPoint.y);
+			outline_.push_back(point);
+		}
+	}
 
-  // Populate map of unique nets
-  SharedStringMap<Net> net_map;
-  {
-    // adding special net 'UNCONNECTED'
-    auto net_nc           = make_shared<Net>();
-    net_nc->name          = kNetUnconnectedPrefix;
-    net_nc->is_ground     = false;
-    net_map[net_nc->name] = net_nc;
+	// Populate map of unique nets
+	SharedStringMap<Net> net_map;
+	{
+		// adding special net 'UNCONNECTED'
+		auto net_nc = make_shared<Net>();
+		net_nc->name = kNetUnconnectedPrefix;
+		net_nc->is_ground = false;
+		net_map[net_nc->name] = net_nc;
 
-    // handle all the others
-    for (auto &brd_nail : m_nails) {
-      auto net = make_shared<Net>();
+		// handle all the others
+		for (auto &brd_nail : m_nails) {
+			auto net = make_shared<Net>();
 
-      // copy NET name and number (probe)
-      net->name = string(brd_nail.net);
+			// copy NET name and number (probe)
+			net->name = string(brd_nail.net);
 
-      // avoid having multiple UNCONNECTED<XXX> references
-      if (is_prefix(kNetUnconnectedPrefix, net->name))
-        continue;
+			// avoid having multiple UNCONNECTED<XXX> references
+			if (is_prefix(kNetUnconnectedPrefix, net->name)) continue;
 
-      // check whether the pin represents ground
-      net->is_ground = (net->name == "GND");
-      net->number    = brd_nail.probe;
+			// check whether the pin represents ground
+			net->is_ground = (net->name == "GND");
+			net->number = brd_nail.probe;
 
-      // NOTE: brd_nail.side not handled here
+			// NOTE: brd_nail.side not handled here
 
-      // so we can find nets later by name (making unique by name)
-      net_map[net->name] = net;
-    }
-  }
+			// so we can find nets later by name (making unique by name)
+			net_map[net->name] = net;
+		}
+	}
 
-  // Populate parts
-  {
-    for (auto &brd_part : m_parts) {
-      auto comp = make_shared<Component>();
+	// Populate parts
+	{
+		for (auto &brd_part : m_parts) {
+			auto comp = make_shared<Component>();
 
-      comp->name = string(brd_part.name);
+			comp->name = string(brd_part.name);
 
-      // is it some dummy component to indicate test pads?
-      if (is_prefix(kComponentDummyName, comp->name))
-        comp->component_type = Component::kComponentTypeDummy;
+			// is it some dummy component to indicate test pads?
+			if (is_prefix(kComponentDummyName, comp->name))
+				comp->component_type = Component::kComponentTypeDummy;
 
-      // check what side the board is on (sorcery?)
-      if (brd_part.type < 8 && brd_part.type >= 4) {
-        comp->board_side = kBoardSideTop;
-      } else if (brd_part.type >= 8) {
-        comp->board_side = kBoardSideBottom;
-      } else {
-        comp->board_side = kBoardSideBoth; // ???
-      }
+			// check what side the board is on (sorcery?)
+			if (brd_part.type < 8 && brd_part.type >= 4) {
+				comp->board_side = kBoardSideTop;
+			} else if (brd_part.type >= 8) {
+				comp->board_side = kBoardSideBottom;
+			} else {
+				comp->board_side = kBoardSideBoth; // ???
+			}
 
-      comp->mount_type = (brd_part.type & 0xc) ? Component::kMountTypeSMD
-                                               : Component::kMountTypeDIP;
+			comp->mount_type =
+			    (brd_part.type & 0xc) ? Component::kMountTypeSMD : Component::kMountTypeDIP;
 
-      components_.push_back(comp);
-    }
-  }
+			components_.push_back(comp);
+		}
+	}
 
-  // Populate pins
-  {
-    // generate dummy component as reference
-    auto comp_dummy            = make_shared<Component>();
-    comp_dummy->name           = kComponentDummyName;
-    comp_dummy->component_type = Component::kComponentTypeDummy;
+	// Populate pins
+	{
+		// generate dummy component as reference
+		auto comp_dummy = make_shared<Component>();
+		comp_dummy->name = kComponentDummyName;
+		comp_dummy->component_type = Component::kComponentTypeDummy;
 
-    // NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
-    int pin_idx  = 0;
-    int part_idx = 1;
-    auto pins    = m_pins;
-    auto parts   = m_parts;
+		// NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
+		int pin_idx = 0;
+		int part_idx = 1;
+		auto pins = m_pins;
+		auto parts = m_parts;
 
-    for (size_t i = 0; i < pins.size(); i++) {
-      // (originally from BoardView::DrawPins)
-      const BRDPin &brd_pin   = pins[i];
-      Component *comp         = components_[brd_pin.part - 1].get();
+		for (size_t i = 0; i < pins.size(); i++) {
+			// (originally from BoardView::DrawPins)
+			const BRDPin &brd_pin = pins[i];
+			Component *comp = components_[brd_pin.part - 1].get();
 
-		if (!comp) continue;
+			if (!comp) continue;
 
-      auto pin = make_shared<Pin>();
+			auto pin = make_shared<Pin>();
 
-      if (comp->is_dummy()) {
-        // component is virtual, i.e. "...", pin is test pad
-        pin->type      = Pin::kPinTypeTestPad;
-        pin->component = comp_dummy.get();
-        comp_dummy->pins.push_back(pin.get());
-      } else {
-        // component is regular / not virtual
-        pin->type      = Pin::kPinTypeComponent;
-        pin->component = comp;
-        comp->pins.push_back(pin.get());
-      }
+			if (comp->is_dummy()) {
+				// component is virtual, i.e. "...", pin is test pad
+				pin->type = Pin::kPinTypeTestPad;
+				pin->component = comp_dummy.get();
+				comp_dummy->pins.push_back(pin.get());
+			} else {
+				// component is regular / not virtual
+				pin->type = Pin::kPinTypeComponent;
+				pin->component = comp;
+				comp->pins.push_back(pin.get());
+			}
 
-      // determine pin number on part
-      ++pin_idx;
-      if (brd_pin.part != part_idx) {
-        part_idx = brd_pin.part;
-        pin_idx  = 1;
-      }
-      if (brd_pin.snum) pin->number = brd_pin.snum;
-      else pin->number = std::to_string(pin_idx);
+			// determine pin number on part
+			++pin_idx;
+			if (brd_pin.part != part_idx) {
+				part_idx = brd_pin.part;
+				pin_idx = 1;
+			}
+			if (brd_pin.snum)
+				pin->number = brd_pin.snum;
+			else
+				pin->number = std::to_string(pin_idx);
 
-      // copy position
-      pin->position = Point(brd_pin.pos.x, brd_pin.pos.y);
+			// copy position
+			pin->position = Point(brd_pin.pos.x, brd_pin.pos.y);
 
-      // set net reference (here's our NET key string again)
-      string net_name = string(brd_pin.net);
-      if (net_map.count(net_name)) {
-        // there is a net with that name in our map
-        pin->net = net_map[net_name].get();
-      } else {
-        // no net with that name registered, so create one
-        if (!net_name.empty()) {
-          if (is_prefix(kNetUnconnectedPrefix, net_name)) {
-            // pin is unconnected, so reference our special net
-            pin->net  = net_map[kNetUnconnectedPrefix].get();
-            pin->type = Pin::kPinTypeNotConnected;
-          } else {
-            // indeed a new net
-            auto net        = make_shared<Net>();
-            net->name       = net_name;
-            net->board_side = pin->board_side;
-            // NOTE: net->number not set
-            net_map[net_name] = net;
-            pin->net          = net.get();
-          }
-        } else {
-          // not sure this can happen -> no info
-          // It does happen in .fz apparently and produces a SEGFAULT… Use unconnected net.
-          pin->net  = net_map[kNetUnconnectedPrefix].get();
-          pin->type = Pin::kPinTypeNotConnected;
-        }
-      }
+			// set net reference (here's our NET key string again)
+			string net_name = string(brd_pin.net);
+			if (net_map.count(net_name)) {
+				// there is a net with that name in our map
+				pin->net = net_map[net_name].get();
+			} else {
+				// no net with that name registered, so create one
+				if (!net_name.empty()) {
+					if (is_prefix(kNetUnconnectedPrefix, net_name)) {
+						// pin is unconnected, so reference our special net
+						pin->net = net_map[kNetUnconnectedPrefix].get();
+						pin->type = Pin::kPinTypeNotConnected;
+					} else {
+						// indeed a new net
+						auto net = make_shared<Net>();
+						net->name = net_name;
+						net->board_side = pin->board_side;
+						// NOTE: net->number not set
+						net_map[net_name] = net;
+						pin->net = net.get();
+					}
+				} else {
+					// not sure this can happen -> no info
+					// It does happen in .fz apparently and produces a SEGFAULT… Use
+					// unconnected net.
+					pin->net = net_map[kNetUnconnectedPrefix].get();
+					pin->type = Pin::kPinTypeNotConnected;
+				}
+			}
 
-      // TODO: should either depend on file specs or type etc
-		//
-		//  if(brd_pin.radius) pin->diameter = brd_pin.radius; // some format (.fz) contains a radius field
-		//    else pin->diameter = 0.5f;
-		pin->diameter = brd_pin.radius; // some format (.fz) contains a radius field
+			// TODO: should either depend on file specs or type etc
+			//
+			//  if(brd_pin.radius) pin->diameter = brd_pin.radius; // some format
+			//  (.fz) contains a radius field
+			//    else pin->diameter = 0.5f;
+			pin->diameter = brd_pin.radius; // some format (.fz) contains a radius field
 
-      pin->net->pins.push_back(pin.get());
-      pins_.push_back(pin);
-    }
+			pin->net->pins.push_back(pin.get());
+			pins_.push_back(pin);
+		}
 
-    // remove all dummy components from vector, add our official dummy
-    components_.erase(
-        remove_if(begin(components_), end(components_),
-            [](shared_ptr<Component> &comp) { return comp->is_dummy(); }),
-        end(components_));
+		// remove all dummy components from vector, add our official dummy
+		components_.erase(remove_if(begin(components_), end(components_),
+		                            [](shared_ptr<Component> &comp) { return comp->is_dummy(); }),
+		                  end(components_));
 
-    components_.push_back(comp_dummy);
-  }
+		components_.push_back(comp_dummy);
+	}
 
-  // Populate Net vector by using the map. (sorted by keys)
-  for (auto &net : net_map) {
-    nets_.push_back(net.second);
-  }
+	// Populate Net vector by using the map. (sorted by keys)
+	for (auto &net : net_map) {
+		nets_.push_back(net.second);
+	}
 
-  // Sort components by name
-  sort(begin(components_), end(components_),
-      [](shared_ptr<Component> &lhs, shared_ptr<Component> &rhs) {
-        return lhs->name < rhs->name;
-      });
+	// Sort components by name
+	sort(begin(components_), end(components_),
+	     [](shared_ptr<Component> &lhs, shared_ptr<Component> &rhs) {
+		     return lhs->name < rhs->name;
+		 });
 }
 
-BRDBoard::~BRDBoard() {
-}
+BRDBoard::~BRDBoard() {}
 
 bool BRDBoard::FetchPartAnnotations() {
-  // TODO: error handling
-  throw "Not implemented.";
+	// TODO: error handling
+	throw "Not implemented.";
 }
 
 SharedVector<Component> &BRDBoard::Components() {
-  return components_;
+	return components_;
 }
 
 SharedVector<Pin> &BRDBoard::Pins() {
-  return pins_;
+	return pins_;
 }
 
 SharedVector<Net> &BRDBoard::Nets() {
-  return nets_;
+	return nets_;
 }
 
 SharedVector<Point> &BRDBoard::OutlinePoints() {
-  return outline_;
+	return outline_;
 }
 
 Board::EBoardType BRDBoard::BoardType() {
-  return kBoardTypeBRD;
+	return kBoardTypeBRD;
 }

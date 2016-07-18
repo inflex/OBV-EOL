@@ -1,19 +1,19 @@
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <limits.h>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <algorithm>
-#include <cmath>
-#include <memory>
-#include <iostream>
-#include <limits.h>
 
 #include "history.h"
 
 FHistory::~FHistory() {
-	//Destructor
+	// Destructor
 }
 
-int FHistory::Set_filename( const char *f ) {
+int FHistory::Set_filename(const char *f) {
 #ifdef _WIN32
 	fname = _strdup(f);
 #else
@@ -22,19 +22,19 @@ int FHistory::Set_filename( const char *f ) {
 	return 0;
 }
 
-int FHistory::Load( void ) {
+int FHistory::Load(void) {
 	if (fname) {
 		FILE *f;
 #ifdef _WIN32
 		errno_t e;
-		e = fopen_s(&f, fname,"r");
+		e = fopen_s(&f, fname, "r");
 #else
-		f = fopen( fname, "r" );
+		f = fopen(fname, "r");
 #endif
 		count = 0;
 		if (!f) return 0;
 
-		while(count < FHISTORY_COUNT_MAX) {
+		while (count < FHISTORY_COUNT_MAX) {
 			char *r;
 
 			r = fgets(history[count], FHISTORY_FNAME_LEN_MAX, f);
@@ -42,12 +42,15 @@ int FHistory::Load( void ) {
 				count++;
 
 				/// strip off the trailing line break
-				while(*r) { 
-					if ((*r == '\r')||(*r == '\n')) { *r = '\0'; break; }
+				while (*r) {
+					if ((*r == '\r') || (*r == '\n')) {
+						*r = '\0';
+						break;
+					}
 					r++;
 				}
 
-			} else { 
+			} else {
 				break;
 			}
 		}
@@ -59,25 +62,25 @@ int FHistory::Load( void ) {
 	return count;
 }
 
-int FHistory::Prepend_save( char *newfile ) {
+int FHistory::Prepend_save(char *newfile) {
 	if (fname) {
 		FILE *f;
 #ifdef _WIN32
 		errno_t e;
 
-		e = fopen_s(&f, fname,"w");
+		e = fopen_s(&f, fname, "w");
 #else
-		f = fopen( fname, "w" );
+		f = fopen(fname, "w");
 #endif
 
 		if (f) {
 			int i;
 
-			fprintf(f,"%s\n", newfile);
+			fprintf(f, "%s\n", newfile);
 			for (i = 0; i < count; i++) {
 				// Don't create duplicate entries, so check each one against the newfile
 				if (strcmp(newfile, history[i])) {
-					fprintf(f,"%s\n",history[i]);
+					fprintf(f, "%s\n", history[i]);
 				}
 			}
 			fclose(f);
@@ -98,14 +101,13 @@ int FHistory::Prepend_save( char *newfile ) {
 char *FHistory::Trim_filename(char *s, int stops) {
 
 	int l = strlen(s);
-	char *p = s+l-1;
+	char *p = s + l - 1;
 
-	while ((stops)&&(p > s)) {
-		if ((*p == '/')||(*p == '\\')) stops--;
+	while ((stops) && (p > s)) {
+		if ((*p == '/') || (*p == '\\')) stops--;
 		p--;
 	}
-	if (!stops) p+=2;
+	if (!stops) p += 2;
 
 	return p;
 }
-

@@ -5,12 +5,12 @@
 
 class PartList {
 
-public:
-  PartList(TcharStringCallback cbNetSelected);
-  ~PartList();
+  public:
+	PartList(TcharStringCallback cbNetSelected);
+	~PartList();
 
-  void Draw(const char *title, bool *p_open, Board *board);
+	void Draw(const char *title, bool *p_open, Board *board);
 
-private:
-  TcharStringCallback m_cbNetSelected;
+  private:
+	TcharStringCallback m_cbNetSelected;
 };

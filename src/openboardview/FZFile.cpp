@@ -2,9 +2,9 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <locale.h>
 #include <stdint.h>
 #include <string.h>
-#include <locale.h>
 #include <unordered_map>
 #include <zlib.h>
 
@@ -78,13 +78,17 @@ void FZFile::decode(char *source, size_t size) {
 }
 
 /*
- * Sets content_size to the length of the compressed content from the decoded fz file
+ * Sets content_size to the length of the compressed content from the decoded fz
+ * file
  */
 char *FZFile::split(char *file_buf, size_t buffer_size, size_t &content_size) {
-	int descr_len = (file_buf[buffer_size-1] << 24) + (file_buf[buffer_size-2] << 16) + (file_buf[buffer_size-3] << 8) + file_buf[buffer_size-4]; // read last 4 bytes as little endian 32-bit int.
-	if(descr_len < 0 || (unsigned)descr_len > buffer_size) return nullptr;
-	//if(descr != nullptr) *descr = file_buf+buffer_size-descr_len+4; // discard descr for now
-	content_size = buffer_size-descr_len;
+	int descr_len = (file_buf[buffer_size - 1] << 24) + (file_buf[buffer_size - 2] << 16) +
+	                (file_buf[buffer_size - 3] << 8) +
+	                file_buf[buffer_size - 4]; // read last 4 bytes as little endian 32-bit int.
+	if (descr_len < 0 || (unsigned)descr_len > buffer_size) return nullptr;
+	// if(descr != nullptr) *descr = file_buf+buffer_size-descr_len+4; // discard
+	// descr for now
+	content_size = buffer_size - descr_len;
 	return file_buf;
 }
 
@@ -93,8 +97,7 @@ char *FZFile::split(char *file_buf, size_t buffer_size, size_t &content_size) {
  */
 char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size) {
 	output_size = buffer_size;
-	if (buffer_size == 0)
-		return nullptr;
+	if (buffer_size == 0) return nullptr;
 
 	char *output = (char *)calloc(output_size, sizeof(char));
 
@@ -115,9 +118,9 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 		// If our output buffer is too small
 		if (zst.total_out >= output_size) {
 			// Increase size of output buffer
-			char *buf = (char *)calloc(output_size + buffer_size/2, sizeof(char));
+			char *buf = (char *)calloc(output_size + buffer_size / 2, sizeof(char));
 			memcpy(buf, output, output_size);
-			output_size += buffer_size/2;
+			output_size += buffer_size / 2;
 			free(output);
 			output = buf;
 		}
@@ -142,10 +145,22 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 #define OUTLINE_MARGIN 20
 void FZFile::gen_outline() {
 	// Determine board outline
-	int minx = std::min_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b){ return a.pos.x < b.pos.x; })->pos.x - OUTLINE_MARGIN;
-	int maxx = std::max_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b){ return a.pos.x < b.pos.x; })->pos.x + OUTLINE_MARGIN;
-	int miny = std::min_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b){ return a.pos.y < b.pos.y; })->pos.y - OUTLINE_MARGIN;
-	int maxy = std::max_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b){ return a.pos.y < b.pos.y; })->pos.y + OUTLINE_MARGIN;
+	int minx = std::min_element(pins.begin(), pins.end(),
+	                            [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
+	               ->pos.x -
+	           OUTLINE_MARGIN;
+	int maxx = std::max_element(pins.begin(), pins.end(),
+	                            [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
+	               ->pos.x +
+	           OUTLINE_MARGIN;
+	int miny = std::min_element(pins.begin(), pins.end(),
+	                            [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
+	               ->pos.y -
+	           OUTLINE_MARGIN;
+	int maxy = std::max_element(pins.begin(), pins.end(),
+	                            [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
+	               ->pos.y +
+	           OUTLINE_MARGIN;
 	format.push_back({minx, miny});
 	format.push_back({maxx, miny});
 	format.push_back({maxx, maxy});
@@ -166,11 +181,11 @@ void FZFile::update_counts() {
 
 FZFile::FZFile(const char *buf, size_t buffer_size) {
 	char **lines_begin = nullptr;
-#define ENSURE(X)                                                             \
-	assert(X);                                                            \
-	if (!(X)) {                                                           \
-		if (lines_begin) free(lines_begin);                           \
-		return;                                                       \
+#define ENSURE(X)                                                                                  \
+	assert(X);                                                                                     \
+	if (!(X)) {                                                                                    \
+		if (lines_begin) free(lines_begin);                                                        \
+		return;                                                                                    \
 	}
 
 	char *saved_locale;
@@ -190,10 +205,13 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 
 	FZFile::decode(file_buf, buffer_size); // first decrypt buffer
 	size_t content_size = 0;
-	char *content = FZFile::split(file_buf, buffer_size, content_size); // then split it, discarding descr part
+	char *content =
+	    FZFile::split(file_buf, buffer_size, content_size); // then split it, discarding descr part
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
-	content = FZFile::decompress(file_buf+4, content_size, content_size); // and decompress zlib content data, discard first 4 bytes
+	content =
+	    FZFile::decompress(file_buf + 4, content_size,
+	                       content_size); // and decompress zlib content data, discard first 4 bytes
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
 
@@ -201,120 +219,114 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 	std::unordered_map<std::string, int> parts_id; // map between part name and part number
 
 	char **lines = stringfile(content);
-	if (!lines)
-		return;
+	if (!lines) return;
 	lines_begin = lines;
 
 	while (*lines) {
 		char *line = *lines;
 		++lines;
 
-		while (isspace((uint8_t)*line))
-			line++;
-		if (!line[0])
-			continue;
+		while (isspace((uint8_t)*line)) line++;
+		if (!line[0]) continue;
 
 		char *p = line;
 		char *s;
 
 		if (line[0] == 'A') { // New block
-			line+=2; // skip "A!"
+			line += 2;        // skip "A!"
 			if (!strncmp(line, "REFDES", 6)) {
 				current_block = 1;
 				continue;
-			}
-			else if (!strncmp(line, "NET_NAME", 8)) {
+			} else if (!strncmp(line, "NET_NAME", 8)) {
 				current_block = 2;
 				continue;
-			}
-			else if (!strncmp(line, "TESTVIA", 7)) {
+			} else if (!strncmp(line, "TESTVIA", 7)) {
 				current_block = 3;
 				continue;
 			}
-		}
-		else if (line[0] != 'S') // Unknown line type
-			continue; // jump to next line
+		} else if (line[0] != 'S') // Unknown line type
+			continue;              // jump to next line
 		else
-			p+=2; // Skip "S!"
+			p += 2; // Skip "S!"
 
 		switch (current_block) {
-		case 1: { // Parts
-			BRDPart part;
-			LOAD_STR(part.name);
-			char *cic;
-			LOAD_STR(cic);
-			char *sname;
-			LOAD_STR(sname);
-			char *smirror;
-			LOAD_STR(smirror);
-			char *srotate;
-			LOAD_STR(srotate);
-			if(!strcmp(smirror, "YES"))
-				part.type = 10; // SMD part on top
-			else
-				part.type = 5; // SMD part on bottom
-			part.end_of_pins = 0;
-			parts.push_back(part);
-			parts_id[part.name] = parts.size();
-		} break;
-		case 2: { // Pins
-			BRDPin pin;
-			LOAD_STR(pin.net);
-			char *part;
-			LOAD_STR(part);
-			pin.part = parts_id.at(part);
-			LOAD_STR(pin.snum);
+			case 1: { // Parts
+				BRDPart part;
+				LOAD_STR(part.name);
+				char *cic;
+				LOAD_STR(cic);
+				char *sname;
+				LOAD_STR(sname);
+				char *smirror;
+				LOAD_STR(smirror);
+				char *srotate;
+				LOAD_STR(srotate);
+				if (!strcmp(smirror, "YES"))
+					part.type = 10; // SMD part on top
+				else
+					part.type = 5; // SMD part on bottom
+				part.end_of_pins = 0;
+				parts.push_back(part);
+				parts_id[part.name] = parts.size();
+			} break;
+			case 2: { // Pins
+				BRDPin pin;
+				LOAD_STR(pin.net);
+				char *part;
+				LOAD_STR(part);
+				pin.part = parts_id.at(part);
+				LOAD_STR(pin.snum);
 
-			char *name;
-			LOAD_STR(name);
+				char *name;
+				LOAD_STR(name);
 
-			double posx;
-			LOAD_DOUBLE(posx);
-			pin.pos.x = posx;
-			double posy;
-			LOAD_DOUBLE(posy);
-			pin.pos.y = posy;
+				double posx;
+				LOAD_DOUBLE(posx);
+				pin.pos.x = posx;
+				double posy;
+				LOAD_DOUBLE(posy);
+				pin.pos.y = posy;
 
-			LOAD_INT(pin.probe);
-			double radius;
-			LOAD_DOUBLE(radius);
-			pin.radius = radius/100;
-			pins.push_back(pin);
-		} break;
-		case 3: { // Nails
-			p+=2; // Skip "Y!"
-			BRDNail nail;
-			LOAD_STR(nail.net);
-			char *refdes;
-			LOAD_STR(refdes);
-			int pinnumber;
-			LOAD_INT(pinnumber);
-			char *pinname;
-			LOAD_STR(pinname);
+				LOAD_INT(pin.probe);
+				double radius;
+				LOAD_DOUBLE(radius);
+				pin.radius = radius / 100;
+				pins.push_back(pin);
+			} break;
+			case 3: {   // Nails
+				p += 2; // Skip "Y!"
+				BRDNail nail;
+				LOAD_STR(nail.net);
+				char *refdes;
+				LOAD_STR(refdes);
+				int pinnumber;
+				LOAD_INT(pinnumber);
+				char *pinname;
+				LOAD_STR(pinname);
 
-			double posx;
-			LOAD_DOUBLE(posx);
-			nail.pos.x = posx;
-			double posy;
-			LOAD_DOUBLE(posy);
-			nail.pos.y = posy;
-			char *loc;
-			LOAD_STR(loc);
-			if(!strcmp(loc, "T"))
-				nail.side = 1; // on top
-			else
-				nail.side = 2; // on bottom
-			double radius;
-			LOAD_DOUBLE(radius);
-			nails.push_back(nail);
-		} break;
+				double posx;
+				LOAD_DOUBLE(posx);
+				nail.pos.x = posx;
+				double posy;
+				LOAD_DOUBLE(posy);
+				nail.pos.y = posy;
+				char *loc;
+				LOAD_STR(loc);
+				if (!strcmp(loc, "T"))
+					nail.side = 1; // on top
+				else
+					nail.side = 2; // on bottom
+				double radius;
+				LOAD_DOUBLE(radius);
+				nails.push_back(nail);
+			} break;
 		}
 	}
 
 	std::sort(pins.begin(), pins.end()); // sort vector by part num then pin num
 	for (std::vector<int>::size_type i = 0; i < pins.size(); i++) {
-	  	// update end_of_pins field
-		if (pins[i].part > 0) parts[pins[i].part-1].end_of_pins = i;
+		// update end_of_pins field
+		if (pins[i].part > 0) parts[pins[i].part - 1].end_of_pins = i;
 	}
 
 	gen_outline();

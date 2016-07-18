@@ -9,28 +9,28 @@
 using namespace std;
 
 class BRDBoard : public Board {
-public:
-  BRDBoard(const BRDFile *const boardFile);
-  ~BRDBoard();
+  public:
+	BRDBoard(const BRDFile *const boardFile);
+	~BRDBoard();
 
-  const BRDFile *m_file;
+	const BRDFile *m_file;
 
-  EBoardType BoardType();
+	EBoardType BoardType();
 
-  SharedVector<Net> &Nets();
-  SharedVector<Component> &Components();
-  SharedVector<Pin> &Pins();
-  SharedVector<Point> &OutlinePoints();
+	SharedVector<Net> &Nets();
+	SharedVector<Component> &Components();
+	SharedVector<Pin> &Pins();
+	SharedVector<Point> &OutlinePoints();
 
-private:
-  static const string kNetUnconnectedPrefix;
-  static const string kComponentDummyName;
+  private:
+	static const string kNetUnconnectedPrefix;
+	static const string kComponentDummyName;
 
-  // Reading annotations for this board from json file.
-  bool FetchPartAnnotations();
+	// Reading annotations for this board from json file.
+	bool FetchPartAnnotations();
 
-  SharedVector<Net> nets_;
-  SharedVector<Component> components_;
-  SharedVector<Pin> pins_;
-  SharedVector<Point> outline_;
+	SharedVector<Net> nets_;
+	SharedVector<Component> components_;
+	SharedVector<Pin> pins_;
+	SharedVector<Point> outline_;
 };

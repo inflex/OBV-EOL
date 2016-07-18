@@ -12,14 +12,14 @@
 #include "imgui_impl_dx9.h"
 #include <d3d9.h>
 #define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#include <tchar.h>
-#include <shlwapi.h>
-#include <direct.h>
+#include "confparse.h"
 #include "crtdbg.h"
 #include "platform.h"
 #include "resource.h"
-#include "confparse.h"
+#include <dinput.h>
+#include <direct.h>
+#include <shlwapi.h>
+#include <tchar.h>
 
 // Data
 static LPDIRECT3DDEVICE9 g_pd3dDevice = NULL;
@@ -27,24 +27,19 @@ static D3DPRESENT_PARAMETERS g_d3dpp;
 
 // local functions
 #ifndef S_ISDIR
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
 uint32_t byte4swap(uint32_t x) {
 	/*
 	* used to convert RGBA -> ABGR etc
 	*/
-	return (
-		((x & 0x000000ff) << 24)
-		| ((x & 0x0000ff00) << 8)
-		| ((x & 0x00ff0000) >> 8)
-		| ((x & 0xff000000) >> 24)
-		);
+	return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8) |
+	        ((x & 0xff000000) >> 24));
 }
 
 extern LRESULT ImGui_ImplDX9_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (ImGui_ImplDX9_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
+	if (ImGui_ImplDX9_WndProcHandler(hWnd, msg, wParam, lParam)) return true;
 
 	switch (msg) {
 		case WM_SIZE:
@@ -53,8 +48,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				g_d3dpp.BackBufferWidth = LOWORD(lParam);
 				g_d3dpp.BackBufferHeight = HIWORD(lParam);
 				HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
-				if (hr == D3DERR_INVALIDCALL)
-					IM_ASSERT(0);
+				if (hr == D3DERR_INVALIDCALL) IM_ASSERT(0);
 				ImGui_ImplDX9_CreateDeviceObjects();
 			}
 			return 0;
@@ -62,15 +56,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
 				return 0;
 			break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			return 0;
+		case WM_DESTROY: PostQuitMessage(0); return 0;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-	
+
 	// Initialize comctl
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
@@ -86,21 +78,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Create application window
 	HINSTANCE instance = GetModuleHandle(NULL);
 	HICON icon = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
-	WNDCLASSEX wc = {sizeof(WNDCLASSEX),
-		CS_CLASSDC,
-		WndProc,
-		0L,
-		0L,
-		instance,
-		icon,
-		NULL,
-		NULL,
-		NULL,
-		class_name,
-		NULL};
+	WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L,   0L,
+	                 instance,           icon,       NULL,    NULL, NULL,
+	                 class_name,         NULL};
 	RegisterClassEx(&wc);
 
-	err = _dupenv_s( &homepath, &hpsz, "APPDATA");
+	err = _dupenv_s(&homepath, &hpsz, "APPDATA");
 	if (homepath) {
 		struct stat st;
 		int sr;
@@ -124,10 +107,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	sizex = obvconfig.ParseInt("windowX", 1280);
 	sizey = obvconfig.ParseInt("windowY", 900);
 
-
 	HWND hwnd =
-		CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-				CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	    CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+	                 CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
 
 	// Initialize Direct3D
 	LPDIRECT3D9 pD3D;
@@ -145,7 +127,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Create the D3DDevice
 	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
-				D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) {
+	                       D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) {
 		pD3D->Release();
 		UnregisterClass(class_name, wc.hInstance);
 		return 0;
@@ -155,7 +137,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ImGui_ImplDX9_Init(hwnd, g_pd3dDevice);
 
 	// Load Fonts
-	// (there is a default font, this is only if you want to change it. see extra_fonts/README.txt
+	// (there is a default font, this is only if you want to change it. see
+	// extra_fonts/README.txt
 	// for more details)
 	ImGuiIO &io = ImGui::GetIO();
 	int ttf_size;
@@ -163,13 +146,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ImFontConfig font_cfg{};
 	font_cfg.FontDataOwnedByAtlas = false;
 	io.Fonts->AddFontFromMemoryTTF(ttf_data, ttf_size, 20.0f, &font_cfg);
-	// io.Fonts->AddFontDefault();
-	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
-	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
-	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
-	// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
-	// io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL,
-	// io.Fonts->GetGlyphRangesJapanese());
+// io.Fonts->AddFontDefault();
+// io.Fonts->AddFontFromFileTTF("../../extra_fonts/Cousine-Regular.ttf", 15.0f);
+// io.Fonts->AddFontFromFileTTF("../../extra_fonts/DroidSans.ttf", 16.0f);
+// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyClean.ttf", 13.0f);
+// io.Fonts->AddFontFromFileTTF("../../extra_fonts/ProggyTiny.ttf", 10.0f);
+// io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL,
+// io.Fonts->GetGlyphRangesJapanese());
 #if 0
 	// Get current flag
 	int tmpFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -181,13 +164,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	_CrtSetDbgFlag(tmpFlag);
 #endif
 
-
 	BoardView app{};
 	if (homepath) {
 		app.fhistory.Set_filename(ss);
 		app.fhistory.Load();
 	}
-	
+
 	/*
 	* Some machines (Atom etc) don't have enough CPU/GPU
 	* grunt to cope with the large number of AA'd circles
@@ -219,18 +201,19 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	app.m_colors.pinTestPad = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
 	app.m_colors.pinSelected = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
 	app.m_colors.pinHighlighted = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
-	app.m_colors.pinHighlightSameNet = byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
-	app.m_colors.annotationPartAlias = byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
+	app.m_colors.pinHighlightSameNet =
+	    byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
+	app.m_colors.annotationPartAlias =
+	    byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
 	app.m_colors.partHullColor = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
-	app.m_colors.selectedMaskPins		= byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
-	app.m_colors.selectedMaskParts		= byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
-	app.m_colors.selectedMaskOutline		= byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
-
+	app.m_colors.selectedMaskPins = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
+	app.m_colors.selectedMaskParts = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
+	app.m_colors.selectedMaskOutline =
+	    byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
 
 	bool show_test_window = true;
 	bool show_another_window = false;
 	ImVec4 clear_col = ImColor(20, 20, 30);
-
 
 	// Main loop
 	MSG msg;
@@ -254,8 +237,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 		D3DCOLOR clear_col_dx =
-			D3DCOLOR_RGBA((int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f),
-					(int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
+		    D3DCOLOR_RGBA((int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f),
+		                  (int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
 		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
 		if (g_pd3dDevice->BeginScene() >= 0) {
 			ImGui::Render();
@@ -265,10 +248,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	}
 
 	ImGui_ImplDX9_Shutdown();
-	if (g_pd3dDevice)
-		g_pd3dDevice->Release();
-	if (pD3D)
-		pD3D->Release();
+	if (g_pd3dDevice) g_pd3dDevice->Release();
+	if (pD3D) pD3D->Release();
 	UnregisterClass(class_name, wc.hInstance);
 
 	return 0;
