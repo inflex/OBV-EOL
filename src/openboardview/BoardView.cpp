@@ -94,12 +94,12 @@ void BoardView::Update() {
 	 * ** FIXME
 	 * This should be handled in the keyboard section, not here
 	 *
-	if ((ImGui::IsKeyDown(SDLK_RCTRL)||ImGui::IsKeyDown(SDLK_LCTRL)) && ImGui::IsKeyPressed('O', false)) {
-		open_file = true;
-		// the dialog will likely eat our WM_KEYUP message for CTRL and O:
-		ImGuiIO &io      = ImGui::GetIO();
-		io.KeysDown[17]  = false;
-		io.KeysDown['O'] = false;
+	 if ((ImGui::IsKeyDown(SDLK_RCTRL)||ImGui::IsKeyDown(SDLK_LCTRL)) && ImGui::IsKeyPressed('O', false)) {
+	 open_file = true;
+	// the dialog will likely eat our WM_KEYUP message for CTRL and O:
+	ImGuiIO &io      = ImGui::GetIO();
+	io.KeysDown[17]  = false;
+	io.KeysDown['O'] = false;
 	}
 	 **/
 
@@ -219,260 +219,271 @@ void BoardView::Update() {
 
 		if (ImGui::BeginPopupModal("Search for Component", nullptr, ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_ShowBorders)) {
 			char cs[128];
+			const char *first_button = m_search;
+			const char *first_button2 = m_search2;
+			const char *first_button3 = m_search3;
 
-			ImGui::Columns(3);
 
 			if (m_showComponentSearch) {
 				m_showComponentSearch = false;
 			}
+
+			// Column 1, implied.
+			//
+			ImGui::Columns(3);
 			ImGui::Text("Component #1");
 
 			if (ImGui::InputText("##search", m_search, 128, ImGuiInputTextFlags_CharsNoBlank)) {
 				FindComponent(m_search);
-				const char *first_button = m_search;
+			}
 
-				if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-					ImGui::SetKeyboardFocusHere(-1);
-				}
+			if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+				ImGui::SetKeyboardFocusHere(-1);
+			} // set keyboard focus
 
-				int buttons_left = 10;
-				for (int i = 0; buttons_left && i < m_file->num_parts; i++) {
-					const BRDPart &part = m_file->parts[i];
-					if (utf8casestr(part.name, m_search)) {
-						if (ImGui::SmallButton(part.name)) {
-							FindComponent(part.name);
-							snprintf(m_search, sizeof(m_search),"%s", part.name);
-							first_button = part.name;
-						}
-						if (buttons_left == 10) {
-							first_button = part.name;
-						}
-						buttons_left--;
+			int buttons_left = 10;
+			for (int i = 0; buttons_left && i < m_file->num_parts; i++) {
+				const BRDPart &part = m_file->parts[i];
+				if (utf8casestr(part.name, m_search)) {
+					if (ImGui::SmallButton(part.name)) {
+						FindComponent(part.name);
+						snprintf(m_search, sizeof(m_search),"%s", part.name);
+						first_button = part.name;
+					} // button name generation
+					if (buttons_left == 10) {
+						first_button = part.name;
 					}
-				}
+					buttons_left--;
+				} // testing for match of our component partial to the part name
+			} // for each part ( search column 1 )
 
 
-				ImGui::NextColumn();
-				ImGui::Text("Component #2");
-				if (ImGui::InputText("##search2", m_search2, 128)) {
-					FindComponent(m_search2);
-				}
-				const char *first_button2 = m_search2;
-				int buttons_left2 = 10;
-				for (int i = 0; buttons_left2 && i < m_file->num_parts; i++) {
-					const BRDPart &part2 = m_file->parts[i];
-					if (utf8casestr(part2.name, m_search2)) {
-						snprintf(cs,sizeof(cs),"%s##2", part2.name);
-						if (ImGui::SmallButton(cs)) {
-							FindComponent(part2.name);
-							//		ImGui::CloseCurrentPopup();
-							snprintf(m_search2, sizeof(m_search2),"%s", part2.name);
-							first_button2 = part2.name;
-						}
-						if (buttons_left2 == 10) {
-							first_button2 = part2.name;
-						}
-						buttons_left2--;
+			ImGui::NextColumn();
+			ImGui::Text("Component #2");
+			if (ImGui::InputText("##search2", m_search2, 128, ImGuiInputTextFlags_CharsNoBlank)) {
+				FindComponent(m_search2);
+			}
+			//			const char *first_button2 = m_search2;
+			int buttons_left2 = 10;
+			for (int i = 0; buttons_left2 && i < m_file->num_parts; i++) {
+				const BRDPart &part2 = m_file->parts[i];
+				if (utf8casestr(part2.name, m_search2)) {
+					snprintf(cs,sizeof(cs),"%s##2", part2.name);
+					if (ImGui::SmallButton(cs)) {
+						FindComponent(part2.name);
+						//		ImGui::CloseCurrentPopup();
+						snprintf(m_search2, sizeof(m_search2),"%s", part2.name);
+						first_button2 = part2.name;
 					}
-				}
-
-				ImGui::NextColumn();
-				ImGui::Text("Component #3");
-				if (ImGui::InputText("##search3", m_search3, 128)) {
-					FindComponent(m_search3);
-				}
-				const char *first_button3 = m_search3;
-				int buttons_left3 = 10;
-				for (int i = 0; buttons_left3 && i < m_file->num_parts; i++) {
-					const BRDPart &part3 = m_file->parts[i];
-					if (utf8casestr(part3.name, m_search3)) {
-						snprintf(cs,sizeof(cs),"%s##3", part3.name);
-						if (ImGui::SmallButton(cs)) {
-							FindComponent(part3.name);
-							snprintf(m_search3, sizeof(m_search3),"%s", part3.name);
-							first_button3 = part3.name;
-						}
-						if (buttons_left3 == 10) {
-							first_button3 = part3.name;
-						}
-						buttons_left3--;
+					if (buttons_left2 == 10) {
+						first_button2 = part2.name;
 					}
+					buttons_left2--;
 				}
-
-				// Enter and Esc close the search:
-				if (ImGui::IsKeyPressed(SDLK_RETURN)) {
-					FindComponent(first_button);
-					FindComponentNoClear(first_button2);
-					FindComponentNoClear(first_button3);
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::Columns(1);
-				ImGui::Separator();
-
-				if (ImGui::Button("Search")) {
-					FindComponent(first_button);
-					FindComponentNoClear(first_button2);
-					FindComponentNoClear(first_button3);
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Reset")) {
-					FindComponent("");
-					m_search[0] = '\0';
-					m_search2[0] = '\0';
-					m_search3[0] = '\0';
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Exit") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
-					FindComponent("");
-					m_search[0] = '\0';
-					m_search2[0] = '\0';
-					m_search3[0] = '\0';
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::SameLine();
-				ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
-
-				ImGui::EndPopup();
-			}}
-
-
-			if (ImGui::BeginPopupModal( "About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-				ImGui::Text("OpenFlex Board View");
-				ImGui::Text("https://github.com/inflex/OpenBoardView");
-				if (ImGui::Button("Close") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
-					ImGui::CloseCurrentPopup();
-//					ImGui::SetKeyboardFocusHere(-1);
-//					ImGui::CaptureMouseFromApp(false);
-				}
-				ImGui::Indent();
-				ImGui::Text("License info");
-				ImGui::Unindent();
-				ImGui::Separator();
-				ImGui::Text("OpenBoardView is MIT Licensed");
-				ImGui::Text("Copyright (c) 2016 Paul Daniels (Inflex Additions)");
-				ImGui::Text("Copyright (c) 2016 Chloridite");
-				ImGui::Spacing();
-				ImGui::Text("ImGui is MIT Licensed");
-				ImGui::Text("Copyright (c) 2014-2015 Omar Cornut and ImGui contributors");
-				ImGui::Separator();
-				ImGui::Text("The MIT License");
-				ImGui::TextWrapped(
-						"Permission is hereby granted, free of charge, to any person "
-						"obtaining a copy "
-						"of this software and associated documentation files (the "
-						"\"Software\"), to deal "
-						"in the Software without restriction, including without limitation "
-						"the rights "
-						"to use, copy, modify, merge, publish, distribute, sublicense, "
-						"and/or sell "
-						"copies of the Software, and to permit persons to whom the Software "
-						"is "
-						"furnished to do so, subject to the following conditions: ");
-				ImGui::TextWrapped("The above copyright notice and this permission "
-						"notice shall be included in all "
-						"copies or substantial portions of the Software.");
-				ImGui::TextWrapped("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY "
-						"OF ANY KIND, EXPRESS OR "
-						"IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES "
-						"OF MERCHANTABILITY, "
-						"FITNESS FOR A PARTICULAR PURPOSE AND "
-						"NONINFRINGEMENT. IN NO EVENT SHALL THE "
-						"AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY "
-						"CLAIM, DAMAGES OR OTHER "
-						"LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR "
-						"OTHERWISE, ARISING FROM, "
-						"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE "
-						"OR OTHER DEALINGS IN THE "
-						"SOFTWARE.");
-				ImGui::EndPopup();
 			}
 
-			if (ImGui::BeginPopupModal("Error opening file")) {
-				ImGui::Text( "There was an error opening the file: %s", m_lastFileOpenName);
-				// TODO: error details? -- would need the loader to say what's wrong.
-				if (ImGui::Button("OK")) {
-					ImGui::CloseCurrentPopup();
+			ImGui::NextColumn();
+			ImGui::Text("Component #3");
+			if (ImGui::InputText("##search3", m_search3, 128, ImGuiInputTextFlags_CharsNoBlank)) {
+				FindComponent(m_search3);
+			}
+			//			const char *first_button3 = m_search3;
+			int buttons_left3 = 10;
+			for (int i = 0; buttons_left3 && i < m_file->num_parts; i++) {
+				const BRDPart &part3 = m_file->parts[i];
+				if (utf8casestr(part3.name, m_search3)) {
+					snprintf(cs,sizeof(cs),"%s##3", part3.name);
+					if (ImGui::SmallButton(cs)) {
+						FindComponent(part3.name);
+						snprintf(m_search3, sizeof(m_search3),"%s", part3.name);
+						first_button3 = part3.name;
+					}
+					if (buttons_left3 == 10) {
+						first_button3 = part3.name;
+					}
+					buttons_left3--;
 				}
-				ImGui::EndPopup();
-			}
-			ImGui::EndMainMenuBar();
-		}
-
-		if (open_file) {
-			char *filename;
-
-			if (preset_filename) {
-				filename = strdup(preset_filename);
-				preset_filename = NULL;
-			} else {
-				filename = show_file_picker();
-
-				ImGuiIO &io = ImGui::GetIO();
-				io.MouseDown[0] = false;
-				io.MouseClicked[0] = false;
-				io.MouseClickedPos[0] = ImVec2(0,0);
-
 			}
 
-			if (filename) {
-				LoadFile(filename);
+			// Enter and Esc close the search:
+			if (ImGui::IsKeyPressed(SDLK_RETURN)) {
+				FindComponent(first_button);
+				FindComponentNoClear(first_button2);
+				FindComponentNoClear(first_button3);
+				ImGui::CloseCurrentPopup();
+			} // response to keyboard ENTER
+
+			ImGui::Columns(1); // reset back to single column mode
+			ImGui::Separator();
+
+			if (ImGui::Button("Search")) {
+				FindComponent(first_button);
+				FindComponentNoClear(first_button2);
+				FindComponentNoClear(first_button3);
+				ImGui::CloseCurrentPopup();
+			} // search button
+
+
+			ImGui::SameLine();
+			if (ImGui::Button("Reset")) {
+				FindComponent("");
+				m_search[0] = '\0';
+				m_search2[0] = '\0';
+				m_search3[0] = '\0';
+			} // reset button
+
+			ImGui::SameLine();
+			if (ImGui::Button("Exit") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
+				FindComponent("");
+				m_search[0] = '\0';
+				m_search2[0] = '\0';
+				m_search3[0] = '\0';
+				ImGui::CloseCurrentPopup();
+			} //exit button
+
+			ImGui::SameLine();
+			ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
+
+			ImGui::EndPopup();
+		}
+
+
+		if (ImGui::BeginPopupModal( "About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::Text("OpenFlex Board View");
+			ImGui::Text("https://github.com/inflex/OpenBoardView");
+			if (ImGui::Button("Close") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
+				ImGui::CloseCurrentPopup();
+				//					ImGui::SetKeyboardFocusHere(-1);
+				//					ImGui::CaptureMouseFromApp(false);
 			}
+			ImGui::Indent();
+			ImGui::Text("License info");
+			ImGui::Unindent();
+			ImGui::Separator();
+			ImGui::Text("OpenBoardView is MIT Licensed");
+			ImGui::Text("Copyright (c) 2016 Paul Daniels (Inflex Additions)");
+			ImGui::Text("Copyright (c) 2016 Chloridite");
+			ImGui::Spacing();
+			ImGui::Text("ImGui is MIT Licensed");
+			ImGui::Text("Copyright (c) 2014-2015 Omar Cornut and ImGui contributors");
+			ImGui::Separator();
+			ImGui::Text("The MIT License");
+			ImGui::TextWrapped(
+					"Permission is hereby granted, free of charge, to any person "
+					"obtaining a copy "
+					"of this software and associated documentation files (the "
+					"\"Software\"), to deal "
+					"in the Software without restriction, including without limitation "
+					"the rights "
+					"to use, copy, modify, merge, publish, distribute, sublicense, "
+					"and/or sell "
+					"copies of the Software, and to permit persons to whom the Software "
+					"is "
+					"furnished to do so, subject to the following conditions: ");
+			ImGui::TextWrapped("The above copyright notice and this permission "
+					"notice shall be included in all "
+					"copies or substantial portions of the Software.");
+			ImGui::TextWrapped("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY "
+					"OF ANY KIND, EXPRESS OR "
+					"IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES "
+					"OF MERCHANTABILITY, "
+					"FITNESS FOR A PARTICULAR PURPOSE AND "
+					"NONINFRINGEMENT. IN NO EVENT SHALL THE "
+					"AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY "
+					"CLAIM, DAMAGES OR OTHER "
+					"LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR "
+					"OTHERWISE, ARISING FROM, "
+					"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE "
+					"OR OTHER DEALINGS IN THE "
+					"SOFTWARE.");
+			ImGui::EndPopup();
 		}
 
-		ImGuiWindowFlags flags =
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
-		ImGuiWindowFlags draw_surface_flags = flags |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoBringToFrontOnFocus;
-		ImGui::SetNextWindowPos(ImVec2{0, 0});
-		const ImGuiIO &io = ImGui::GetIO();
-		if (io.DisplaySize.x != m_lastWidth || io.DisplaySize.y != m_lastHeight) {
-			m_lastWidth   = io.DisplaySize.x;
-			m_lastHeight  = io.DisplaySize.y;
-			m_needsRedraw = true;
+		if (ImGui::BeginPopupModal("Error opening file")) {
+			ImGui::Text( "There was an error opening the file: %s", m_lastFileOpenName);
+			// TODO: error details? -- would need the loader to say what's wrong.
+			if (ImGui::Button("OK")) {
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
 		}
-		ImGui::SetNextWindowSize(io.DisplaySize);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-		if (m_firstFrame) {
-			ImGui::SetNextWindowFocus();
-			m_firstFrame = false;
-		}
-		ImGui::Begin("surface", nullptr, draw_surface_flags);
-		HandleInput();
-		DrawBoard();
-		ImGui::End();
-		ImGui::PopStyleColor();
+		ImGui::EndMainMenuBar();
+	}
 
-		// Overlay
-		RenderOverlay();
+	if (open_file) {
+		char *filename;
 
-		// Status Footer
-		float status_height = (10.0f + ImGui::GetFontSize());
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 3.0f));
-		ImGui::SetNextWindowPos(ImVec2{0, io.DisplaySize.y - status_height});
-		ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, status_height));
-		ImGui::Begin("status", nullptr, flags);
-		if (m_file && m_board && m_pinSelected) {
-			auto pin = m_pinSelected;
-			ImGui::Text("Part: %s   Pin: %s   Net: %s   Probe: %d   (%s.)",
-					pin->component->name.c_str(), pin->number.c_str(), pin->net->name.c_str(),
-					pin->net->number, pin->component->mount_type_str().c_str());
+		if (preset_filename) {
+			filename = strdup(preset_filename);
+			preset_filename = NULL;
 		} else {
-			ImVec2 spos = ImGui::GetMousePos();
-			ImVec2 pos  = ScreenToCoord(spos.x, spos.y);
-			if (showFPS == true) ImGui::Text("FPS: %0.0f Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", ImGui::GetIO().Framerate, pos.x/1000, pos.y/1000, pos.x *0.0254, pos.y *0.0254 );
-			else ImGui::Text("Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", pos.x/1000, pos.y/1000, pos.x *0.0254, pos.y *0.0254 );
-		}
-		ImGui::End();
-		ImGui::PopStyleVar();
-		ImGui::PopStyleVar();
+			filename = show_file_picker();
 
-	} // main menu bar
+			ImGuiIO &io = ImGui::GetIO();
+			io.MouseDown[0] = false;
+			io.MouseClicked[0] = false;
+			io.MouseClickedPos[0] = ImVec2(0,0);
+
+		}
+
+		if (filename) {
+			LoadFile(filename);
+		}
+	}
+
+	ImGuiWindowFlags flags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+	ImGuiWindowFlags draw_surface_flags = flags |
+		ImGuiWindowFlags_NoFocusOnAppearing |
+		ImGuiWindowFlags_NoBringToFrontOnFocus;
+	ImGui::SetNextWindowPos(ImVec2{0, 0});
+	const ImGuiIO &io = ImGui::GetIO();
+	if (io.DisplaySize.x != m_lastWidth || io.DisplaySize.y != m_lastHeight) {
+		m_lastWidth   = io.DisplaySize.x;
+		m_lastHeight  = io.DisplaySize.y;
+		m_needsRedraw = true;
+	}
+	ImGui::SetNextWindowSize(io.DisplaySize);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	if (m_firstFrame) {
+		ImGui::SetNextWindowFocus();
+		m_firstFrame = false;
+	}
+	ImGui::Begin("surface", nullptr, draw_surface_flags);
+	HandleInput();
+	DrawBoard();
+	ImGui::End();
+	ImGui::PopStyleColor();
+
+	// Overlay
+	RenderOverlay();
+
+	// Status Footer
+	float status_height = (10.0f + ImGui::GetFontSize());
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 3.0f));
+	ImGui::SetNextWindowPos(ImVec2{0, io.DisplaySize.y - status_height});
+	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, status_height));
+	ImGui::Begin("status", nullptr, flags);
+	if (m_file && m_board && m_pinSelected) {
+		auto pin = m_pinSelected;
+		ImGui::Text("Part: %s   Pin: %s   Net: %s   Probe: %d   (%s.)",
+				pin->component->name.c_str(), pin->number.c_str(), pin->net->name.c_str(),
+				pin->net->number, pin->component->mount_type_str().c_str());
+	} else {
+		ImVec2 spos = ImGui::GetMousePos();
+		ImVec2 pos  = ScreenToCoord(spos.x, spos.y);
+		if (showFPS == true) ImGui::Text("FPS: %0.0f Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", ImGui::GetIO().Framerate, pos.x/1000, pos.y/1000, pos.x *0.0254, pos.y *0.0254 );
+		else ImGui::Text("Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", pos.x/1000, pos.y/1000, pos.x *0.0254, pos.y *0.0254 );
+	}
+	ImGui::End();
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
+
+} // main menu bar
 
 
 void BoardView::Zoom( float osd_x, float osd_y, float zoom ) {
@@ -602,8 +613,8 @@ void BoardView::HandleInput() {
 			Zoom(io.MousePos.x, io.MousePos.y, mwheel);
 		}
 	} else {
-		fprintf(stderr,"x");
-				//fprintf(stderr,"%s\n", io.CurrentWindow.name.c_str());
+		//fprintf(stderr,"x");
+		//fprintf(stderr,"%s\n", io.CurrentWindow.name.c_str());
 	}
 
 	if (!io.WantCaptureKeyboard) {
