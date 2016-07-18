@@ -333,8 +333,7 @@ void BoardView::Update() {
 				ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
 
 				ImGui::EndPopup();
-			}
-
+			}}
 
 
 			if (ImGui::BeginPopupModal( "About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -472,7 +471,6 @@ void BoardView::Update() {
 		ImGui::PopStyleVar();
 
 	} // main menu bar
-}
 
 
 void BoardView::Zoom( float osd_x, float osd_y, float zoom ) {
