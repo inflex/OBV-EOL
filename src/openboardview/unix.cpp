@@ -22,8 +22,8 @@ char *file_as_buffer(size_t *buffer_size, const char *utf8_filename) {
 	}
 
 	std::streampos sz = file.tellg();
-	*buffer_size = sz;
-	char *buf = (char *)malloc(sz);
+	*buffer_size      = sz;
+	char *buf         = (char *)malloc(sz);
 	file.seekg(0, std::ios::beg);
 	file.read(buf, sz);
 	assert(file.gcount() == sz);
@@ -36,7 +36,7 @@ char *file_as_buffer(size_t *buffer_size, const char *utf8_filename) {
 char *show_file_picker() {
 	char *path = nullptr;
 	GtkWidget *parent, *dialog;
-	GtkFileFilter *filter = gtk_file_filter_new();
+	GtkFileFilter *filter            = gtk_file_filter_new();
 	GtkFileFilter *filter_everything = gtk_file_filter_new();
 	gtk_file_filter_set_name(filter, "Boards");
 	gtk_file_filter_add_pattern(filter, "*.brd");
@@ -50,9 +50,14 @@ char *show_file_picker() {
 
 	parent = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-	dialog = gtk_file_chooser_dialog_new("Open File", GTK_WINDOW(parent),
-	                                     GTK_FILE_CHOOSER_ACTION_OPEN, "_Cancel",
-	                                     GTK_RESPONSE_CANCEL, "_Open", GTK_RESPONSE_ACCEPT, NULL);
+	dialog = gtk_file_chooser_dialog_new("Open File",
+	                                     GTK_WINDOW(parent),
+	                                     GTK_FILE_CHOOSER_ACTION_OPEN,
+	                                     "_Cancel",
+	                                     GTK_RESPONSE_CANCEL,
+	                                     "_Open",
+	                                     GTK_RESPONSE_ACCEPT,
+	                                     NULL);
 
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter_everything);
@@ -60,9 +65,9 @@ char *show_file_picker() {
 	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
 		char *filename;
 
-		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		filename   = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 		size_t len = strlen(filename);
-		path = (char *)malloc(len + 1);
+		path       = (char *)malloc(len + 1);
 		memcpy(path, filename, len + 1);
 		if (!path) {
 			g_free(filename);

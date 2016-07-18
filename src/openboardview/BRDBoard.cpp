@@ -18,15 +18,15 @@ using namespace std::placeholders;
 using namespace json11;
 
 const string BRDBoard::kNetUnconnectedPrefix = "UNCONNECTED";
-const string BRDBoard::kComponentDummyName = "...";
+const string BRDBoard::kComponentDummyName   = "...";
 
 BRDBoard::BRDBoard(const BRDFile *const boardFile)
     : m_file(boardFile) {
 	// TODO: strip / trim all strings, especially those used as keys
 	// TODO: just loop through original arrays?
-	vector<BRDPart> m_parts = m_file->parts;
-	vector<BRDPin> m_pins = m_file->pins;
-	vector<BRDNail> m_nails = m_file->nails;
+	vector<BRDPart> m_parts   = m_file->parts;
+	vector<BRDPin> m_pins     = m_file->pins;
+	vector<BRDNail> m_nails   = m_file->nails;
 	vector<BRDPoint> m_points = m_file->format;
 
 	// Set outline
@@ -41,9 +41,9 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 	SharedStringMap<Net> net_map;
 	{
 		// adding special net 'UNCONNECTED'
-		auto net_nc = make_shared<Net>();
-		net_nc->name = kNetUnconnectedPrefix;
-		net_nc->is_ground = false;
+		auto net_nc           = make_shared<Net>();
+		net_nc->name          = kNetUnconnectedPrefix;
+		net_nc->is_ground     = false;
 		net_map[net_nc->name] = net_nc;
 
 		// handle all the others
@@ -58,7 +58,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 
 			// check whether the pin represents ground
 			net->is_ground = (net->name == "GND");
-			net->number = brd_nail.probe;
+			net->number    = brd_nail.probe;
 
 			// NOTE: brd_nail.side not handled here
 
@@ -97,20 +97,20 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 	// Populate pins
 	{
 		// generate dummy component as reference
-		auto comp_dummy = make_shared<Component>();
-		comp_dummy->name = kComponentDummyName;
+		auto comp_dummy            = make_shared<Component>();
+		comp_dummy->name           = kComponentDummyName;
 		comp_dummy->component_type = Component::kComponentTypeDummy;
 
 		// NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
-		int pin_idx = 0;
+		int pin_idx  = 0;
 		int part_idx = 1;
-		auto pins = m_pins;
-		auto parts = m_parts;
+		auto pins    = m_pins;
+		auto parts   = m_parts;
 
 		for (size_t i = 0; i < pins.size(); i++) {
 			// (originally from BoardView::DrawPins)
 			const BRDPin &brd_pin = pins[i];
-			Component *comp = components_[brd_pin.part - 1].get();
+			Component *comp       = components_[brd_pin.part - 1].get();
 
 			if (!comp) continue;
 
@@ -118,12 +118,12 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 
 			if (comp->is_dummy()) {
 				// component is virtual, i.e. "...", pin is test pad
-				pin->type = Pin::kPinTypeTestPad;
+				pin->type      = Pin::kPinTypeTestPad;
 				pin->component = comp_dummy.get();
 				comp_dummy->pins.push_back(pin.get());
 			} else {
 				// component is regular / not virtual
-				pin->type = Pin::kPinTypeComponent;
+				pin->type      = Pin::kPinTypeComponent;
 				pin->component = comp;
 				comp->pins.push_back(pin.get());
 			}
@@ -132,7 +132,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 			++pin_idx;
 			if (brd_pin.part != part_idx) {
 				part_idx = brd_pin.part;
-				pin_idx = 1;
+				pin_idx  = 1;
 			}
 			if (brd_pin.snum)
 				pin->number = brd_pin.snum;
@@ -152,22 +152,22 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 				if (!net_name.empty()) {
 					if (is_prefix(kNetUnconnectedPrefix, net_name)) {
 						// pin is unconnected, so reference our special net
-						pin->net = net_map[kNetUnconnectedPrefix].get();
+						pin->net  = net_map[kNetUnconnectedPrefix].get();
 						pin->type = Pin::kPinTypeNotConnected;
 					} else {
 						// indeed a new net
-						auto net = make_shared<Net>();
-						net->name = net_name;
+						auto net        = make_shared<Net>();
+						net->name       = net_name;
 						net->board_side = pin->board_side;
 						// NOTE: net->number not set
 						net_map[net_name] = net;
-						pin->net = net.get();
+						pin->net          = net.get();
 					}
 				} else {
 					// not sure this can happen -> no info
 					// It does happen in .fz apparently and produces a SEGFAULT… Use
 					// unconnected net.
-					pin->net = net_map[kNetUnconnectedPrefix].get();
+					pin->net  = net_map[kNetUnconnectedPrefix].get();
 					pin->type = Pin::kPinTypeNotConnected;
 				}
 			}
@@ -184,7 +184,8 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 		}
 
 		// remove all dummy components from vector, add our official dummy
-		components_.erase(remove_if(begin(components_), end(components_),
+		components_.erase(remove_if(begin(components_),
+		                            end(components_),
 		                            [](shared_ptr<Component> &comp) { return comp->is_dummy(); }),
 		                  end(components_));
 
@@ -197,7 +198,8 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 	}
 
 	// Sort components by name
-	sort(begin(components_), end(components_),
+	sort(begin(components_),
+	     end(components_),
 	     [](shared_ptr<Component> &lhs, shared_ptr<Component> &rhs) {
 		     return lhs->name < rhs->name;
 		 });

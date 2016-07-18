@@ -37,12 +37,12 @@ char help[] =
 ";
 
 void globals_init(globals *g) {
-	g->input_file = NULL;
+	g->input_file  = NULL;
 	g->config_file = NULL;
-	g->slowCPU = false;
-	g->width = 0;
-	g->height = 0;
-	g->font_size = 0.0f;
+	g->slowCPU     = false;
+	g->width       = 0;
+	g->height      = 0;
+	g->font_size   = 0.0f;
 }
 
 uint32_t byte4swap(uint32_t x) {
@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (g.config_file) obvconfig.Load(g.config_file);
-	if (g.width == 0) g.width = obvconfig.ParseInt("windowX", 1280);
+	if (g.width == 0) g.width   = obvconfig.ParseInt("windowX", 1280);
 	if (g.height == 0) g.height = obvconfig.ParseInt("windowY", 900);
 
 	// Setup window
@@ -176,9 +176,12 @@ int main(int argc, char **argv) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	SDL_DisplayMode current;
 	SDL_GetCurrentDisplayMode(0, &current);
-	SDL_Window *window =
-	    SDL_CreateWindow("OpenFlex Board Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-	                     g.width, g.height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_Window *window = SDL_CreateWindow("OpenFlex Board Viewer",
+	                                      SDL_WINDOWPOS_CENTERED,
+	                                      SDL_WINDOWPOS_CENTERED,
+	                                      g.width,
+	                                      g.height,
+	                                      SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 	gl3wInit();
@@ -188,11 +191,11 @@ int main(int argc, char **argv) {
 
 #ifdef CUSTOM_FONT
 	// Load Fonts
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO &io          = ImGui::GetIO();
 	std::string fontpath = get_asset_path("FiraSans-Medium.ttf");
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f);
 #endif
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO &io          = ImGui::GetIO();
 	std::string fontpath = get_asset_path(obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	if (g.font_size == 0) g.font_size = obvconfig.ParseDouble("fontSize", 20.0f);
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
@@ -214,7 +217,7 @@ int main(int argc, char **argv) {
 	 */
 	app.slowCPU = (obvconfig.ParseBool("slowCPU", false) | g.slowCPU);
 	if (app.slowCPU == true) {
-		ImGuiStyle &style = ImGui::GetStyle();
+		ImGuiStyle &style       = ImGui::GetStyle();
 		style.AntiAliasedShapes = false;
 	}
 
@@ -227,21 +230,21 @@ int main(int argc, char **argv) {
 	 * it comes to assigning the actual colour to ImGui.
 	 */
 	app.m_colors.backgroundColor = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
-	app.m_colors.partTextColor = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
-	app.m_colors.boardOutline = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
-	app.m_colors.boxColor = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
-	app.m_colors.pinDefault = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
-	app.m_colors.pinGround = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
+	app.m_colors.partTextColor   = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
+	app.m_colors.boardOutline    = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
+	app.m_colors.boxColor        = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
+	app.m_colors.pinDefault      = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
+	app.m_colors.pinGround       = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
 	app.m_colors.pinNotConnected = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
-	app.m_colors.pinTestPad = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
-	app.m_colors.pinSelected = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
-	app.m_colors.pinHighlighted = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
+	app.m_colors.pinTestPad      = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
+	app.m_colors.pinSelected     = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
+	app.m_colors.pinHighlighted  = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
 	app.m_colors.pinHighlightSameNet =
 	    byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
 	app.m_colors.annotationPartAlias =
 	    byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
-	app.m_colors.partHullColor = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
-	app.m_colors.selectedMaskPins = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
+	app.m_colors.partHullColor     = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
+	app.m_colors.selectedMaskPins  = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
 	app.m_colors.selectedMaskParts = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
 	app.m_colors.selectedMaskOutline =
 	    byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
@@ -249,7 +252,7 @@ int main(int argc, char **argv) {
 	ImVec4 clear_color = ImColor(20, 20, 30);
 
 	// Main loop
-	bool done = false;
+	bool done             = false;
 	bool preload_required = false;
 
 	if (g.input_file) {
@@ -321,8 +324,8 @@ int main(int argc, char **argv) {
 		// PLD20160618
 		if (app.history_file_has_changed) {
 			char scratch[1024];
-			snprintf(scratch, sizeof(scratch), "OpenFlex Board Viewer - %s",
-			         app.fhistory.history[0]);
+			snprintf(
+			    scratch, sizeof(scratch), "OpenFlex Board Viewer - %s", app.fhistory.history[0]);
 			SDL_SetWindowTitle(window, scratch);
 			app.history_file_has_changed = 0;
 		}

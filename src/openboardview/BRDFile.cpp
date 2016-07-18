@@ -13,13 +13,13 @@ char **stringfile(char *buffer) {
 
 	// two passes through: first time count lines, second time set them
 	for (i = 0; i < 2; ++i) {
-		s = buffer;
+		s                   = buffer;
 		if (i == 1) list[0] = s;
-		count = 1;
+		count               = 1;
 		while (*s) {
 			if (*s == '\n' || *s == '\r') {
 				// detect if both cr & lf are together
-				int crlf = (s[0] + s[1]) == ('\n' + '\r');
+				int crlf       = (s[0] + s[1]) == ('\n' + '\r');
 				if (i == 1) *s = 0;
 				if (crlf) ++s;
 				if (s[1]) { // it's not over yet
@@ -42,7 +42,7 @@ char *fix_to_utf8(char *s, char **arena, char *arena_end) {
 	if (!utf8valid(s)) {
 		return s;
 	}
-	char *p = *arena;
+	char *p     = *arena;
 	char *begin = p;
 	while (*s) {
 		uint32_t c = (uint8_t)*s;
@@ -76,13 +76,13 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 #define FAIL_LABEL fail
 	ENSURE(buffer_size > 4);
 	size_t file_buf_size = 3 * (1 + buffer_size);
-	file_buf = (char *)malloc(file_buf_size);
+	file_buf             = (char *)malloc(file_buf_size);
 	memcpy(file_buf, buf, buffer_size);
 	file_buf[buffer_size] = 0;
 	// This is for fixing degenerate utf8
-	char *arena = &file_buf[buffer_size + 1];
+	char *arena     = &file_buf[buffer_size + 1];
 	char *arena_end = file_buf + file_buf_size - 1;
-	*arena_end = 0;
+	*arena_end      = 0;
 
 	// decode the file if it appears to be encoded:
 	static const uint8_t encoded_header[] = {0x23, 0xe2, 0x63, 0x28};
@@ -91,22 +91,22 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 			char x = file_buf[i];
 			if (!(x == '\r' || x == '\n' || !x)) {
 				int c = x;
-				x = ~(((c >> 6) & 3) | (c << 2));
+				x     = ~(((c >> 6) & 3) | (c << 2));
 			}
 			file_buf[i] = x;
 		}
 	}
 
 	int current_block = 0;
-	num_format = 0;
-	num_parts = 0;
-	num_pins = 0;
-	num_nails = 0;
-	int format_idx = 0;
-	int parts_idx = 0;
-	int pins_idx = 0;
-	int nails_idx = 0;
-	char **lines = stringfile(file_buf);
+	num_format        = 0;
+	num_parts         = 0;
+	num_pins          = 0;
+	num_nails         = 0;
+	int format_idx    = 0;
+	int parts_idx     = 0;
+	int pins_idx      = 0;
+	int nails_idx     = 0;
+	char **lines      = stringfile(file_buf);
 	if (!lines) return;
 	//		goto fail;
 	char **lines_begin = lines;
@@ -151,7 +151,7 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 	s = p;                                                                                         \
 	while (!isspace((uint8_t)*p)) ++p;                                                             \
 	*p++ = 0;                                                                                      \
-	var = fix_to_utf8(s, &arena, arena_end);
+	var  = fix_to_utf8(s, &arena, arena_end);
 
 		switch (current_block) {
 			case 2: { // var_data

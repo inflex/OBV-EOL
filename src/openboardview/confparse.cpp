@@ -15,13 +15,13 @@ int Confparse::Load(const char *utf8_filename) {
 		//		std::cerr << "Error opening " << utf8_filename << ": " <<
 		// strerror(errno) << std::endl;
 		buffer_size = 0;
-		conf = NULL;
+		conf        = NULL;
 		return 1;
 	}
 
 	std::streampos sz = file.tellg();
-	buffer_size = sz;
-	conf = (char *)malloc(sz);
+	buffer_size       = sz;
+	conf              = (char *)malloc(sz);
 	file.seekg(0, std::ios::beg);
 	file.read(conf, sz);
 	limit = conf + sz;
@@ -90,7 +90,7 @@ char *Confparse::Parse(const char *key) {
 				return value;
 			}
 		}
-		p = strstr(op + 1, key);
+		p  = strstr(op + 1, key);
 		op = p;
 	}
 	return NULL;

@@ -100,7 +100,7 @@ int FHistory::Prepend_save(char *newfile) {
  */
 char *FHistory::Trim_filename(char *s, int stops) {
 
-	int l = strlen(s);
+	int l   = strlen(s);
 	char *p = s + l - 1;
 
 	while ((stops) && (p > s)) {

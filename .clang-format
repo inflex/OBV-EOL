@@ -8,6 +8,8 @@ IndentCaseLabels: true
 BinPackArguments: false
 BinPackParameters: false
 AlignAfterOpenBracket: Align
+AlignOperands: true
+AlignEscapedNewlinesLeft: false
 AlignConsecutiveAssignments: true
 AlignEscapedNewlinesLeft: false
 BreakBeforeBraces: Attach

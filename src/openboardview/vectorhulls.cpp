@@ -64,12 +64,12 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 	// Find the lowest hull point, if it's below the x-axis just bring it up to
 	// compensate
 	// NOTE: we're not modifying the actual hull point, just a copy
-	lowest = DBL_MAX;
+	lowest   = DBL_MAX;
 	lowest_i = 0;
 	for (i = 0; i < n; i++) {
 		if (hull[i].y < lowest) {
 			lowest_i = i;
-			lowest = hull[i].y;
+			lowest   = hull[i].y;
 		}
 	}
 	origin = hull[lowest_i];
@@ -82,7 +82,7 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 		double area;
 
 		ImVec2 current = hull[i];
-		ImVec2 next = hull[ni % n];
+		ImVec2 next    = hull[ni % n];
 
 		double angle =
 		    VHAngleToX(current, next); // angle formed between current and next hull points;
@@ -98,15 +98,15 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 
 			hull[x] = rp;
 
-			if (rp.y > top) top = rp.y;
-			if (rp.y < bot) bot = rp.y;
+			if (rp.y > top) top     = rp.y;
+			if (rp.y < bot) bot     = rp.y;
 			if (rp.x > right) right = rp.x;
-			if (rp.x < left) left = rp.x;
+			if (rp.x < left) left   = rp.x;
 		}
 		area = (right - left) * (top - bot);
 
 		if (area < mbArea) {
-			mbArea = area;
+			mbArea  = area;
 			mbAngle = cumulative_angle; // total angle we've had to rotate the board
 			                            // to get to this orientation;
 			mba = ImVec2(left, bot);
@@ -217,7 +217,7 @@ int VHTightenHull(ImVec2 hull[], int n, double threshold) {
 
 	// Second cycle, we compact the hull
 	int output_index = 0;
-	i = 0;
+	i                = 0;
 	while (i < n) {
 		ni = (i + 1) % n;
 		if ((hull[i].x == hull[ni].x) && (hull[i].y == hull[ni].y)) {

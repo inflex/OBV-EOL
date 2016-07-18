@@ -10,7 +10,7 @@ PartList::~PartList() {}
 
 void PartList::Draw(const char *title, bool *p_open, Board *board) {
 	// TODO: export / fix dimensions & behaviour
-	int width = 400;
+	int width  = 400;
 	int height = 640;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
@@ -30,7 +30,7 @@ void PartList::Draw(const char *title, bool *p_open, Board *board) {
 
 		ImGuiListClipper clipper(parts.size(), ImGui::GetTextLineHeight());
 		static int selected = -1;
-		string part_name = "";
+		string part_name    = "";
 		for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 			part_name = parts[i]->name;
 
@@ -41,8 +41,8 @@ void PartList::Draw(const char *title, bool *p_open, Board *board) {
 			part_annotation = EMPTY_STRING;
 			//}
 
-			if (ImGui::Selectable(part_name.c_str(), selected == i,
-			                      ImGuiSelectableFlags_AllowDoubleClick)) {
+			if (ImGui::Selectable(
+			        part_name.c_str(), selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
 				selected = i;
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					m_cbNetSelected(part_name.c_str());
@@ -50,8 +50,8 @@ void PartList::Draw(const char *title, bool *p_open, Board *board) {
 			}
 			ImGui::NextColumn();
 
-			if (ImGui::Selectable(part_annotation, selected == i,
-			                      ImGuiSelectableFlags_AllowDoubleClick)) {
+			if (ImGui::Selectable(
+			        part_annotation, selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
 				selected = i;
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// TODO: change field?

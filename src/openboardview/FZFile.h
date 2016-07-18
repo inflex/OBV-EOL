@@ -17,7 +17,7 @@
 	while (*p != '!') /* '!' is our delimiter */                                                   \
 		++p;                                                                                       \
 	*p++ = 0;                                                                                      \
-	var = fix_to_utf8(s, &arena, arena_end);
+	var  = fix_to_utf8(s, &arena, arena_end);
 
 class FZFile : public BRDFile {
   public:

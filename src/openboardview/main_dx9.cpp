@@ -45,9 +45,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case WM_SIZE:
 			if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED) {
 				ImGui_ImplDX9_InvalidateDeviceObjects();
-				g_d3dpp.BackBufferWidth = LOWORD(lParam);
+				g_d3dpp.BackBufferWidth  = LOWORD(lParam);
 				g_d3dpp.BackBufferHeight = HIWORD(lParam);
-				HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
+				HRESULT hr               = g_pd3dDevice->Reset(&g_d3dpp);
 				if (hr == D3DERR_INVALIDCALL) IM_ASSERT(0);
 				ImGui_ImplDX9_CreateDeviceObjects();
 			}
@@ -77,10 +77,19 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Create application window
 	HINSTANCE instance = GetModuleHandle(NULL);
-	HICON icon = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
-	WNDCLASSEX wc = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L,   0L,
-	                 instance,           icon,       NULL,    NULL, NULL,
-	                 class_name,         NULL};
+	HICON icon         = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
+	WNDCLASSEX wc      = {sizeof(WNDCLASSEX),
+	                 CS_CLASSDC,
+	                 WndProc,
+	                 0L,
+	                 0L,
+	                 instance,
+	                 icon,
+	                 NULL,
+	                 NULL,
+	                 NULL,
+	                 class_name,
+	                 NULL};
 	RegisterClassEx(&wc);
 
 	err = _dupenv_s(&homepath, &hpsz, "APPDATA");
@@ -107,9 +116,17 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	sizex = obvconfig.ParseInt("windowX", 1280);
 	sizey = obvconfig.ParseInt("windowY", 900);
 
-	HWND hwnd =
-	    CreateWindow(class_name, _T("Openflex Board Viewer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-	                 CW_USEDEFAULT, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = CreateWindow(class_name,
+	                         _T("Openflex Board Viewer"),
+	                         WS_OVERLAPPEDWINDOW,
+	                         CW_USEDEFAULT,
+	                         CW_USEDEFAULT,
+	                         1280,
+	                         800,
+	                         NULL,
+	                         NULL,
+	                         wc.hInstance,
+	                         NULL);
 
 	// Initialize Direct3D
 	LPDIRECT3D9 pD3D;
@@ -118,16 +135,20 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		return 0;
 	}
 	ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
-	g_d3dpp.Windowed = TRUE;
-	g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
+	g_d3dpp.Windowed               = TRUE;
+	g_d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+	g_d3dpp.BackBufferFormat       = D3DFMT_UNKNOWN;
 	g_d3dpp.EnableAutoDepthStencil = TRUE;
 	g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-	g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	g_d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_ONE;
 
 	// Create the D3DDevice
-	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd,
-	                       D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) {
+	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT,
+	                       D3DDEVTYPE_HAL,
+	                       hwnd,
+	                       D3DCREATE_HARDWARE_VERTEXPROCESSING,
+	                       &g_d3dpp,
+	                       &g_pd3dDevice) < 0) {
 		pD3D->Release();
 		UnregisterClass(class_name, wc.hInstance);
 		return 0;
@@ -179,7 +200,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	*/
 	app.slowCPU = obvconfig.ParseBool("slowCPU", false);
 	if (app.slowCPU == true) {
-		ImGuiStyle &style = ImGui::GetStyle();
+		ImGuiStyle &style       = ImGui::GetStyle();
 		style.AntiAliasedShapes = false;
 	}
 
@@ -192,28 +213,28 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	* it comes to assigning the actual colour to ImGui.
 	*/
 	app.m_colors.backgroundColor = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
-	app.m_colors.partTextColor = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
-	app.m_colors.boardOutline = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
-	app.m_colors.boxColor = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
-	app.m_colors.pinDefault = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
-	app.m_colors.pinGround = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
+	app.m_colors.partTextColor   = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
+	app.m_colors.boardOutline    = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
+	app.m_colors.boxColor        = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
+	app.m_colors.pinDefault      = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
+	app.m_colors.pinGround       = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
 	app.m_colors.pinNotConnected = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
-	app.m_colors.pinTestPad = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
-	app.m_colors.pinSelected = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
-	app.m_colors.pinHighlighted = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
+	app.m_colors.pinTestPad      = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
+	app.m_colors.pinSelected     = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
+	app.m_colors.pinHighlighted  = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
 	app.m_colors.pinHighlightSameNet =
 	    byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
 	app.m_colors.annotationPartAlias =
 	    byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
-	app.m_colors.partHullColor = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
-	app.m_colors.selectedMaskPins = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
+	app.m_colors.partHullColor     = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
+	app.m_colors.selectedMaskPins  = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
 	app.m_colors.selectedMaskParts = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
 	app.m_colors.selectedMaskOutline =
 	    byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
 
-	bool show_test_window = true;
+	bool show_test_window    = true;
 	bool show_another_window = false;
-	ImVec4 clear_col = ImColor(20, 20, 30);
+	ImVec4 clear_col         = ImColor(20, 20, 30);
 
 	// Main loop
 	MSG msg;
@@ -236,9 +257,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
-		D3DCOLOR clear_col_dx =
-		    D3DCOLOR_RGBA((int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f),
-		                  (int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
+		D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_col.x * 255.0f),
+		                                      (int)(clear_col.y * 255.0f),
+		                                      (int)(clear_col.z * 255.0f),
+		                                      (int)(clear_col.w * 255.0f));
 		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
 		if (g_pd3dDevice->BeginScene() >= 0) {
 			ImGui::Render();

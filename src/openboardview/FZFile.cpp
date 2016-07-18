@@ -26,7 +26,7 @@ void FZFile::decode(char *source, size_t size) {
 	// Along the lines of http://people.csail.mit.edu/rivest/pubs/RRSY98.pdf
 	// (page 3, 2.2)
 	int32_t logw = 5;
-	uint32_t r = 20;
+	uint32_t r   = 20;
 
 	uint32_t A = 0;
 	uint32_t B = 0;
@@ -43,14 +43,14 @@ void FZFile::decode(char *source, size_t size) {
 		for (uint32_t i = 1; i < (r + 1); ++i) { // loop offset by 1
 			uint32_t t = rotl32(B * (2 * B + 1), logw);
 			uint32_t u = rotl32(D * (2 * D + 1), logw);
-			A = rotl32(A ^ t, u) + key[2 * i];
-			C = rotl32(C ^ u, t) + key[2 * i + 1];
+			A          = rotl32(A ^ t, u) + key[2 * i];
+			C          = rotl32(C ^ u, t) + key[2 * i + 1];
 
 			uint32_t tmp = A;
-			A = B;
-			B = C;
-			C = D;
-			D = tmp;
+			A            = B;
+			B            = C;
+			C            = D;
+			D            = tmp;
 		}
 		A = A + key[2 * r + 2];
 		C = C + key[2 * r + 3]; // not used I guess
@@ -102,11 +102,11 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 	char *output = (char *)calloc(output_size, sizeof(char));
 
 	z_stream zst;
-	zst.next_in = (Bytef *)file_buf;
-	zst.avail_in = buffer_size;
+	zst.next_in   = (Bytef *)file_buf;
+	zst.avail_in  = buffer_size;
 	zst.total_out = 0;
-	zst.zalloc = Z_NULL;
-	zst.zfree = Z_NULL;
+	zst.zalloc    = Z_NULL;
+	zst.zfree     = Z_NULL;
 
 	if (inflateInit(&zst) != Z_OK) {
 		free(output);
@@ -125,7 +125,7 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 			output = buf;
 		}
 
-		zst.next_out = (Bytef *)(output + zst.total_out);
+		zst.next_out  = (Bytef *)(output + zst.total_out);
 		zst.avail_out = output_size - zst.total_out;
 	} while ((ret = inflate(&zst, Z_SYNC_FLUSH)) == Z_OK);
 
@@ -145,20 +145,20 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 #define OUTLINE_MARGIN 20
 void FZFile::gen_outline() {
 	// Determine board outline
-	int minx = std::min_element(pins.begin(), pins.end(),
-	                            [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
+	int minx = std::min_element(
+	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
 	               ->pos.x -
 	           OUTLINE_MARGIN;
-	int maxx = std::max_element(pins.begin(), pins.end(),
-	                            [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
+	int maxx = std::max_element(
+	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
 	               ->pos.x +
 	           OUTLINE_MARGIN;
-	int miny = std::min_element(pins.begin(), pins.end(),
-	                            [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
+	int miny = std::min_element(
+	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
 	               ->pos.y -
 	           OUTLINE_MARGIN;
-	int maxy = std::max_element(pins.begin(), pins.end(),
-	                            [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
+	int maxy = std::max_element(
+	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
 	               ->pos.y +
 	           OUTLINE_MARGIN;
 	format.push_back({minx, miny});
@@ -173,10 +173,10 @@ void FZFile::gen_outline() {
  * Updates element counts
  */
 void FZFile::update_counts() {
-	num_parts = parts.size();
-	num_pins = pins.size();
+	num_parts  = parts.size();
+	num_pins   = pins.size();
 	num_format = format.size();
-	num_nails = nails.size();
+	num_nails  = nails.size();
 }
 
 FZFile::FZFile(const char *buf, size_t buffer_size) {
@@ -195,13 +195,13 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 
 	ENSURE(buffer_size > 4);
 	size_t file_buf_size = 3 * (1 + buffer_size);
-	file_buf = (char *)malloc(file_buf_size);
+	file_buf             = (char *)malloc(file_buf_size);
 	memcpy(file_buf, buf, buffer_size);
 	file_buf[buffer_size] = 0;
 	// This is for fixing degenerate utf8
-	char *arena = &file_buf[buffer_size + 1];
+	char *arena     = &file_buf[buffer_size + 1];
 	char *arena_end = file_buf + file_buf_size - 1;
-	*arena_end = 0;
+	*arena_end      = 0;
 
 	FZFile::decode(file_buf, buffer_size); // first decrypt buffer
 	size_t content_size = 0;
@@ -210,7 +210,8 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
 	content =
-	    FZFile::decompress(file_buf + 4, content_size,
+	    FZFile::decompress(file_buf + 4,
+	                       content_size,
 	                       content_size); // and decompress zlib content data, discard first 4 bytes
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
@@ -264,7 +265,7 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 				if (!strcmp(smirror, "YES"))
 					part.type = 10; // SMD part on top
 				else
-					part.type = 5; // SMD part on bottom
+					part.type    = 5; // SMD part on bottom
 				part.end_of_pins = 0;
 				parts.push_back(part);
 				parts_id[part.name] = parts.size();

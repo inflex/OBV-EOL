@@ -33,9 +33,9 @@ template <class T>
 using SharedStringMap = map<string, shared_ptr<T>>;
 
 enum EBoardSide {
-	kBoardSideTop = 0,
+	kBoardSideTop    = 0,
 	kBoardSideBottom = 1,
-	kBoardSideBoth = 2,
+	kBoardSideBoth   = 2,
 };
 
 // Checking whether str `prefix` is a prefix of str `base`.
@@ -172,10 +172,10 @@ class Board {
 
 	virtual ~Board() {}
 
-	virtual SharedVector<Net> &Nets() = 0;
+	virtual SharedVector<Net> &Nets()             = 0;
 	virtual SharedVector<Component> &Components() = 0;
-	virtual SharedVector<Pin> &Pins() = 0;
-	virtual SharedVector<Point> &OutlinePoints() = 0;
+	virtual SharedVector<Pin> &Pins()             = 0;
+	virtual SharedVector<Point> &OutlinePoints()  = 0;
 
 	EBoardType BoardType() { return kBoardTypeUnknown; }
 };

@@ -28,10 +28,10 @@
 #include "platform.h"
 
 // Data
-static double g_Time = 0.0f;
+static double g_Time          = 0.0f;
 static bool g_MousePressed[3] = {false, false, false};
-static float g_MouseWheel = 0.0f;
-static GLuint g_FontTexture = 0;
+static float g_MouseWheel     = 0.0f;
+static GLuint g_FontTexture   = 0;
 static int g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
 static int g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
 static int g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
@@ -45,8 +45,8 @@ static unsigned int g_VboHandle = 0, g_VaoHandle = 0, g_ElementsHandle = 0;
 void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 	// Avoid rendering when minimized, scale coordinates for retina displays
 	// (screen coordinates != framebuffer coordinates)
-	ImGuiIO &io = ImGui::GetIO();
-	int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+	ImGuiIO &io   = ImGui::GetIO();
+	int fb_width  = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
 	int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
 	if (fb_width == 0 || fb_height == 0) return;
 	draw_data->ScaleClipRects(io.DisplayFramebufferScale);
@@ -74,9 +74,9 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &last_blend_equation_alpha);
 	GLint last_viewport[4];
 	glGetIntegerv(GL_VIEWPORT, last_viewport);
-	GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
-	GLboolean last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
-	GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+	GLboolean last_enable_blend        = glIsEnabled(GL_BLEND);
+	GLboolean last_enable_cull_face    = glIsEnabled(GL_CULL_FACE);
+	GLboolean last_enable_depth_test   = glIsEnabled(GL_DEPTH_TEST);
 	GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
 	// Setup render state: alpha-blending enabled, no face culling, no depth
@@ -103,17 +103,20 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 	glBindVertexArray(g_VaoHandle);
 
 	for (int n = 0; n < draw_data->CmdListsCount; n++) {
-		const ImDrawList *cmd_list = draw_data->CmdLists[n];
+		const ImDrawList *cmd_list         = draw_data->CmdLists[n];
 		const ImDrawIdx *idx_buffer_offset = 0;
 
 		glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.size() * sizeof(ImDrawVert),
-		             (GLvoid *)&cmd_list->VtxBuffer.front(), GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,
+		             (GLsizeiptr)cmd_list->VtxBuffer.size() * sizeof(ImDrawVert),
+		             (GLvoid *)&cmd_list->VtxBuffer.front(),
+		             GL_STREAM_DRAW);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		             (GLsizeiptr)cmd_list->IdxBuffer.size() * sizeof(ImDrawIdx),
-		             (GLvoid *)&cmd_list->IdxBuffer.front(), GL_STREAM_DRAW);
+		             (GLvoid *)&cmd_list->IdxBuffer.front(),
+		             GL_STREAM_DRAW);
 
 		for (const ImDrawCmd *pcmd = cmd_list->CmdBuffer.begin(); pcmd != cmd_list->CmdBuffer.end();
 		     pcmd++) {
@@ -121,10 +124,12 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 				pcmd->UserCallback(cmd_list, pcmd);
 			} else {
 				glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-				glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w),
+				glScissor((int)pcmd->ClipRect.x,
+				          (int)(fb_height - pcmd->ClipRect.w),
 				          (int)(pcmd->ClipRect.z - pcmd->ClipRect.x),
 				          (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-				glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount,
+				glDrawElements(GL_TRIANGLES,
+				               (GLsizei)pcmd->ElemCount,
 				               sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT,
 				               idx_buffer_offset);
 			}
@@ -157,8 +162,8 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 		glEnable(GL_SCISSOR_TEST);
 	else
 		glDisable(GL_SCISSOR_TEST);
-	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2],
-	           (GLsizei)last_viewport[3]);
+	glViewport(
+	    last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 }
 
 static const char *ImGui_ImplSdlGL3_GetClipboardText() {
@@ -178,8 +183,8 @@ bool ImGui_ImplSdlGL3_ProcessEvent(SDL_Event *event) {
 			return true;
 		}
 		case SDL_MOUSEBUTTONDOWN: {
-			if (event->button.button == SDL_BUTTON_LEFT) g_MousePressed[0] = true;
-			if (event->button.button == SDL_BUTTON_RIGHT) g_MousePressed[1] = true;
+			if (event->button.button == SDL_BUTTON_LEFT) g_MousePressed[0]   = true;
+			if (event->button.button == SDL_BUTTON_RIGHT) g_MousePressed[1]  = true;
 			if (event->button.button == SDL_BUTTON_MIDDLE) g_MousePressed[2] = true;
 			return true;
 		}
@@ -200,10 +205,10 @@ bool ImGui_ImplSdlGL3_ProcessEvent(SDL_Event *event) {
 			}
 
 			io.KeysDown[key] = (event->type == SDL_KEYDOWN);
-			io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-			io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-			io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-			io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+			io.KeyShift      = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+			io.KeyCtrl       = ((SDL_GetModState() & KMOD_CTRL) != 0);
+			io.KeyAlt        = ((SDL_GetModState() & KMOD_ALT) != 0);
+			io.KeySuper      = ((SDL_GetModState() & KMOD_GUI) != 0);
 			return true;
 		}
 	}
@@ -237,7 +242,7 @@ void ImGui_ImplSdlGL3_CreateFontsTexture() {
 
 static bool ImGui_ImplSdlGL3_CreateAssetTexture(int global_id, const char *filename) {
 	size_t size;
-	unsigned char *buf = (unsigned char *)file_as_buffer(&size, filename);
+	unsigned char *buf  = (unsigned char *)file_as_buffer(&size, filename);
 	TextureDDS *texture = new TextureDDS(buf);
 
 #ifndef _WIN32
@@ -250,7 +255,7 @@ static bool ImGui_ImplSdlGL3_CreateAssetTexture(int global_id, const char *filen
 }
 
 static bool ImGui_ImplSdlGL3_CreateCircleTexture() {
-	bool result = true;
+	bool result      = true;
 	std::string path = get_asset_path("empty_circle.dds");
 	result &= ImGui_ImplSdlGL3_CreateAssetTexture(1, path.c_str());
 	return result;
@@ -290,8 +295,8 @@ bool ImGui_ImplSdlGL3_CreateDeviceObjects() {
 	    "}\n";
 
 	g_ShaderHandle = glCreateProgram();
-	g_VertHandle = glCreateShader(GL_VERTEX_SHADER);
-	g_FragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+	g_VertHandle   = glCreateShader(GL_VERTEX_SHADER);
+	g_FragHandle   = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(g_VertHandle, 1, &vertex_shader, 0);
 	glShaderSource(g_FragHandle, 1, &fragment_shader, 0);
 	glCompileShader(g_VertHandle);
@@ -300,11 +305,11 @@ bool ImGui_ImplSdlGL3_CreateDeviceObjects() {
 	glAttachShader(g_ShaderHandle, g_FragHandle);
 	glLinkProgram(g_ShaderHandle);
 
-	g_AttribLocationTex = glGetUniformLocation(g_ShaderHandle, "Texture");
-	g_AttribLocationProjMtx = glGetUniformLocation(g_ShaderHandle, "ProjMtx");
+	g_AttribLocationTex      = glGetUniformLocation(g_ShaderHandle, "Texture");
+	g_AttribLocationProjMtx  = glGetUniformLocation(g_ShaderHandle, "ProjMtx");
 	g_AttribLocationPosition = glGetAttribLocation(g_ShaderHandle, "Position");
-	g_AttribLocationUV = glGetAttribLocation(g_ShaderHandle, "UV");
-	g_AttribLocationColor = glGetAttribLocation(g_ShaderHandle, "Color");
+	g_AttribLocationUV       = glGetAttribLocation(g_ShaderHandle, "UV");
+	g_AttribLocationColor    = glGetAttribLocation(g_ShaderHandle, "Color");
 
 	glGenBuffers(1, &g_VboHandle);
 	glGenBuffers(1, &g_ElementsHandle);
@@ -317,11 +322,23 @@ bool ImGui_ImplSdlGL3_CreateDeviceObjects() {
 	glEnableVertexAttribArray(g_AttribLocationColor);
 
 #define OFFSETOF(TYPE, ELEMENT) ((size_t) & (((TYPE *)0)->ELEMENT))
-	glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert),
+	glVertexAttribPointer(g_AttribLocationPosition,
+	                      2,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      sizeof(ImDrawVert),
 	                      (GLvoid *)OFFSETOF(ImDrawVert, pos));
-	glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert),
+	glVertexAttribPointer(g_AttribLocationUV,
+	                      2,
+	                      GL_FLOAT,
+	                      GL_FALSE,
+	                      sizeof(ImDrawVert),
 	                      (GLvoid *)OFFSETOF(ImDrawVert, uv));
-	glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert),
+	glVertexAttribPointer(g_AttribLocationColor,
+	                      4,
+	                      GL_UNSIGNED_BYTE,
+	                      GL_TRUE,
+	                      sizeof(ImDrawVert),
 	                      (GLvoid *)OFFSETOF(ImDrawVert, col));
 #undef OFFSETOF
 
@@ -356,33 +373,33 @@ void ImGui_ImplSdlGL3_InvalidateDeviceObjects() {
 	if (g_FontTexture) {
 		glDeleteTextures(1, &g_FontTexture);
 		ImGui::GetIO().Fonts->TexID = 0;
-		g_FontTexture = 0;
+		g_FontTexture               = 0;
 	}
 }
 
 bool ImGui_ImplSdlGL3_Init(SDL_Window *window) {
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO &io             = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB; // Keyboard mapping. ImGui will use those
 	                                    // indices to peek into the io.KeyDown[]
 	                                    // array.
-	io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
+	io.KeyMap[ImGuiKey_LeftArrow]  = SDL_SCANCODE_LEFT;
 	io.KeyMap[ImGuiKey_RightArrow] = SDL_SCANCODE_RIGHT;
-	io.KeyMap[ImGuiKey_UpArrow] = SDL_SCANCODE_UP;
-	io.KeyMap[ImGuiKey_DownArrow] = SDL_SCANCODE_DOWN;
-	io.KeyMap[ImGuiKey_PageUp] = SDL_SCANCODE_PAGEUP;
-	io.KeyMap[ImGuiKey_PageDown] = SDL_SCANCODE_PAGEDOWN;
-	io.KeyMap[ImGuiKey_Home] = SDL_SCANCODE_HOME;
-	io.KeyMap[ImGuiKey_End] = SDL_SCANCODE_END;
-	io.KeyMap[ImGuiKey_Delete] = SDLK_DELETE;
-	io.KeyMap[ImGuiKey_Backspace] = SDLK_BACKSPACE;
-	io.KeyMap[ImGuiKey_Enter] = SDLK_RETURN;
-	io.KeyMap[ImGuiKey_Escape] = SDLK_ESCAPE;
-	io.KeyMap[ImGuiKey_A] = SDLK_a;
-	io.KeyMap[ImGuiKey_C] = SDLK_c;
-	io.KeyMap[ImGuiKey_V] = SDLK_v;
-	io.KeyMap[ImGuiKey_X] = SDLK_x;
-	io.KeyMap[ImGuiKey_Y] = SDLK_y;
-	io.KeyMap[ImGuiKey_Z] = SDLK_z;
+	io.KeyMap[ImGuiKey_UpArrow]    = SDL_SCANCODE_UP;
+	io.KeyMap[ImGuiKey_DownArrow]  = SDL_SCANCODE_DOWN;
+	io.KeyMap[ImGuiKey_PageUp]     = SDL_SCANCODE_PAGEUP;
+	io.KeyMap[ImGuiKey_PageDown]   = SDL_SCANCODE_PAGEDOWN;
+	io.KeyMap[ImGuiKey_Home]       = SDL_SCANCODE_HOME;
+	io.KeyMap[ImGuiKey_End]        = SDL_SCANCODE_END;
+	io.KeyMap[ImGuiKey_Delete]     = SDLK_DELETE;
+	io.KeyMap[ImGuiKey_Backspace]  = SDLK_BACKSPACE;
+	io.KeyMap[ImGuiKey_Enter]      = SDLK_RETURN;
+	io.KeyMap[ImGuiKey_Escape]     = SDLK_ESCAPE;
+	io.KeyMap[ImGuiKey_A]          = SDLK_a;
+	io.KeyMap[ImGuiKey_C]          = SDLK_c;
+	io.KeyMap[ImGuiKey_V]          = SDLK_v;
+	io.KeyMap[ImGuiKey_X]          = SDLK_x;
+	io.KeyMap[ImGuiKey_Y]          = SDLK_y;
+	io.KeyMap[ImGuiKey_Z]          = SDLK_z;
 
 	io.RenderDrawListsFn = ImGui_ImplSdlGL3_RenderDrawLists; // Alternatively you can set this to
 	                                                         // NULL and call ImGui::GetDrawData()
@@ -423,10 +440,10 @@ void ImGui_ImplSdlGL3_NewFrame(SDL_Window *window) {
 	    ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 
 	// Setup time step
-	Uint32 time = SDL_GetTicks();
+	Uint32 time         = SDL_GetTicks();
 	double current_time = time / 1000.0;
-	io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
-	g_Time = current_time;
+	io.DeltaTime        = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
+	g_Time              = current_time;
 
 	// Setup inputs
 	// (we already got mouse wheel, keyboard keys & characters from
@@ -446,12 +463,12 @@ void ImGui_ImplSdlGL3_NewFrame(SDL_Window *window) {
 	                         // "mouse held this frame", so we don't miss
 	                         // click-release events that are shorter than 1
 	                         // frame.
-	io.MouseDown[1] = g_MousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-	io.MouseDown[2] = g_MousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
+	io.MouseDown[1]   = g_MousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
+	io.MouseDown[2]   = g_MousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
 	g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
 
 	io.MouseWheel = g_MouseWheel;
-	g_MouseWheel = 0.0f;
+	g_MouseWheel  = 0.0f;
 
 	// Hide OS mouse cursor if ImGui is drawing it
 	SDL_ShowCursor(io.MouseDrawCursor ? 0 : 1);

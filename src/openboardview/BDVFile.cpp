@@ -11,10 +11,10 @@ void decode_bdv(char *buf, size_t buffer_size) {
 	int count = 0xa0; // First key
 	for (size_t i = 0; i < buffer_size; i++) {
 		if (buf[i] == '\r' && buf[i + 1] == '\n') count++; // Increment key on each new line
-		char x = buf[i];
+		char x                                 = buf[i];
 		if (!(x == '\r' || x == '\n' || !x)) x = count - x;
-		if (count > 285) count = 159;
-		buf[i] = x;
+		if (count > 285) count                 = 159;
+		buf[i]                                 = x;
 	}
 }
 
@@ -34,13 +34,13 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 #define FAIL_LABEL fail
 	ENSURE(buffer_size > 4);
 	size_t file_buf_size = 3 * (1 + buffer_size);
-	file_buf = (char *)malloc(file_buf_size);
+	file_buf             = (char *)malloc(file_buf_size);
 	memcpy(file_buf, buf, buffer_size);
 	file_buf[buffer_size] = 0;
 	// This is for fixing degenerate utf8
-	char *arena = &file_buf[buffer_size + 1];
+	char *arena     = &file_buf[buffer_size + 1];
 	char *arena_end = file_buf + file_buf_size - 1;
-	*arena_end = 0;
+	*arena_end      = 0;
 
 	decode_bdv(file_buf, buffer_size);
 
@@ -99,7 +99,7 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 					if (!strcmp(loc, "(T)"))
 						part.type = 10; // SMD part on top
 					else
-						part.type = 5; // SMD part on bottom
+						part.type    = 5; // SMD part on bottom
 					part.end_of_pins = 0;
 					parts.push_back(part);
 				} else {
@@ -151,10 +151,10 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 		}
 	}
 
-	num_parts = parts.size();
-	num_pins = pins.size();
+	num_parts  = parts.size();
+	num_pins   = pins.size();
 	num_format = format.size();
-	num_nails = nails.size();
+	num_nails  = nails.size();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

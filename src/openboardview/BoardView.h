@@ -21,7 +21,7 @@ struct BitVec {
 
 	void Set(uint32_t index, bool val) {
 		uint32_t &slot = m_bits[index >> 5];
-		uint32_t bit = (1u << (index & 0x1f));
+		uint32_t bit   = (1u << (index & 0x1f));
 		slot &= ~bit;
 		if (val) {
 			slot |= bit;
@@ -38,34 +38,34 @@ struct BitVec {
 
 struct ColorScheme {
 	uint32_t backgroundColor = 0xa0000000;
-	uint32_t partTextColor = 0xff808000;
-	uint32_t boardOutline = 0xff00ffff;
+	uint32_t partTextColor   = 0xff808000;
+	uint32_t boardOutline    = 0xff00ffff;
 
 	uint32_t boxColor = 0xffcccccc;
 
-	uint32_t pinDefault = 0xff0000ff;
-	uint32_t pinGround = 0xff0000bb;
+	uint32_t pinDefault      = 0xff0000ff;
+	uint32_t pinGround       = 0xff0000bb;
 	uint32_t pinNotConnected = 0xffff0000;
-	uint32_t pinTestPad = 0xff888888;
+	uint32_t pinTestPad      = 0xff888888;
 
-	uint32_t pinSelected = 0xffeeeeee;
-	uint32_t pinHighlighted = 0xffffffff;
+	uint32_t pinSelected         = 0xffeeeeee;
+	uint32_t pinHighlighted      = 0xffffffff;
 	uint32_t pinHighlightSameNet = 0xff99f8ff;
 
 	uint32_t annotationPartAlias = 0xcc00ffff;
 
-	uint32_t partHullColor = 0x80808080;
-	uint32_t selectedMaskPins = 0x4FFFFFFF;
-	uint32_t selectedMaskParts = 0x8FFFFFFF;
+	uint32_t partHullColor       = 0x80808080;
+	uint32_t selectedMaskPins    = 0x4FFFFFFF;
+	uint32_t selectedMaskParts   = 0x8FFFFFFF;
 	uint32_t selectedMaskOutline = 0x8FFFFFFF;
 };
 
 enum DrawChannel {
-	kChannelImages = 0,
-	kChannelPolylines = 1,
-	kChannelText = 2,
+	kChannelImages      = 0,
+	kChannelPolylines   = 1,
+	kChannelText        = 2,
 	kChannelAnnotations = 3,
-	NUM_DRAW_CHANNELS = 4
+	NUM_DRAW_CHANNELS   = 4
 };
 
 struct BoardView {
@@ -74,8 +74,8 @@ struct BoardView {
 
 	FHistory fhistory;
 	int history_file_has_changed = 0;
-	bool slowCPU = false;
-	bool showFPS = false;
+	bool slowCPU                 = false;
+	bool showFPS                 = false;
 
 	void CenterView(void);
 	void Pan(int direction, int amount);
@@ -113,7 +113,7 @@ struct BoardView {
 	// TODO: save settings to disk
 	// pinDiameter: diameter for all pins.  Unit scale: 1 = 0.025mm, boards are
 	// done in "thou" (1/1000" = 0.0254mm)
-	int m_pinDiameter = 20;
+	int m_pinDiameter     = 20;
 	bool m_flipVertically = true;
 
 	// Annotation layer specific

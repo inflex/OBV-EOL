@@ -5,14 +5,14 @@
 #include <string>
 #include <vector>
 
-#define LOAD_INT(var) var = strtol(p, &p, 10)
+#define LOAD_INT(var) var    = strtol(p, &p, 10)
 #define LOAD_DOUBLE(var) var = strtod(p, &p);
 #define LOAD_STR(var)                                                                              \
 	while (isspace((uint8_t)*p)) ++p;                                                              \
 	s = p;                                                                                         \
 	while (!isspace((uint8_t)*p)) ++p;                                                             \
 	*p++ = 0;                                                                                      \
-	var = fix_to_utf8(s, &arena, arena_end);
+	var  = fix_to_utf8(s, &arena, arena_end);
 
 struct BRDPoint {
 	int x;
@@ -31,7 +31,7 @@ struct BRDPin {
 	int part;
 	char *net;
 	double radius = 0.5f;
-	char *snum = nullptr;
+	char *snum    = nullptr;
 
 	bool operator<(const BRDPin &p) const // For sorting the vector
 	{
