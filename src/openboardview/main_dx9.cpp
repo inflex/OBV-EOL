@@ -71,7 +71,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	size_t hpsz;
 	Confparse obvconfig;
 	int sizex, sizey;
-	bool use_exepath = false;
+	bool use_exepath  = false;
 	bool use_homepath = true;
 	CHAR history_file[MAX_PATH];
 	CHAR conf_file[MAX_PATH];
@@ -88,12 +88,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	int l = strlen(exepath);
 	while (--l) {
 		if (exepath[l] == '\\') {
-			exepath[l] = '\0'; 
+			exepath[l] = '\0';
 			break;
 		}
 	}
-	snprintf(history_file,sizeof(history_file),"%s\\obv.history", exepath);
-	snprintf(conf_file,sizeof(conf_file),"%s\\obv.conf", exepath);
+	snprintf(history_file, sizeof(history_file), "%s\\obv.history", exepath);
+	snprintf(conf_file, sizeof(conf_file), "%s\\obv.conf", exepath);
 
 	err = _dupenv_s(&homepath, &hpsz, "APPDATA");
 	if (homepath) {
@@ -103,9 +103,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		sr = stat(ss, &st);
 		if (sr == -1) {
 			//_mkdir(ss);
-			//sr = stat(ss, &st);
-		}
-		else {
+			// sr = stat(ss, &st);
+		} else {
 			snprintf(history_file, sizeof(history_file), "%s\\obv.history", homepath);
 			snprintf(conf_file, sizeof(conf_file), "%s\\obv.conf", homepath);
 		}
@@ -113,8 +112,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// Create application window
 	HINSTANCE instance = GetModuleHandle(NULL);
-	HICON icon = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
-	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, instance, icon, NULL, NULL, NULL, class_name, NULL };
+	HICON icon         = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
+	WNDCLASSEX wc      = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, instance, icon, NULL, NULL, NULL, class_name, NULL};
 	RegisterClassEx(&wc);
 
 	obvconfig.Load(conf_file);

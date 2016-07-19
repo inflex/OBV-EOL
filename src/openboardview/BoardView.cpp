@@ -905,7 +905,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 						draw->AddRect(ImVec2(pos.x - 1, pos.y - 1), ImVec2(pos.x + 1, pos.y + 1), color);
 			}
 
-			if ((color == m_colors.pinHighlightSameNet)&&(pinHalo == true)) {
+			if ((color == m_colors.pinHighlightSameNet) && (pinHalo == true)) {
 				draw->AddCircle(ImVec2(pos.x, pos.y), psz + 1.25, m_colors.pinHalo, segments);
 			}
 
@@ -938,7 +938,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 	/*
 	 * If a pin has been selected, we mask out the colour to
-	 * enhance (relatively) the appearance of the pin(s) 
+	 * enhance (relatively) the appearance of the pin(s)
 	 */
 	if (m_pinSelected) color &= m_colors.selectedMaskParts;
 
@@ -1149,7 +1149,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 			/*
 			 * If we have (typically) a connector with a non uniform pin distribution
-			 * then we can try use the minimal bounding box algorithm 
+			 * then we can try use the minimal bounding box algorithm
 			 * to give it a more sane outline
 			 */
 			if ((pincount >= 4) && ((p0 == 'J') || (strncmp(part->name.c_str(), "CN", 2) == 0) || ((p0 == 'L') || (p1 == 'L')))) {
@@ -1172,11 +1172,11 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 							hull[i] = CoordToScreen(hull[i].x, hull[i].y);
 						}
 
-						/* 
+						/*
 						 * Tighten the hull, removes any small angle segments
 						 * such as a sequence of pins in a line, might be an overkill
 						 */
-						//hpc = TightenHull(hull, hpc, 0.1f);
+						// hpc = TightenHull(hull, hpc, 0.1f);
 						draw->AddPolyline(hull, hpc, m_colors.partHullColor, true, 1.0f, false);
 						VHMBBCalculate(bbox, hull, hpc, pin_radius * m_scale);
 						draw->AddPolyline(bbox, 4, color, true, 1.0f, false);
