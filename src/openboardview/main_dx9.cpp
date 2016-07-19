@@ -33,8 +33,7 @@ uint32_t byte4swap(uint32_t x) {
 	/*
 	* used to convert RGBA -> ABGR etc
 	*/
-	return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8) |
-	        ((x & 0xff000000) >> 24));
+	return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8) | ((x & 0xff000000) >> 24));
 }
 
 extern LRESULT ImGui_ImplDX9_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -78,18 +77,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Create application window
 	HINSTANCE instance = GetModuleHandle(NULL);
 	HICON icon         = LoadIcon(instance, MAKEINTRESOURCE(IDI_ICON1));
-	WNDCLASSEX wc      = {sizeof(WNDCLASSEX),
-	                 CS_CLASSDC,
-	                 WndProc,
-	                 0L,
-	                 0L,
-	                 instance,
-	                 icon,
-	                 NULL,
-	                 NULL,
-	                 NULL,
-	                 class_name,
-	                 NULL};
+	WNDCLASSEX wc      = {sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, instance, icon, NULL, NULL, NULL, class_name, NULL};
 	RegisterClassEx(&wc);
 
 	err = _dupenv_s(&homepath, &hpsz, "APPDATA");
@@ -143,12 +131,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	g_d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_ONE;
 
 	// Create the D3DDevice
-	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT,
-	                       D3DDEVTYPE_HAL,
-	                       hwnd,
-	                       D3DCREATE_HARDWARE_VERTEXPROCESSING,
-	                       &g_d3dpp,
-	                       &g_pd3dDevice) < 0) {
+	if (pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) <
+	    0) {
 		pD3D->Release();
 		UnregisterClass(class_name, wc.hInstance);
 		return 0;
@@ -212,26 +196,23 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	* we use the human-readable version but swap the ordering around when
 	* it comes to assigning the actual colour to ImGui.
 	*/
-	app.m_colors.backgroundColor = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
-	app.m_colors.partTextColor   = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
-	app.m_colors.boardOutline    = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
-	app.m_colors.boxColor        = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
-	app.m_colors.pinDefault      = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
-	app.m_colors.pinGround       = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
-	app.m_colors.pinNotConnected = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
-	app.m_colors.pinTestPad      = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
-	app.m_colors.pinSelected     = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
-	app.m_colors.pinHalo         = byte4swap(obvconfig.ParseHex("pinHalo", 0x00ff004f));
-	app.m_colors.pinHighlighted  = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
-	app.m_colors.pinHighlightSameNet =
-	    byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
-	app.m_colors.annotationPartAlias =
-	    byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
-	app.m_colors.partHullColor     = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
-	app.m_colors.selectedMaskPins  = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
-	app.m_colors.selectedMaskParts = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
-	app.m_colors.selectedMaskOutline =
-	    byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
+	app.m_colors.backgroundColor     = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
+	app.m_colors.partTextColor       = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
+	app.m_colors.boardOutline        = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
+	app.m_colors.boxColor            = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
+	app.m_colors.pinDefault          = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
+	app.m_colors.pinGround           = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
+	app.m_colors.pinNotConnected     = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
+	app.m_colors.pinTestPad          = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
+	app.m_colors.pinSelected         = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
+	app.m_colors.pinHalo             = byte4swap(obvconfig.ParseHex("pinHalo", 0x00ff006f));
+	app.m_colors.pinHighlighted      = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
+	app.m_colors.pinHighlightSameNet = byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
+	app.m_colors.annotationPartAlias = byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
+	app.m_colors.partHullColor       = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
+	app.m_colors.selectedMaskPins    = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
+	app.m_colors.selectedMaskParts   = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
+	app.m_colors.selectedMaskOutline = byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
 
 	bool show_test_window    = true;
 	bool show_another_window = false;
@@ -258,10 +239,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 		g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
-		D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_col.x * 255.0f),
-		                                      (int)(clear_col.y * 255.0f),
-		                                      (int)(clear_col.z * 255.0f),
-		                                      (int)(clear_col.w * 255.0f));
+		D3DCOLOR clear_col_dx = D3DCOLOR_RGBA(
+		    (int)(clear_col.x * 255.0f), (int)(clear_col.y * 255.0f), (int)(clear_col.z * 255.0f), (int)(clear_col.w * 255.0f));
 		g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
 		if (g_pd3dDevice->BeginScene() >= 0) {
 			ImGui::Render();

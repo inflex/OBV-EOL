@@ -49,8 +49,7 @@ uint32_t byte4swap(uint32_t x) {
 	/*
 	 * used to convert RGBA -> ABGR etc
 	 */
-	return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8) |
-	        ((x & 0xff000000) >> 24));
+	return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8) | ((x & 0xff000000) >> 24));
 }
 
 int parse_parameters(int argc, char **argv, struct globals *g) {
@@ -195,8 +194,8 @@ int main(int argc, char **argv) {
 	std::string fontpath = get_asset_path("FiraSans-Medium.ttf");
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), 20.0f);
 #endif
-	ImGuiIO &io          = ImGui::GetIO();
-	std::string fontpath = get_asset_path(obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
+	ImGuiIO &io                       = ImGui::GetIO();
+	std::string fontpath              = get_asset_path(obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	if (g.font_size == 0) g.font_size = obvconfig.ParseDouble("fontSize", 20.0f);
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 	//	io.Fonts->AddFontDefault();
@@ -229,26 +228,23 @@ int main(int argc, char **argv) {
 	 * we use the human-readable version but swap the ordering around when
 	 * it comes to assigning the actual colour to ImGui.
 	 */
-	app.m_colors.backgroundColor = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
-	app.m_colors.partTextColor   = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
-	app.m_colors.boardOutline    = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
-	app.m_colors.boxColor        = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
-	app.m_colors.pinDefault      = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
-	app.m_colors.pinGround       = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
-	app.m_colors.pinNotConnected = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
-	app.m_colors.pinTestPad      = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
-	app.m_colors.pinSelected     = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
-	app.m_colors.pinHalo         = byte4swap(obvconfig.ParseHex("pinHalo", 0x00ff004f));
-	app.m_colors.pinHighlighted  = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
-	app.m_colors.pinHighlightSameNet =
-	    byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
-	app.m_colors.annotationPartAlias =
-	    byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
-	app.m_colors.partHullColor     = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
-	app.m_colors.selectedMaskPins  = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
-	app.m_colors.selectedMaskParts = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
-	app.m_colors.selectedMaskOutline =
-	    byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
+	app.m_colors.backgroundColor     = byte4swap(obvconfig.ParseHex("backgroundColor", 0x000000a0));
+	app.m_colors.partTextColor       = byte4swap(obvconfig.ParseHex("partTextColor", 0x008080ff));
+	app.m_colors.boardOutline        = byte4swap(obvconfig.ParseHex("boardOutline", 0xffff00ff));
+	app.m_colors.boxColor            = byte4swap(obvconfig.ParseHex("boxColor", 0xccccccff));
+	app.m_colors.pinDefault          = byte4swap(obvconfig.ParseHex("pinDefault", 0xff0000ff));
+	app.m_colors.pinGround           = byte4swap(obvconfig.ParseHex("pinGround", 0xbb0000ff));
+	app.m_colors.pinNotConnected     = byte4swap(obvconfig.ParseHex("pinNotConnected", 0x0000ffff));
+	app.m_colors.pinTestPad          = byte4swap(obvconfig.ParseHex("pinTestPad", 0x888888ff));
+	app.m_colors.pinSelected         = byte4swap(obvconfig.ParseHex("pinSelected", 0xeeeeeeff));
+	app.m_colors.pinHalo             = byte4swap(obvconfig.ParseHex("pinHalo", 0x00ff006f));
+	app.m_colors.pinHighlighted      = byte4swap(obvconfig.ParseHex("pinHighlighted", 0xffffffff));
+	app.m_colors.pinHighlightSameNet = byte4swap(obvconfig.ParseHex("pinHighlightSameNet", 0xfff888ff));
+	app.m_colors.annotationPartAlias = byte4swap(obvconfig.ParseHex("annotationPartAlias", 0xffff00ff));
+	app.m_colors.partHullColor       = byte4swap(obvconfig.ParseHex("partHullColor", 0x80808080));
+	app.m_colors.selectedMaskPins    = byte4swap(obvconfig.ParseHex("selectedMaskPins", 0xffffff4f));
+	app.m_colors.selectedMaskParts   = byte4swap(obvconfig.ParseHex("selectedMaskParts", 0xffffff8f));
+	app.m_colors.selectedMaskOutline = byte4swap(obvconfig.ParseHex("selectedMaskOutline", 0xffffff8f));
 
 	ImVec4 clear_color = ImColor(20, 20, 30);
 
@@ -325,8 +321,7 @@ int main(int argc, char **argv) {
 		// PLD20160618
 		if (app.history_file_has_changed) {
 			char scratch[1024];
-			snprintf(
-			    scratch, sizeof(scratch), "OpenFlex Board Viewer - %s", app.fhistory.history[0]);
+			snprintf(scratch, sizeof(scratch), "OpenFlex Board Viewer - %s", app.fhistory.history[0]);
 			SDL_SetWindowTitle(window, scratch);
 			app.history_file_has_changed = 0;
 		}
