@@ -82,8 +82,7 @@ void FZFile::decode(char *source, size_t size) {
  * file
  */
 char *FZFile::split(char *file_buf, size_t buffer_size, size_t &content_size) {
-	int descr_len = (file_buf[buffer_size - 1] << 24) + (file_buf[buffer_size - 2] << 16) +
-	                (file_buf[buffer_size - 3] << 8) +
+	int descr_len = (file_buf[buffer_size - 1] << 24) + (file_buf[buffer_size - 2] << 16) + (file_buf[buffer_size - 3] << 8) +
 	                file_buf[buffer_size - 4]; // read last 4 bytes as little endian 32-bit int.
 	if (descr_len < 0 || (unsigned)descr_len > buffer_size) return nullptr;
 	// if(descr != nullptr) *descr = file_buf+buffer_size-descr_len+4; // discard
@@ -145,22 +144,14 @@ char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size
 #define OUTLINE_MARGIN 20
 void FZFile::gen_outline() {
 	// Determine board outline
-	int minx = std::min_element(
-	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
-	               ->pos.x -
-	           OUTLINE_MARGIN;
-	int maxx = std::max_element(
-	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })
-	               ->pos.x +
-	           OUTLINE_MARGIN;
-	int miny = std::min_element(
-	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
-	               ->pos.y -
-	           OUTLINE_MARGIN;
-	int maxy = std::max_element(
-	               pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })
-	               ->pos.y +
-	           OUTLINE_MARGIN;
+	int minx =
+	    std::min_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })->pos.x - OUTLINE_MARGIN;
+	int maxx =
+	    std::max_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.x < b.pos.x; })->pos.x + OUTLINE_MARGIN;
+	int miny =
+	    std::min_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })->pos.y - OUTLINE_MARGIN;
+	int maxy =
+	    std::max_element(pins.begin(), pins.end(), [](BRDPin a, BRDPin b) { return a.pos.y < b.pos.y; })->pos.y + OUTLINE_MARGIN;
 	format.push_back({minx, miny});
 	format.push_back({maxx, miny});
 	format.push_back({maxx, maxy});
@@ -181,11 +172,11 @@ void FZFile::update_counts() {
 
 FZFile::FZFile(const char *buf, size_t buffer_size) {
 	char **lines_begin = nullptr;
-#define ENSURE(X)                                                                                  \
-	assert(X);                                                                                     \
-	if (!(X)) {                                                                                    \
-		if (lines_begin) free(lines_begin);                                                        \
-		return;                                                                                    \
+#define ENSURE(X)                           \
+	assert(X);                              \
+	if (!(X)) {                             \
+		if (lines_begin) free(lines_begin); \
+		return;                             \
 	}
 
 	char *saved_locale;
@@ -205,14 +196,12 @@ FZFile::FZFile(const char *buf, size_t buffer_size) {
 
 	FZFile::decode(file_buf, buffer_size); // first decrypt buffer
 	size_t content_size = 0;
-	char *content =
-	    FZFile::split(file_buf, buffer_size, content_size); // then split it, discarding descr part
+	char *content       = FZFile::split(file_buf, buffer_size, content_size); // then split it, discarding descr part
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
-	content =
-	    FZFile::decompress(file_buf + 4,
-	                       content_size,
-	                       content_size); // and decompress zlib content data, discard first 4 bytes
+	content = FZFile::decompress(file_buf + 4,
+	                             content_size,
+	                             content_size); // and decompress zlib content data, discard first 4 bytes
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
 

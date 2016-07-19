@@ -41,8 +41,7 @@ void PartList::Draw(const char *title, bool *p_open, Board *board) {
 			part_annotation = EMPTY_STRING;
 			//}
 
-			if (ImGui::Selectable(
-			        part_name.c_str(), selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
+			if (ImGui::Selectable(part_name.c_str(), selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
 				selected = i;
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					m_cbNetSelected(part_name.c_str());
@@ -50,8 +49,7 @@ void PartList::Draw(const char *title, bool *p_open, Board *board) {
 			}
 			ImGui::NextColumn();
 
-			if (ImGui::Selectable(
-			        part_annotation, selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
+			if (ImGui::Selectable(part_annotation, selected == i, ImGuiSelectableFlags_AllowDoubleClick)) {
 				selected = i;
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// TODO: change field?

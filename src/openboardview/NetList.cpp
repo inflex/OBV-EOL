@@ -33,10 +33,8 @@ void NetList::Draw(const char *title, bool *p_open, Board *board) {
 		string net_name     = "";
 		for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 			net_name = nets[i]->name;
-			if (ImGui::Selectable(net_name.c_str(),
-			                      selected == i,
-			                      ImGuiSelectableFlags_SpanAllColumns |
-			                          ImGuiSelectableFlags_AllowDoubleClick)) {
+			if (ImGui::Selectable(
+			        net_name.c_str(), selected == i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
 				selected = i;
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					m_cbNetSelected(net_name.c_str());

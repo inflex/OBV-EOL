@@ -61,8 +61,7 @@ int BoardView::LoadFile(char *filename) {
 			if (file && file->valid) {
 				SetFile(file);
 				fhistory.Prepend_save(filename);
-				history_file_has_changed =
-				    1; // used by main to know when to update the window title
+				history_file_has_changed = 1; // used by main to know when to update the window title
 
 			} else {
 				m_lastFileOpenWasInvalid = true;
@@ -184,8 +183,8 @@ void BoardView::Update() {
 				SetNetFilter(m_search);
 			}
 			const char *first_button = m_search;
-			if (ImGui::IsItemHovered() || (ImGui::IsRootWindowOrAnyChildFocused() &&
-			                               !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
+			if (ImGui::IsItemHovered() ||
+			    (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
 				ImGui::SetKeyboardFocusHere(-1);
 
 			int buttons_left = 10;
@@ -219,8 +218,7 @@ void BoardView::Update() {
 		if (ImGui::BeginPopupModal("Search for Component",
 		                           nullptr,
 		                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-		                               ImGuiWindowFlags_NoSavedSettings |
-		                               ImGuiWindowFlags_ShowBorders)) {
+		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_ShowBorders)) {
 			char cs[128];
 			const char *first_button  = m_search;
 			const char *first_button2 = m_search2;
@@ -239,8 +237,7 @@ void BoardView::Update() {
 				FindComponent(m_search);
 			}
 
-			if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() &&
-			    !ImGui::IsMouseClicked(0)) {
+			if (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
 				ImGui::SetKeyboardFocusHere(-1);
 			} // set keyboard focus
 
@@ -430,12 +427,10 @@ void BoardView::Update() {
 		}
 	}
 
-	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-	                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-	                         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+	                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
 
-	ImGuiWindowFlags draw_surface_flags =
-	    flags | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+	ImGuiWindowFlags draw_surface_flags = flags | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 	/*
 	 * Status footer
@@ -466,11 +461,7 @@ void BoardView::Update() {
 			            pos.x * 0.0254,
 			            pos.y * 0.0254);
 		else
-			ImGui::Text("Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)",
-			            pos.x / 1000,
-			            pos.y / 1000,
-			            pos.x * 0.0254,
-			            pos.y * 0.0254);
+			ImGui::Text("Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", pos.x / 1000, pos.y / 1000, pos.x * 0.0254, pos.y * 0.0254);
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
@@ -485,8 +476,7 @@ void BoardView::Update() {
 		m_lastHeight  = io.DisplaySize.y;
 		m_needsRedraw = true;
 	}
-	ImGui::SetNextWindowSize(
-	    ImVec2(io.DisplaySize.x, io.DisplaySize.y - (status_height + menu_height)));
+	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - (status_height + menu_height)));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
@@ -665,8 +655,7 @@ void BoardView::HandleInput() {
 			// Flip board:
 			FlipBoard();
 
-		} else if (ImGui::IsKeyPressed(KM(SDLK_KP_PERIOD)) || ImGui::IsKeyPressed(SDLK_r) ||
-		           ImGui::IsKeyPressed(SDLK_PERIOD)) {
+		} else if (ImGui::IsKeyPressed(KM(SDLK_KP_PERIOD)) || ImGui::IsKeyPressed(SDLK_r) || ImGui::IsKeyPressed(SDLK_PERIOD)) {
 			// Rotate board: R and period rotate clockwise; comma rotates
 			// counter-clockwise
 			Rotate(1);
@@ -674,15 +663,13 @@ void BoardView::HandleInput() {
 		} else if (ImGui::IsKeyPressed(KM(SDLK_KP_0)) || ImGui::IsKeyPressed(SDLK_COMMA)) {
 			Rotate(-1);
 
-		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_PLUS)) ||
-		           ImGui::IsKeyPressed(SDLK_EQUALS)) {
+		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_PLUS)) || ImGui::IsKeyPressed(SDLK_EQUALS)) {
 			if (io.KeyCtrl) {
 				Zoom(m_lastWidth / 2, m_lastHeight / 2, 0.01f);
 			} else {
 				Zoom(m_lastWidth / 2, m_lastHeight / 2, 0.1f);
 			}
-		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_MINUS)) ||
-		           ImGui::IsKeyPressed(SDLK_MINUS)) {
+		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_MINUS)) || ImGui::IsKeyPressed(SDLK_MINUS)) {
 			if (io.KeyCtrl) {
 				Zoom(m_lastWidth / 2, m_lastHeight / 2, -0.01f);
 			} else {
@@ -884,8 +871,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 			}
 
 			// don't show text if it doesn't make sense
-			if (pin->component->pins.size() <= 1 || pin->type == Pin::kPinTypeTestPad)
-				show_text = false;
+			if (pin->component->pins.size() <= 1 || pin->type == Pin::kPinTypeTestPad) show_text = false;
 		}
 
 		// Drawing
@@ -904,15 +890,13 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 					if (psz > 3)
 						draw->AddCircleFilled(ImVec2(pos.x, pos.y), psz, color, segments);
 					else if (psz > threshold)
-						draw->AddRect(
-						    ImVec2(pos.x - 1, pos.y - 1), ImVec2(pos.x + 1, pos.y + 1), color);
+						draw->AddRect(ImVec2(pos.x - 1, pos.y - 1), ImVec2(pos.x + 1, pos.y + 1), color);
 					break;
 				default:
 					if (psz > 3)
 						draw->AddCircle(ImVec2(pos.x, pos.y), psz, color, segments);
 					else if (psz > threshold)
-						draw->AddRect(
-						    ImVec2(pos.x - 1, pos.y - 1), ImVec2(pos.x + 1, pos.y + 1), color);
+						draw->AddRect(ImVec2(pos.x - 1, pos.y - 1), ImVec2(pos.x + 1, pos.y + 1), color);
 			}
 
 			if (color == m_colors.pinHighlightSameNet) {
@@ -926,11 +910,10 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 				ImVec2 text_size = ImGui::CalcTextSize(pin_number);
 				ImVec2 pos_adj   = ImVec2(pos.x - text_size.x * 0.5f, pos.y - text_size.y * 0.5f);
 				draw->ChannelsSetCurrent(kChannelPolylines);
-				draw->AddRectFilled(
-				    ImVec2(pos_adj.x - 2.0f, pos_adj.y - 1.0f),
-				    ImVec2(pos_adj.x + text_size.x + 2.0f, pos_adj.y + text_size.y + 1.0f),
-				    m_colors.backgroundColor,
-				    3.0f);
+				draw->AddRectFilled(ImVec2(pos_adj.x - 2.0f, pos_adj.y - 1.0f),
+				                    ImVec2(pos_adj.x + text_size.x + 2.0f, pos_adj.y + text_size.y + 1.0f),
+				                    m_colors.backgroundColor,
+				                    3.0f);
 				draw->ChannelsSetCurrent(kChannelText);
 				draw->AddText(pos_adj, text_color, pin_number);
 			}
@@ -1118,19 +1101,14 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 				mpx = dx / 2 + part->pins[0]->position.x;
 				mpy = dy / 2 + part->pins[0]->position.y;
-				VHRotateV(&mpx,
-				          &mpy,
-				          dx / 2 + part->pins[0]->position.x,
-				          dy / 2 + part->pins[0]->position.y,
-				          angle);
+				VHRotateV(&mpx, &mpy, dx / 2 + part->pins[0]->position.x, dy / 2 + part->pins[0]->position.y, angle);
 				mp = CoordToScreen(mpx, mpy);
 				// for the round pin representations, choose how many circle segments
 				// need based on the pin size
 				segments                    = trunc(distance);
 				if (segments < 8) segments  = 8;
 				if (segments > 36) segments = 36;
-				draw->AddCircle(
-				    mp, (distance / 3) * m_scale, ImColor(210, 210, 210, 128), segments);
+				draw->AddCircle(mp, (distance / 3) * m_scale, ImColor(210, 210, 210, 128), segments);
 
 			} else {
 				armx = army = pin_radius;
@@ -1165,14 +1143,12 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			// If we have (typically) a connector with a non uniform pin distribution
 			// then we can try use the minimal bounding box algorithm to give it a
 			// more sane outline
-			if ((pincount >= 4) && ((p0 == 'J') || (strncmp(part->name.c_str(), "CN", 2) == 0) ||
-			                        ((p0 == 'L') || (p1 == 'L')))) {
+			if ((pincount >= 4) && ((p0 == 'J') || (strncmp(part->name.c_str(), "CN", 2) == 0) || ((p0 == 'L') || (p1 == 'L')))) {
 				ImVec2 *hull;
 				int hpc;
 
-				hull = (ImVec2 *)malloc(sizeof(ImVec2) *
-				                        pincount); // massive overkill since our hull will
-				                                   // only require the perimeter points
+				hull = (ImVec2 *)malloc(sizeof(ImVec2) * pincount); // massive overkill since our hull will
+				                                                    // only require the perimeter points
 				if (hull) {
 					// Find our hull
 					hpc = VHConvexHull(hull, pva, pincount); // (hpc = hull pin count)
@@ -1202,9 +1178,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 					free(hull);
 				} else {
-					fprintf(stderr,
-					        "ERROR: Cannot allocate memory for convex hull generation (%s)",
-					        strerror(errno));
+					fprintf(stderr, "ERROR: Cannot allocate memory for convex hull generation (%s)", strerror(errno));
 					draw->AddRect(min, max, color);
 					rendered = 1;
 				}
@@ -1448,9 +1422,7 @@ inline bool BoardView::ComponentIsVisible(const Component *part) {
 }
 
 inline bool BoardView::IsVisibleScreen(float x, float y, float radius, const ImGuiIO &io) {
-	if (x < -radius || y < -radius || x - radius > io.DisplaySize.x ||
-	    y - radius > io.DisplaySize.y)
-		return false;
+	if (x < -radius || y < -radius || x - radius > io.DisplaySize.x || y - radius > io.DisplaySize.y) return false;
 	return true;
 }
 

@@ -3,7 +3,7 @@
 #define FHISTORY_COUNT_MAX 20
 #define FHISTORY_FNAME_LEN_MAX 2048
 struct FHistory {
-	int count; // How many entries in the history array
+	int count;                                                // How many entries in the history array
 	char history[FHISTORY_COUNT_MAX][FHISTORY_FNAME_LEN_MAX]; // Array of files in the history
 	char *fname;
 

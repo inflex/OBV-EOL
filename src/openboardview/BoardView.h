@@ -17,7 +17,9 @@ struct BitVec {
 	~BitVec();
 	void Resize(uint32_t new_size);
 
-	bool operator[](uint32_t index) { return 0 != (m_bits[index >> 5] & (1u << (index & 0x1f))); }
+	bool operator[](uint32_t index) {
+		return 0 != (m_bits[index >> 5] & (1u << (index & 0x1f)));
+	}
 
 	void Set(uint32_t index, bool val) {
 		uint32_t &slot = m_bits[index >> 5];
@@ -61,13 +63,7 @@ struct ColorScheme {
 	uint32_t selectedMaskOutline = 0x8FFFFFFF;
 };
 
-enum DrawChannel {
-	kChannelImages      = 0,
-	kChannelPolylines   = 1,
-	kChannelText        = 2,
-	kChannelAnnotations = 3,
-	NUM_DRAW_CHANNELS   = 4
-};
+enum DrawChannel { kChannelImages = 0, kChannelPolylines = 1, kChannelText = 2, kChannelAnnotations = 3, NUM_DRAW_CHANNELS = 4 };
 
 struct BoardView {
 	BRDFile *m_file;

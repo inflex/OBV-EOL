@@ -76,8 +76,7 @@ void ImGui_ImplDX9_RenderDrawLists(ImDrawData *draw_data) {
 		g_IndexBufferSize = draw_data->TotalIdxCount + 10000;
 		if (g_pd3dDevice->CreateIndexBuffer(g_IndexBufferSize * sizeof(ImDrawIdx),
 		                                    D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
-		                                    sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16
-		                                                           : D3DFMT_INDEX32,
+		                                    sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32,
 		                                    D3DPOOL_DEFAULT,
 		                                    &g_pIB,
 		                                    NULL) < 0)
@@ -91,16 +90,8 @@ void ImGui_ImplDX9_RenderDrawLists(ImDrawData *draw_data) {
 	// Copy and convert all vertices into a single contiguous buffer
 	CUSTOMVERTEX *vtx_dst;
 	ImDrawIdx *idx_dst;
-	if (g_pVB->Lock(0,
-	                (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)),
-	                (void **)&vtx_dst,
-	                D3DLOCK_DISCARD) < 0)
-		return;
-	if (g_pIB->Lock(0,
-	                (UINT)(draw_data->TotalIdxCount * sizeof(ImDrawIdx)),
-	                (void **)&idx_dst,
-	                D3DLOCK_DISCARD) < 0)
-		return;
+	if (g_pVB->Lock(0, (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void **)&vtx_dst, D3DLOCK_DISCARD) < 0) return;
+	if (g_pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(ImDrawIdx)), (void **)&idx_dst, D3DLOCK_DISCARD) < 0) return;
 	for (int n = 0; n < draw_data->CmdListsCount; n++) {
 		const ImDrawList *cmd_list = draw_data->CmdLists[n];
 		const ImDrawVert *vtx_src  = &cmd_list->VtxBuffer[0];
@@ -154,22 +145,7 @@ void ImGui_ImplDX9_RenderDrawLists(ImDrawData *draw_data) {
 	// DirectX::XMMatrixIdentity()/DirectX::XMMatrixOrthographicOffCenterLH()
 	{
 		const float L = 0.5f, R = io.DisplaySize.x + 0.5f, T = 0.5f, B = io.DisplaySize.y + 0.5f;
-		D3DMATRIX mat_identity = {{1.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           1.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           1.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           0.0f,
-		                           1.0f}};
+		D3DMATRIX mat_identity = {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}};
 		D3DMATRIX mat_projection = {
 		    2.0f / (R - L),
 		    0.0f,
@@ -203,18 +179,11 @@ void ImGui_ImplDX9_RenderDrawLists(ImDrawData *draw_data) {
 			if (pcmd->UserCallback) {
 				pcmd->UserCallback(cmd_list, pcmd);
 			} else {
-				const RECT r = {(LONG)pcmd->ClipRect.x,
-				                (LONG)pcmd->ClipRect.y,
-				                (LONG)pcmd->ClipRect.z,
-				                (LONG)pcmd->ClipRect.w};
+				const RECT r = {(LONG)pcmd->ClipRect.x, (LONG)pcmd->ClipRect.y, (LONG)pcmd->ClipRect.z, (LONG)pcmd->ClipRect.w};
 				g_pd3dDevice->SetTexture(0, (LPDIRECT3DTEXTURE9)pcmd->TextureId);
 				g_pd3dDevice->SetScissorRect(&r);
-				g_pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-				                                   vtx_offset,
-				                                   0,
-				                                   (UINT)cmd_list->VtxBuffer.size(),
-				                                   idx_offset,
-				                                   pcmd->ElemCount / 3);
+				g_pd3dDevice->DrawIndexedPrimitive(
+				    D3DPT_TRIANGLELIST, vtx_offset, 0, (UINT)cmd_list->VtxBuffer.size(), idx_offset, pcmd->ElemCount / 3);
 			}
 			idx_offset += pcmd->ElemCount;
 		}
@@ -235,9 +204,7 @@ IMGUI_API LRESULT ImGui_ImplDX9_WndProcHandler(HWND, UINT msg, WPARAM wParam, LP
 		case WM_RBUTTONUP: io.MouseDown[1]   = false; return true;
 		case WM_MBUTTONDOWN: io.MouseDown[2] = true; return true;
 		case WM_MBUTTONUP: io.MouseDown[2]   = false; return true;
-		case WM_MOUSEWHEEL:
-			io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f;
-			return true;
+		case WM_MOUSEWHEEL: io.MouseWheel += GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? +1.0f : -1.0f; return true;
 		case WM_MOUSEMOVE:
 			io.MousePos.x = (signed short)(lParam);
 			io.MousePos.y = (signed short)(lParam >> 16);
@@ -311,14 +278,7 @@ static bool ImGui_ImplDX9_CreateFontsTexture() {
 
 	// Upload texture to graphics system
 	g_FontTexture = NULL;
-	if (g_pd3dDevice->CreateTexture(width,
-	                                height,
-	                                1,
-	                                D3DUSAGE_DYNAMIC,
-	                                D3DFMT_A8R8G8B8,
-	                                D3DPOOL_DEFAULT,
-	                                &g_FontTexture,
-	                                NULL) < 0)
+	if (g_pd3dDevice->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_FontTexture, NULL) < 0)
 		return false;
 	D3DLOCKED_RECT tex_locked_rect;
 	if (g_FontTexture->LockRect(0, &tex_locked_rect, NULL, 0) != D3D_OK) return false;

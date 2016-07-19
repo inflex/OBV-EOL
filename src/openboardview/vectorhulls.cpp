@@ -84,8 +84,7 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 		ImVec2 current = hull[i];
 		ImVec2 next    = hull[ni % n];
 
-		double angle =
-		    VHAngleToX(current, next); // angle formed between current and next hull points;
+		double angle = VHAngleToX(current, next); // angle formed between current and next hull points;
 		cumulative_angle += angle;
 
 		double top, bot, left, right; // bounding rect limits

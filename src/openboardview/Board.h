@@ -92,7 +92,9 @@ struct Net : BoardElement {
 
 	vector<Pin *> pins;
 
-	string UniqueId() const { return kBoardNetPrefix + name; }
+	string UniqueId() const {
+		return kBoardNetPrefix + name;
+	}
 };
 
 // Any observeable contact (nails, component pins).
@@ -124,7 +126,9 @@ struct Pin : BoardElement {
 	// Contact belonging to this component (pin), nullptr if nail.
 	Component *component;
 
-	string UniqueId() const { return kBoardPinPrefix + number; }
+	string UniqueId() const {
+		return kBoardPinPrefix + number;
+	}
 };
 
 // A component on the board having multiple Pins.
@@ -161,9 +165,13 @@ struct Component : BoardElement {
 	}
 
 	// true if component is not representing a real/physical component.
-	bool is_dummy() { return component_type == kComponentTypeDummy; }
+	bool is_dummy() {
+		return component_type == kComponentTypeDummy;
+	}
 
-	string UniqueId() const { return kBoardComponentPrefix + name; }
+	string UniqueId() const {
+		return kBoardComponentPrefix + name;
+	}
 };
 
 class Board {
@@ -177,5 +185,7 @@ class Board {
 	virtual SharedVector<Pin> &Pins()             = 0;
 	virtual SharedVector<Point> &OutlinePoints()  = 0;
 
-	EBoardType BoardType() { return kBoardTypeUnknown; }
+	EBoardType BoardType() {
+		return kBoardTypeUnknown;
+	}
 };

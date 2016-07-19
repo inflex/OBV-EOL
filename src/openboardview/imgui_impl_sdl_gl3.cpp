@@ -118,8 +118,7 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 		             (GLvoid *)&cmd_list->IdxBuffer.front(),
 		             GL_STREAM_DRAW);
 
-		for (const ImDrawCmd *pcmd = cmd_list->CmdBuffer.begin(); pcmd != cmd_list->CmdBuffer.end();
-		     pcmd++) {
+		for (const ImDrawCmd *pcmd = cmd_list->CmdBuffer.begin(); pcmd != cmd_list->CmdBuffer.end(); pcmd++) {
 			if (pcmd->UserCallback) {
 				pcmd->UserCallback(cmd_list, pcmd);
 			} else {
@@ -162,8 +161,7 @@ void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData *draw_data) {
 		glEnable(GL_SCISSOR_TEST);
 	else
 		glDisable(GL_SCISSOR_TEST);
-	glViewport(
-	    last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
+	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 }
 
 static const char *ImGui_ImplSdlGL3_GetClipboardText() {
@@ -220,9 +218,8 @@ void ImGui_ImplSdlGL3_CreateFontsTexture() {
 	ImGuiIO &io = ImGui::GetIO();
 	unsigned char *pixels;
 	int width, height;
-	io.Fonts->GetTexDataAsRGBA32(
-	    &pixels, &width, &height); // Load as RGBA 32-bits for OpenGL3 demo because it is more
-	                               // likely to be compatible with user's existing shader.
+	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height); // Load as RGBA 32-bits for OpenGL3 demo because it is more
+	                                                        // likely to be compatible with user's existing shader.
 
 	// Upload texture to graphics system
 	GLint last_texture;
@@ -322,24 +319,10 @@ bool ImGui_ImplSdlGL3_CreateDeviceObjects() {
 	glEnableVertexAttribArray(g_AttribLocationColor);
 
 #define OFFSETOF(TYPE, ELEMENT) ((size_t) & (((TYPE *)0)->ELEMENT))
-	glVertexAttribPointer(g_AttribLocationPosition,
-	                      2,
-	                      GL_FLOAT,
-	                      GL_FALSE,
-	                      sizeof(ImDrawVert),
-	                      (GLvoid *)OFFSETOF(ImDrawVert, pos));
-	glVertexAttribPointer(g_AttribLocationUV,
-	                      2,
-	                      GL_FLOAT,
-	                      GL_FALSE,
-	                      sizeof(ImDrawVert),
-	                      (GLvoid *)OFFSETOF(ImDrawVert, uv));
-	glVertexAttribPointer(g_AttribLocationColor,
-	                      4,
-	                      GL_UNSIGNED_BYTE,
-	                      GL_TRUE,
-	                      sizeof(ImDrawVert),
-	                      (GLvoid *)OFFSETOF(ImDrawVert, col));
+	glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid *)OFFSETOF(ImDrawVert, pos));
+	glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid *)OFFSETOF(ImDrawVert, uv));
+	glVertexAttribPointer(
+	    g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid *)OFFSETOF(ImDrawVert, col));
 #undef OFFSETOF
 
 	ImGui_ImplSdlGL3_CreateFontsTexture();
@@ -435,9 +418,8 @@ void ImGui_ImplSdlGL3_NewFrame(SDL_Window *window) {
 	int display_w, display_h;
 	SDL_GetWindowSize(window, &w, &h);
 	SDL_GL_GetDrawableSize(window, &display_w, &display_h);
-	io.DisplaySize = ImVec2((float)w, (float)h);
-	io.DisplayFramebufferScale =
-	    ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+	io.DisplaySize             = ImVec2((float)w, (float)h);
+	io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 
 	// Setup time step
 	Uint32 time         = SDL_GetTicks();
@@ -457,12 +439,11 @@ void ImGui_ImplSdlGL3_NewFrame(SDL_Window *window) {
 	else
 		io.MousePos = ImVec2(-1, -1);
 
-	io.MouseDown[0] = g_MousePressed[0] ||
-	                  (mouseMask & SDL_BUTTON(SDL_BUTTON_LEFT)) !=
-	                      0; // If a mouse press event came, always pass it as
-	                         // "mouse held this frame", so we don't miss
-	                         // click-release events that are shorter than 1
-	                         // frame.
+	io.MouseDown[0] =
+	    g_MousePressed[0] || (mouseMask & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0; // If a mouse press event came, always pass it as
+	                                                                         // "mouse held this frame", so we don't miss
+	                                                                         // click-release events that are shorter than 1
+	                                                                         // frame.
 	io.MouseDown[1]   = g_MousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
 	io.MouseDown[2]   = g_MousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
 	g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;

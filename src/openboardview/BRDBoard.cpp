@@ -75,8 +75,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 			comp->name = string(brd_part.name);
 
 			// is it some dummy component to indicate test pads?
-			if (is_prefix(kComponentDummyName, comp->name))
-				comp->component_type = Component::kComponentTypeDummy;
+			if (is_prefix(kComponentDummyName, comp->name)) comp->component_type = Component::kComponentTypeDummy;
 
 			// check what side the board is on (sorcery?)
 			if (brd_part.type < 8 && brd_part.type >= 4) {
@@ -87,8 +86,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 				comp->board_side = kBoardSideBoth; // ???
 			}
 
-			comp->mount_type =
-			    (brd_part.type & 0xc) ? Component::kMountTypeSMD : Component::kMountTypeDIP;
+			comp->mount_type = (brd_part.type & 0xc) ? Component::kMountTypeSMD : Component::kMountTypeDIP;
 
 			components_.push_back(comp);
 		}
@@ -184,10 +182,9 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 		}
 
 		// remove all dummy components from vector, add our official dummy
-		components_.erase(remove_if(begin(components_),
-		                            end(components_),
-		                            [](shared_ptr<Component> &comp) { return comp->is_dummy(); }),
-		                  end(components_));
+		components_.erase(
+		    remove_if(begin(components_), end(components_), [](shared_ptr<Component> &comp) { return comp->is_dummy(); }),
+		    end(components_));
 
 		components_.push_back(comp_dummy);
 	}
@@ -198,11 +195,9 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 	}
 
 	// Sort components by name
-	sort(begin(components_),
-	     end(components_),
-	     [](shared_ptr<Component> &lhs, shared_ptr<Component> &rhs) {
-		     return lhs->name < rhs->name;
-		 });
+	sort(begin(components_), end(components_), [](shared_ptr<Component> &lhs, shared_ptr<Component> &rhs) {
+		return lhs->name < rhs->name;
+	});
 }
 
 BRDBoard::~BRDBoard() {}

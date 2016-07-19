@@ -27,8 +27,8 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 //	assert(X);                                                                                     \
 //	if (!(X))                                                                                      \
 //		goto FAIL_LABEL;
-#define ENSURE(X)                                                                                  \
-	assert(X);                                                                                     \
+#define ENSURE(X) \
+	assert(X);    \
 	if (!(X)) return;
 
 #define FAIL_LABEL fail

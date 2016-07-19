@@ -69,8 +69,8 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 //	assert(X);                                                                                     \
 //	if (!(X))                                                                                      \
 //		goto FAIL_LABEL;
-#define ENSURE(X)                                                                                  \
-	assert(X);                                                                                     \
+#define ENSURE(X) \
+	assert(X);    \
 	if (!(X)) return;
 
 #define FAIL_LABEL fail
@@ -146,11 +146,11 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 		char *p = line;
 		char *s;
 #define LOAD_INT(var) var = strtol(p, &p, 10)
-#define LOAD_STR(var)                                                                              \
-	while (isspace((uint8_t)*p)) ++p;                                                              \
-	s = p;                                                                                         \
-	while (!isspace((uint8_t)*p)) ++p;                                                             \
-	*p++ = 0;                                                                                      \
+#define LOAD_STR(var)                  \
+	while (isspace((uint8_t)*p)) ++p;  \
+	s = p;                             \
+	while (!isspace((uint8_t)*p)) ++p; \
+	*p++ = 0;                          \
 	var  = fix_to_utf8(s, &arena, arena_end);
 
 		switch (current_block) {
