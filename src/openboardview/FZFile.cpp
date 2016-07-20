@@ -13,7 +13,7 @@
 
 // Looking at the paper the algo is straight forward, not sure about endianness.
 // This will put out some .bin file you would decompress using zlib.
-//constexpr uint32_t FZFile::key[44];
+// constexpr uint32_t FZFile::key[44];
 uint32_t FZFile::key[44];
 
 static inline uint32_t rotl32(uint32_t a, int32_t b) {

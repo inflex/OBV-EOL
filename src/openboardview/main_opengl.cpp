@@ -5,11 +5,11 @@
 #include "BoardView.h"
 #include "history.h"
 
+#include "FZFile.h"
 #include "confparse.h"
 #include "imgui_impl_sdl_gl3.h"
 #include "platform.h"
 #include "resource.h"
-#include "FZFile.h"
 #include <GL/gl3w.h>
 #include <SDL2/SDL.h>
 #include <stdio.h>
