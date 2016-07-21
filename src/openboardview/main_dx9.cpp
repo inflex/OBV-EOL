@@ -175,6 +175,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// extra_fonts/README.txt
 	// for more details)
 	ImGuiIO &io = ImGui::GetIO();
+	io.IniFilename = NULL;
 	int ttf_size;
 	unsigned char *ttf_data = LoadAsset(&ttf_size, ASSET_FIRA_SANS);
 	ImFontConfig font_cfg{};
