@@ -284,7 +284,18 @@ void BoardView::HelpControls(void) {
 		ImGui::Text("Reset zoom and center");
 		ImGui::Text("Rotate clockwise");
 		ImGui::Text("Rotate anticlockwise");
+		ImGui::Spacing();
+		ImGui::Spacing();
 
+		ImGui::Text("Toggle Pin Blanking");
+		ImGui::Text("Toggle FPS display");
+		ImGui::Text("Toggle Position");
+
+
+
+		/*
+		 * NEXT COLUMN 
+		 */
 		ImGui::NextColumn();
 		ImGui::Text("CTRL-o");
 		ImGui::Text("Ctrl-q");
@@ -317,6 +328,14 @@ void BoardView::HelpControls(void) {
 		ImGui::Text("x, numpad-5");
 		ImGui::Text("'.' numpad '.'");
 		ImGui::Text("',' numpad-0");
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		ImGui::Text("b");
+		ImGui::Text("f");
+		ImGui::Text("p");
+
+
 		ImGui::Columns(1);
 		ImGui::Separator();
 
