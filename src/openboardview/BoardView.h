@@ -83,8 +83,8 @@ struct BoardView {
 	bool slowCPU                 = false;
 	bool showFPS                 = false;
 	bool pinHalo                 = true;
-	bool showPosition			= true;
-	int pinBlank				= 0;
+	bool showPosition            = true;
+	int pinBlank                 = 0;
 	uint32_t FZKey[44]           = {0};
 
 	int ConfigParse(void);

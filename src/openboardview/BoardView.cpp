@@ -770,11 +770,11 @@ void BoardView::Update() {
 		ImVec2 spos = ImGui::GetMousePos();
 		ImVec2 pos  = ScreenToCoord(spos.x, spos.y);
 		if (pinBlank) {
-			ImGui::Text("PIN BLANK ON: Press 'b' to turn off. " );
+			ImGui::Text("PIN BLANK ON: Press 'b' to turn off. ");
 			ImGui::SameLine();
 		}
 		if (showFPS == true) {
-			ImGui::Text("FPS: %0.0f ", ImGui::GetIO().Framerate );
+			ImGui::Text("FPS: %0.0f ", ImGui::GetIO().Framerate);
 			ImGui::SameLine();
 		}
 
@@ -1141,7 +1141,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 	 * pins so they're fainter.
 	 */
 	if (m_pinSelected) {
-	   	cmask = m_colors.selectedMaskPins;
+		cmask = m_colors.selectedMaskPins;
 	}
 
 	if (slowCPU) {
@@ -1163,7 +1163,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 			if (!IsVisibleScreen(pos.x, pos.y, psz, io)) continue;
 		}
 
-		if ((!m_pinSelected)&&(psz < threshold)) continue;
+		if ((!m_pinSelected) && (psz < threshold)) continue;
 
 		// color & text depending on app state & pin type
 		uint32_t color      = m_colors.pinDefault & cmask;
