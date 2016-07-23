@@ -48,6 +48,15 @@ partHullColor			= 0x80808080\r\n\
 selectedMaskPins		= 0xffffff4f\r\n\
 selectedMaskParts		= 0xffffff8f\r\n\
 selectedMaskOutline	= 0xffffff8f\r\n\
+\r\n\
+# OR mask pins are applied after the above selectedMask, in the \r\n\
+# form of color = original & selectedMask | orMask\r\n\
+#\r\n\
+# This is useful if you want to *lighten* a colour when 'masked'\r\n\
+#\r\n\
+orMaskPins		= 0x00000000\r\n\
+orMaskParts		= 0x00000000\r\n\
+orMaskOutline	= 0x00000000\r\n\
 # EndColors\r\n\
 \r\n\
 #FZKey = 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678, 0x12345678\r\n\
@@ -130,6 +139,9 @@ char *Confparse::Parse(const char *key) {
 		 * assist in making it easier for people to read it.
 		 */
 		p = p + keylen;
+
+		if ((p <llimit)&&(!isalnum(*p))) {
+
 		while ((p < llimit) && ((*p == '=') || (*p == ' ') || (*p == '\t'))) p++; // get up to the start of the value;
 
 		if ((p < llimit) && (p >= conf)) {
@@ -155,6 +167,7 @@ char *Confparse::Parse(const char *key) {
 				value[i] = '\0';
 				return value;
 			}
+		}
 		}
 		p  = strstr(op + 1, key);
 		op = p;
