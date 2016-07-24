@@ -12,6 +12,7 @@
 #include <SDL2/SDL.h>
 #endif
 
+#include "BVRFile.h"
 #include "BDVFile.h"
 #include "BRDBoard.h"
 #include "BRDFile.h"
@@ -139,6 +140,8 @@ int BoardView::LoadFile(char *filename) {
 				file = new BRDFile(buffer, buffer_size);
 			else if (!strcmp(ext, ".bdv"))
 				file = new BDVFile(buffer, buffer_size);
+			else if (!strcmp(ext, ".bvr"))
+				file = new BVRFile(buffer, buffer_size);
 			else if (!strcmp(ext, ".fz"))
 				file = new FZFile(buffer, buffer_size, FZKey);
 
