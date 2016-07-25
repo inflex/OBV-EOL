@@ -12,9 +12,9 @@
 	var = strtod(p, &p); \
 	if (*p == '!') p++;
 #define LOAD_STR(var)                            \
-	while (isspace((uint8_t)*p)) ++p;            \
+	while ((*p)&&(isspace((uint8_t)*p))) ++p;            \
 	s = p;                                       \
-	while (*p != '!') /* '!' is our delimiter */ \
+	while ((*p)&&(*p != '!')) /* '!' is our delimiter */ \
 		++p;                                     \
 	*p++ = 0;                                    \
 	var  = fix_to_utf8(s, &arena, arena_end);
