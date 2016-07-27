@@ -213,7 +213,6 @@ int main(int argc, char **argv) {
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 	//	io.Fonts->AddFontDefault();
 
-
 	// Main loop
 	bool done             = false;
 	bool preload_required = false;
@@ -221,7 +220,7 @@ int main(int argc, char **argv) {
 	// Now that the configuration file is loaded in to BoardView, parse its settings.
 	app.ConfigParse();
 
-	//ImVec4 clear_color = ImColor(20, 20, 30);
+	// ImVec4 clear_color = ImColor(20, 20, 30);
 	ImVec4 clear_color = ImColor(app.m_colors.backgroundColor);
 
 	/*

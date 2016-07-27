@@ -25,14 +25,14 @@ char **stringfile(char *buffer) {
 				s++; // next char
 
 				// if the termination is a CRLF combo, then jump to the next char
-				if ((*s == '\r')||(*s == '\n')) s++;
+				if ((*s == '\r') || (*s == '\n')) s++;
 
 				// if the char is valid (first after line break), set up the next item in the line array
 				if (*s) { // it's not over yet
 					if (i == 1) {
-					  list[count] = s;
-//					  list[count+1] = NULL;
-						//fprintf(stdout,"%s\n",list[count]);
+						list[count] = s;
+						//					  list[count+1] = NULL;
+						// fprintf(stdout,"%s\n",list[count]);
 					}
 					++count;
 				}
@@ -158,11 +158,11 @@ BRDFile::BRDFile(const char *buf, size_t buffer_size) {
 		char *p = line;
 		char *s;
 #define LOAD_INT(var) var = strtol(p, &p, 10)
-#define LOAD_STR(var)                  \
-	while ((*p)&&(isspace((uint8_t)*p))) ++p;  \
-	s = p;                             \
-	while ((*p)&&(!isspace((uint8_t)*p))) ++p; \
-	*p++ = 0;                          \
+#define LOAD_STR(var)                            \
+	while ((*p) && (isspace((uint8_t)*p))) ++p;  \
+	s = p;                                       \
+	while ((*p) && (!isspace((uint8_t)*p))) ++p; \
+	*p++ = 0;                                    \
 	var  = fix_to_utf8(s, &arena, arena_end);
 		switch (current_block) {
 			case 2: { // var_data

@@ -44,9 +44,10 @@ struct ColorScheme {
 	 * Take note, because these are directly set
 	 * the packing format is ABGR,  not RGBA
 	 */
-	uint32_t backgroundColor = 0xa0000000;
-	uint32_t partTextColor   = 0xff808000;
-	uint32_t boardOutline    = 0xff00ffff;
+	uint32_t backgroundColor         = 0xa0000000;
+	uint32_t partTextColor           = 0xff808000;
+	uint32_t partTextBackgroundColor = 0xff00eeee;
+	uint32_t boardOutline            = 0xff00ffff;
 
 	uint32_t boxColor = 0xffcccccc;
 
@@ -56,7 +57,7 @@ struct ColorScheme {
 	uint32_t pinTestPad      = 0xff888888;
 
 	uint32_t pinSelected         = 0xff00eeee;
-	uint32_t pinSelectedText	 = 0xff00eeee;
+	uint32_t pinSelectedText     = 0xff00eeee;
 	uint32_t pinHalo             = 0x8f00ff00;
 	uint32_t pinHighlighted      = 0xffffffff;
 	uint32_t pinHighlightSameNet = 0xff99f8ff;
@@ -92,8 +93,9 @@ struct BoardView {
 	bool slowCPU                 = false;
 	bool showFPS                 = false;
 	bool pinHalo                 = true;
+	bool fillParts               = true;
 	bool showPosition            = true;
-	bool reloadConfig			= false;
+	bool reloadConfig            = false;
 	int pinBlank                 = 0;
 	uint32_t FZKey[44]           = {0};
 

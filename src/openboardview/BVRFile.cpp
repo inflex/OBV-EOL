@@ -7,21 +7,20 @@
 #include <stdint.h>
 #include <string.h>
 
-char *nextfield( char *p ) {
+char *nextfield(char *p) {
 	if (p) {
-		while ((*p != '\t')&&(*p != '\0')&&(*p != '\r')&&(*p != '\n')) {
-		   	p++;
+		while ((*p != '\t') && (*p != '\0') && (*p != '\r') && (*p != '\n')) {
+			p++;
 		}
 	}
 	if (*p == '\t') p++;
 	return p;
 }
 
-
 BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 	char *saved_locale;
-	char ppn[100] = {0}; // previous part name
-	saved_locale = setlocale(LC_NUMERIC, "C"); // Use '.' as delimiter for strtod
+	char ppn[100] = {0};                        // previous part name
+	saved_locale  = setlocale(LC_NUMERIC, "C"); // Use '.' as delimiter for strtod
 
 	memset(this, 0, sizeof(*this));
 #define ENSURE(X) \
@@ -55,19 +54,19 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 		if (!line[0]) continue;
 
 		if (!strcmp(line, "<<Layout>>")) {
-//			fprintf(stderr,"HIT LAYOUT\n");
+			//			fprintf(stderr,"HIT LAYOUT\n");
 			current_block = 1;
 			lines += 1; // Skip 1 unused lines before 1st layout
 			continue;
 		}
 		if (!strcmp(line, "<<Pin>>")) {
 			current_block = 2;
-//			fprintf(stderr,"HIT PIN, block = %d\n", current_block);
+			//			fprintf(stderr,"HIT PIN, block = %d\n", current_block);
 			lines += 1; // Skip 1 unused lines before 1st pin
 			continue;
 		}
 		if (!strcmp(line, "<<Nail>>")) {
-//			fprintf(stderr,"HIT NAIL\n");
+			//			fprintf(stderr,"HIT NAIL\n");
 			current_block = 3;
 			lines += 1; // Skip 1 unused lines before 1st nail
 			continue;
@@ -80,7 +79,7 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 			case 1: { // Format
 				BRDPoint point;
 				double x;
-//				fprintf(stderr,"Decoding format ");
+				//				fprintf(stderr,"Decoding format ");
 				LOAD_DOUBLE(x);
 				point.x = trunc(x * 1000); // OBV uses integers
 				if (*p == ',') p++;
@@ -91,56 +90,53 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 			} break;
 
 			case 2: { // Parts & Pins
-					BRDPart part;
-					BRDPin pin;
+				BRDPart part;
+				BRDPin pin;
 
-					LOAD_STR(part.name);
+				LOAD_STR(part.name);
 
-					char *loc;
-					LOAD_STR(loc);
-					if (!strcmp(loc, "(T)"))
-						part.type = 10; // SMD part on top
-					else
-						part.type    = 5; // SMD part on bottom
+				char *loc;
+				LOAD_STR(loc);
+				if (!strcmp(loc, "(T)"))
+					part.type = 10; // SMD part on top
+				else
+					part.type = 5; // SMD part on bottom
 
+				// If this is the first time we've seen this part
+				if ((strcmp(ppn, part.name))) {
+					part.end_of_pins = 0;
+					parts.push_back(part);
+					snprintf(ppn, sizeof(ppn), "%s", part.name);
+				}
 
-					// If this is the first time we've seen this part
-					if ((strcmp(ppn,part.name))) {
-						part.end_of_pins = 0;
-						parts.push_back(part);
-						snprintf(ppn,sizeof(ppn),"%s",part.name);
-					}
+				pin.part = parts.size(); // the part this pin is associated with, is the last part on the vector
 
-					pin.part = parts.size(); // the part this pin is associated with, is the last part on the vector
+				int id;
+				LOAD_INT(id);
 
+				char *name;
+				LOAD_STR(name);
 
-					int id;
-					LOAD_INT(id);
+				double posx;
+				LOAD_DOUBLE(posx);
+				pin.pos.x = trunc(posx * 1000);
 
-					char *name;
-					LOAD_STR(name);
+				double posy;
+				LOAD_DOUBLE(posy);
+				pin.pos.y = trunc(posy * 1000);
 
-					double posx;
-					LOAD_DOUBLE(posx);
-					pin.pos.x = trunc(posx * 1000);
+				int layer;
+				LOAD_INT(layer);
 
-					double posy;
-					LOAD_DOUBLE(posy);
-					pin.pos.y = trunc(posy * 1000);
+				LOAD_STR(pin.net);
 
-					int layer;
-					LOAD_INT(layer);
+				// LOAD_INT(pin.probe);
+				//
 
-					LOAD_STR(pin.net);
+				pins.push_back(pin);
 
-					//LOAD_INT(pin.probe);
-					//
-
-					pins.push_back(pin);
-
-					parts.back().end_of_pins = pins.size();
+				parts.back().end_of_pins = pins.size();
 			} break;
-
 
 			case 3: { // Nails
 				BRDNail nail;
@@ -149,21 +145,20 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 				double posx;
 				LOAD_DOUBLE(posx);
 				nail.pos.x = trunc(posx * 1000);
-//				fprintf(stderr,"%d ",nail.pos.x);
+				//				fprintf(stderr,"%d ",nail.pos.x);
 
 				double posy;
 				LOAD_DOUBLE(posy);
-				nail.pos.y = trunc(posy *1000);
-//				fprintf(stderr,"%d ",nail.pos.y);
-
+				nail.pos.y = trunc(posy * 1000);
+				//				fprintf(stderr,"%d ",nail.pos.y);
 
 				int type;
 				LOAD_INT(type);
-//				fprintf(stderr,"Type:%d ",type);
+				//				fprintf(stderr,"Type:%d ",type);
 
 				char *grid;
 				LOAD_STR(grid);
-//				fprintf(stderr,"Grid:%s ", grid);
+				//				fprintf(stderr,"Grid:%s ", grid);
 
 				char *loc;
 				LOAD_STR(loc);
@@ -171,36 +166,31 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 					nail.side = 1;
 				else
 					nail.side = 2;
-//				fprintf(stderr,"Side:%d ",nail.side);
+				//				fprintf(stderr,"Side:%d ",nail.side);
 
 				char *netid;
 				LOAD_STR(netid);
-//				fprintf(stderr,"ID:%s ", netid);
+				//				fprintf(stderr,"ID:%s ", netid);
 
 				LOAD_STR(nail.net);
-//				fprintf(stderr,"Net:%s\n", nail.net);
+				//				fprintf(stderr,"Net:%s\n", nail.net);
 
-				nail.pos.x = posx *1000;
-				nail.pos.y = posy *1000;
-
+				nail.pos.x = posx * 1000;
+				nail.pos.y = posy * 1000;
 
 				nails.push_back(nail);
-				//LOAD_INT(nail.probe);
+				// LOAD_INT(nail.probe);
 				//
 			} break;
 
-
-			default:
-					continue;
+			default: continue;
 		}
 	}
-
 
 	num_parts  = parts.size();
 	num_pins   = pins.size();
 	num_format = format.size();
 	num_nails  = nails.size();
-
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 
