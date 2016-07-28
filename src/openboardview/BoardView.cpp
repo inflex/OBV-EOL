@@ -1064,8 +1064,7 @@ void BoardView::HandleInput() {
 
 					if (!ComponentIsVisible(p_part)) continue;
 
-					// https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-					// {
+					// Work out if the point is inside the hull
 					{
 						int i, j, n;
 						outline_pt *poly;
@@ -1079,10 +1078,9 @@ void BoardView::HandleInput() {
 								hit = !hit;
 						}
 					}
+
 					if (hit) {
-						//						fprintf(stderr,"hit on %s\n", p_part->name.c_str());
 						m_partHighlighted.push_back(p_part);
-						//						break;
 					}
 				}
 			}
@@ -1099,8 +1097,7 @@ void BoardView::HandleInput() {
 	}
 
 	if (!io.WantCaptureKeyboard) {
-		//		fprintf(stderr,"DEL/. = %d,  c = %d\n", SDL_SCANCODE_KP_PERIOD,
-		// SDLK_c);
+
 		if (ImGui::IsKeyPressed(SDLK_n)) {
 			// Search for net
 			m_showNetfilterSearch = true;
@@ -1711,14 +1708,18 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 							outline_pt *hpt;
 							part->hull_count = hpc;
 
-							hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * hpc);
+							/*
+							 * compute the convex hull and then transfer
+							 * points to the part
+							 */
+							hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * (hpc +1));
 							for (i = 0; i < hpc; i++) {
 								hpt->x = hull[i].x;
 								hpt->y = hull[i].y;
 								hpt++;
 							}
 
-							VHMBBCalculate(bbox, hull, hpc, pin_radius);
+							VHMBBCalculate(bbox, hull, hpc, pin_radius );
 							for (i = 0; i < 4; i++) {
 								part->outline[i].x = bbox[i].x;
 								part->outline[i].y = bbox[i].y;
