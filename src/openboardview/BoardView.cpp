@@ -16,6 +16,7 @@
 #include "BRDBoard.h"
 #include "BRDFile.h"
 #include "BVRFile.h"
+#include "Board.h"
 #include "FZFile.h"
 #include "imgui/imgui.h"
 
@@ -1589,8 +1590,10 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			min_y -= pin_radius;
 			max_y += pin_radius;
 
-			if ((max_y -min_y) < 0.01) aspect = 0;
-			else aspect = (max_x -min_x) /(max_y -min_y);
+			if ((max_y - min_y) < 0.01)
+				aspect = 0;
+			else
+				aspect = (max_x - min_x) / (max_y - min_y);
 
 			dbox[0].x = dbox[3].x = min_x;
 			dbox[1].x = dbox[2].x = max_x;
@@ -1613,20 +1616,19 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			if ((pincount == 3) && (abs(aspect > 0.5)) && ((strchr("DQZ", p0) || (strchr("DQZ", p1))))) {
 				outline_pt *hpt;
 
-						memcpy(part->outline, dbox, sizeof(dbox));
-						part->outline_done = true;
+				memcpy(part->outline, dbox, sizeof(dbox));
+				part->outline_done = true;
 
-
-						hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * 3);
-						for (auto pin : part->pins) {
-							hpt->x = pin->position.x;
-							hpt->y = pin->position.y;
-							hpt++;
-						}
-						part->hull_count = 3;
+				hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * 3);
+				for (auto pin : part->pins) {
+					hpt->x = pin->position.x;
+					hpt->y = pin->position.y;
+					hpt++;
+				}
+				part->hull_count = 3;
 
 				/*
-				 * handle all other devices not specifically handled above 
+				 * handle all other devices not specifically handled above
 				 */
 			} else if ((pincount < 4) && ((strchr("CRLD", p0) || (strchr("CRLD", p1))))) {
 				//				ImVec2 a, b, c, d;
@@ -1647,8 +1649,6 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 					armx = pin_radius;
 				} else if (((p0 == 'C') || (p1 == 'C')) && (distance > 90)) {
 					double mpx, mpy;
-					int segments;
-					ImVec2 mp;
 
 					pin_radius = 15;
 					for (auto pin : part->pins) {
@@ -1660,7 +1660,11 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 					mpx = dx / 2 + part->pins[0]->position.x;
 					mpy = dy / 2 + part->pins[0]->position.y;
 					VHRotateV(&mpx, &mpy, dx / 2 + part->pins[0]->position.x, dy / 2 + part->pins[0]->position.y, angle);
-					mp = CoordToScreen(mpx, mpy);
+
+					p_part->expanse        = distance;
+					p_part->centerpoint.x  = mpx;
+					p_part->centerpoint.y  = mpy;
+					p_part->component_type = p_part->kComponentTypeCapacitor;
 
 					/*
 					 * Need to work out how to icon/mark the parts in the Component
@@ -1741,14 +1745,14 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 							 * compute the convex hull and then transfer
 							 * points to the part
 							 */
-							hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * (hpc +1));
+							hpt = part->hull = (outline_pt *)malloc(sizeof(outline_pt) * (hpc + 1));
 							for (i = 0; i < hpc; i++) {
 								hpt->x = hull[i].x;
 								hpt->y = hull[i].y;
 								hpt++;
 							}
 
-							VHMBBCalculate(bbox, hull, hpc, pin_radius );
+							VHMBBCalculate(bbox, hull, hpc, pin_radius);
 							for (i = 0; i < 4; i++) {
 								part->outline[i].x = bbox[i].x;
 								part->outline[i].y = bbox[i].y;
@@ -1807,6 +1811,10 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 		} // if outline_done
 
 		if (part->outline_done) {
+
+			/*
+			 * Draw the bounding box for the part
+			 */
 			ImVec2 a, b, c, d;
 
 			a = ImVec2(CoordToScreen(part->outline[0].x, part->outline[0].y));
@@ -1817,6 +1825,9 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			if (fillParts) draw->AddQuadFilled(a, b, c, d, color & 0x0fFFFFFF);
 			draw->AddQuad(a, b, c, d, color);
 
+			/*
+			 * Draw the convex hull of the part if it has one
+			 */
 			if (part->hull) {
 				int i;
 				draw->PathClear();
@@ -1827,6 +1838,24 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				draw->PathStroke(m_colors.partHullColor, true, 1.0f);
 			}
 
+			/*
+			 * Draw any icon/mark featuers to illustrate the part better
+			 */
+			if (part->component_type == part->kComponentTypeCapacitor) {
+				if (part->expanse > 90) {
+					int segments                = trunc(part->expanse);
+					if (segments < 8) segments  = 8;
+					if (segments > 36) segments = 36;
+					draw->AddCircle(CoordToScreen(part->centerpoint.x, part->centerpoint.y),
+					                (part->expanse / 3) * m_scale,
+					                m_colors.boxColor & 0x8fffffff,
+					                segments);
+				}
+			}
+
+			/*
+			 * Draw the text associated with the box or pins if required
+			 */
 			if (PartIsHighlighted(*part) && !part->is_dummy() && !part->name.empty()) {
 				ImVec2 text_size = ImGui::CalcTextSize(part->name.c_str());
 				float top_y      = a.y;

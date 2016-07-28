@@ -82,7 +82,6 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 		int ni = i + 1;
 		double area;
 
-
 		ImVec2 current = hull[i];
 		ImVec2 next    = hull[ni % n];
 
@@ -121,20 +120,18 @@ void VHMBBCalculate(ImVec2 box[], ImVec2 *hull, int n, double psz) {
 	mbb.x += psz;
 	mbb.y += psz;
 
-
 	// Form our rectangle, has to be all 4 points as it's a polygon now that'll be
 	// rotated
-	box[0] = VHRotateV(mba,  +mbAngle);
-	box[1] = VHRotateV(ImVec2(mbb.x, mba.y),  +mbAngle);
-	box[2] = VHRotateV(mbb,  +mbAngle);
-	box[3] = VHRotateV(ImVec2(mba.x, mbb.y),  +mbAngle);
+	box[0] = VHRotateV(mba, +mbAngle);
+	box[1] = VHRotateV(ImVec2(mbb.x, mba.y), +mbAngle);
+	box[2] = VHRotateV(mbb, +mbAngle);
+	box[3] = VHRotateV(ImVec2(mba.x, mbb.y), +mbAngle);
 
-	// Transpose MBB back 
+	// Transpose MBB back
 	for (i = 0; i < 4; i++) {
 		box[i].x += origin.x;
 		box[i].y += origin.y;
 	}
-
 }
 
 // To find orientation of ordered triplet (p, q, r).

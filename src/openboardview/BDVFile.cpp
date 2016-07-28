@@ -112,11 +112,11 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 					double posx;
 					LOAD_DOUBLE(posx);
 					pin.pos.x = posx * 1000.0f;
-			//		pin.pos.x = posx;
+					//		pin.pos.x = posx;
 					double posy;
 					LOAD_DOUBLE(posy);
 					pin.pos.y = posy * 1000.0f;
-			//		pin.pos.y = posy;
+					//		pin.pos.y = posy;
 					int layer;
 					LOAD_INT(layer);
 					LOAD_STR(pin.net);
@@ -134,7 +134,7 @@ BDVFile::BDVFile(const char *buf, size_t buffer_size) {
 				nail.pos.x = posx * 1000.0f;
 				double posy;
 				LOAD_DOUBLE(posy);
-				nail.pos.y = posy *1000.0f;
+				nail.pos.y = posy * 1000.0f;
 				int type;
 				LOAD_INT(type);
 				char *grid;
