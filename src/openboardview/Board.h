@@ -144,6 +144,11 @@ struct Component : BoardElement {
 		kComponentTypeDummy,
 		kComponentTypeConnector,
 		kComponentTypeIC,
+		kComponentTypeResistor,
+		kComponentTypeCapacitor,
+		kComponentTypeDiode,
+		kComponentTypeTransistor,
+		kComponentTypeCrystal,
 		kComponentTypeJellyBean
 	};
 
