@@ -362,6 +362,7 @@ void BoardView::HelpControls(void) {
 		ImGui::Text("Search for net");
 		ImGui::Text("Display component list");
 		ImGui::Text("Display net list");
+		ImGui::Text("Clear all highlighted items");
 		ImGui::Spacing();
 		ImGui::Spacing();
 
@@ -389,7 +390,7 @@ void BoardView::HelpControls(void) {
 		 */
 		ImGui::NextColumn();
 		ImGui::Text("CTRL-o");
-		ImGui::Text("Ctrl-q");
+		ImGui::Text("CTRL-q");
 		ImGui::Spacing();
 		ImGui::Spacing();
 
@@ -404,6 +405,7 @@ void BoardView::HelpControls(void) {
 		ImGui::Text("n");
 		ImGui::Text("k");
 		ImGui::Text("l");
+		ImGui::Text("ESC");
 		ImGui::Spacing();
 		ImGui::Spacing();
 
