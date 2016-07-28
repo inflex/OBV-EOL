@@ -6,6 +6,7 @@
 #include <locale.h>
 #include <stdint.h>
 #include <string.h>
+#include <cmath>
 
 char *nextfield(char *p) {
 	if (p) {
