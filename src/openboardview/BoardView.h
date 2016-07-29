@@ -82,7 +82,7 @@ struct BoardView {
 
 	Confparse obvconfig;
 	FHistory fhistory;
-	bool debug = false;
+	bool debug                   = false;
 	int history_file_has_changed = 0;
 	float zoomFactor             = 0.5f;
 	int zoomModifier             = 5;

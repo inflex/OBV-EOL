@@ -86,8 +86,7 @@ bool BRDFile::verifyFormat(const char *buf, size_t buffer_size) {
 	if (buffer_size < signature.size()) return false;
 	if (std::equal(signature.begin(), signature.end(), (uint8_t *)buf)) return true;
 	std::string sbuf(buf, buffer_size); // prevents us from reading beyond the buffer size
-	if ( (sbuf.find("str_length:") != std::string::npos) && (sbuf.find("var_data:") != std::string::npos) )
-		return true;
+	if ((sbuf.find("str_length:") != std::string::npos) && (sbuf.find("var_data:") != std::string::npos)) return true;
 	return false;
 }
 

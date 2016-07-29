@@ -228,12 +228,14 @@ int BoardView::LoadFile(char *filename) {
 
 			if (strcmp(ext, ".fz") == 0) { // Since it is encrypted we cannot use the below logic. Trust the ext.
 				file = new FZFile(buffer, buffer_size, FZKey);
-			}
-			else if (BRDFile::verifyFormat(buffer, buffer_size)) file = new BRDFile(buffer, buffer_size);
-			else if (BRD2File::verifyFormat(buffer, buffer_size)) file = new BRD2File(buffer, buffer_size);
-			else if (BDVFile::verifyFormat(buffer, buffer_size)) file = new BDVFile(buffer, buffer_size);
-			else if (BVRFile::verifyFormat(buffer, buffer_size)) file = new BVRFile(buffer, buffer_size);
-
+			} else if (BRDFile::verifyFormat(buffer, buffer_size))
+				file = new BRDFile(buffer, buffer_size);
+			else if (BRD2File::verifyFormat(buffer, buffer_size))
+				file = new BRD2File(buffer, buffer_size);
+			else if (BDVFile::verifyFormat(buffer, buffer_size))
+				file = new BDVFile(buffer, buffer_size);
+			else if (BVRFile::verifyFormat(buffer, buffer_size))
+				file = new BVRFile(buffer, buffer_size);
 
 			/*
 		if (!strcmp(ext, ".brd")) // Recognize file format using filename extension
@@ -1491,11 +1493,11 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 			ppp = &pva[0];
 			if (part->pins.size() == 0) {
-				if (debug) fprintf(stderr,"WARNING: Drawing empty part %s\n", part->name.c_str());
-				draw->AddRect(CoordToScreen(part->x1 +10, part->y1 +10), CoordToScreen(part->x2 -10, part->y2 -10), 0xff0000ff );
-				draw->AddText(CoordToScreen(part->x1 +10, part->y1 -50), m_colors.partTextColor, part->name.c_str());
-//				part->component_type = part->kComponentTypeDummy;
-//				part->outline_done = true;
+				if (debug) fprintf(stderr, "WARNING: Drawing empty part %s\n", part->name.c_str());
+				draw->AddRect(CoordToScreen(part->x1 + 10, part->y1 + 10), CoordToScreen(part->x2 - 10, part->y2 - 10), 0xff0000ff);
+				draw->AddText(CoordToScreen(part->x1 + 10, part->y1 - 50), m_colors.partTextColor, part->name.c_str());
+				//				part->component_type = part->kComponentTypeDummy;
+				//				part->outline_done = true;
 				continue;
 			}
 
@@ -1659,7 +1661,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				/*
 				 * handle all other devices not specifically handled above
 				 */
-			} else if ((pincount > 1)&&(pincount < 4) && ((strchr("CRLD", p0) || (strchr("CRLD", p1))))) {
+			} else if ((pincount > 1) && (pincount < 4) && ((strchr("CRLD", p0) || (strchr("CRLD", p1))))) {
 				//				ImVec2 a, b, c, d;
 				double dx, dy;
 				double tx, ty;

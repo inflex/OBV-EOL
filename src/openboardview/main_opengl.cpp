@@ -33,7 +33,7 @@ struct globals {
 		this->width       = 0;
 		this->height      = 0;
 		this->font_size   = 0.0f;
-		this->debug	= false;
+		this->debug       = false;
 	}
 };
 
@@ -111,7 +111,6 @@ int parse_parameters(int argc, char **argv, struct globals *g) {
 
 		} else if (strcmp(p, "-d") == 0) {
 			g->debug = true;
-
 
 			/*
 			 * for extended parameters, nothing yet required
@@ -214,9 +213,9 @@ int main(int argc, char **argv) {
 	// Setup ImGui binding
 	ImGui_ImplSdlGL3_Init(window);
 
-	ImGuiIO &io                       = ImGui::GetIO();
-	io.IniFilename                    = NULL;
-	std::string fontpath              = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
+	ImGuiIO &io                          = ImGui::GetIO();
+	io.IniFilename                       = NULL;
+	std::string fontpath                 = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 	//	io.Fonts->AddFontDefault();

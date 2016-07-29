@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Board.h"
+#include <array>
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#include <array>
 
 #define LOAD_INT(var) var    = strtol(p, &p, 10)
 #define LOAD_DOUBLE(var) var = strtod(p, &p);
@@ -52,7 +52,7 @@ struct BRDNail {
 };
 
 class BRDFile {
-public:
+  public:
 	int num_format;
 	int num_parts;
 	int num_pins;
@@ -74,7 +74,8 @@ public:
 	}
 
 	static bool verifyFormat(const char *buf, size_t buffer_size);
-private:
+
+  private:
 	static constexpr std::array<uint8_t, 4> signature = {0x23, 0xe2, 0x63, 0x28};
 };
 

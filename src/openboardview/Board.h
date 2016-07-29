@@ -2,13 +2,13 @@
 
 #include "BRDFile.h"
 
+#include "imgui/imgui.h"
 #include <algorithm>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include "imgui/imgui.h"
 
 #define EMPTY_STRING ""
 #define kBoardComponentPrefix "c_"
@@ -168,7 +168,7 @@ struct Component : BoardElement {
 	// Post calculated outlines
 	//
 	outline_pt outline[4];
-	int x1,y1,x2,y2; // for debugging
+	int x1, y1, x2, y2; // for debugging
 
 	bool outline_done = false;
 	outline_pt *hull  = NULL;
