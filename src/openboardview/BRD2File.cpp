@@ -3,10 +3,10 @@
 #include "utf8/utf8.h"
 #include <assert.h>
 #include <ctype.h>
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
 #include <unordered_map>
-#include <iostream>
 
 bool BRD2File::verifyFormat(const char *buf, size_t buffer_size) {
 	std::string sbuf(buf, buffer_size);
@@ -19,7 +19,7 @@ BRD2File::BRD2File(const char *buf, size_t buffer_size) {
 	std::unordered_map<int, char *> nets; // Map between net id and net name
 	char **lines_begin = nullptr;
 	int num_nets       = 0;
-	BRDPoint max {0,0}; // Top-right board boundary
+	BRDPoint max{0, 0}; // Top-right board boundary
 
 #define ENSURE(X)                               \
 	assert(X);                                  \
@@ -183,8 +183,8 @@ BRD2File::BRD2File(const char *buf, size_t buffer_size) {
 	 * through the parts and pick up the pins required
 	 */
 	{
-		int pei;                                                        // pin end index (part[i+1].pin# -1
-		int cpi = 0;                                                    // current pin index
+		int pei;     // pin end index (part[i+1].pin# -1
+		int cpi = 0; // current pin index
 		for (decltype(parts)::size_type i = 0; i < parts.size(); i++) {
 			bool isDIP = true;
 
@@ -202,7 +202,8 @@ BRD2File::BRD2File(const char *buf, size_t buffer_size) {
 			while (cpi < pei) {
 				pins[cpi].part                           = i + 1;
 				if (pins[cpi].side != 1) pins[cpi].pos.y = max.y - pins[cpi].pos.y;
-				if ( (pins[cpi].side == 1 && parts[i].type == 10) || (pins[cpi].side == 2 && parts[i].type == 5) ) // Pins on the same side as the part
+				if ((pins[cpi].side == 1 && parts[i].type == 10) ||
+				    (pins[cpi].side == 2 && parts[i].type == 5)) // Pins on the same side as the part
 					isDIP = false;
 				cpi++;
 			}
@@ -211,26 +212,26 @@ BRD2File::BRD2File(const char *buf, size_t buffer_size) {
 		}
 	}
 
-	for (auto i = 1; i<=2; i++) { // Add dummy parts for probe points on both sides
+	for (auto i = 1; i <= 2; i++) { // Add dummy parts for probe points on both sides
 		BRDPart part;
-		part.name = "...";
-		part.type = 5*i; // First part is bottom, last is top.
-		part.end_of_pins = 0; // Unused
+		part.name        = "...";
+		part.type        = 5 * i; // First part is bottom, last is top.
+		part.end_of_pins = 0;     // Unused
 		parts.push_back(part);
 	}
 
-	for (auto &nail: nails) {
+	for (auto &nail : nails) {
 		BRDPin pin;
 		pin.pos = nail.pos;
 		if (nail.side == 1) {
 			pin.part = parts.size();
 		} else {
 			pin.pos.y = max.y - pin.pos.y;
-			pin.part = parts.size() - 1;
+			pin.part  = parts.size() - 1;
 		}
 		pin.probe = nail.probe;
-		pin.side = nail.side;
-		pin.net = nail.net;
+		pin.side  = nail.side;
+		pin.net   = nail.net;
 		pins.push_back(pin);
 	}
 
