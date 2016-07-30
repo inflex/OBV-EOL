@@ -21,6 +21,7 @@ static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
 static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
 static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
 static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;
+static bool         g_DrawElemWorkaround = false;
 
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
@@ -41,7 +42,7 @@ void ImGui_ImplSdlGLES2_RenderDrawLists(ImDrawData* draw_data)
 	glGetIntegerv(GL_BLEND_EQUATION_RGB, &last_blend_equation_rgb);
 	GLint last_blend_equation_alpha;
 	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &last_blend_equation_alpha);
-    GLint last_viewport[4];
+	GLint last_viewport[4];
 	glGetIntegerv(GL_VIEWPORT, last_viewport);
 
 	GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
@@ -64,7 +65,7 @@ void ImGui_ImplSdlGLES2_RenderDrawLists(ImDrawData* draw_data)
 	draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
 	// Setup orthographic projection matrix
-    glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
+	glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
 	const float ortho_projection[4][4] =
 	{
 		{ 2.0f/io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
@@ -81,12 +82,27 @@ void ImGui_ImplSdlGLES2_RenderDrawLists(ImDrawData* draw_data)
 	{
 		const ImDrawList* cmd_list = draw_data->CmdLists[n];
 		const ImDrawIdx* idx_buffer_offset = 0;
+		GLint vtx_buffer_offset = 0;
 
 		glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.size() * sizeof(ImDrawVert), (GLvoid*)&cmd_list->VtxBuffer.front(), GL_STREAM_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.size() * sizeof(ImDrawIdx), (GLvoid*)&cmd_list->IdxBuffer.front(), GL_STREAM_DRAW);
+		if (g_DrawElemWorkaround)
+		{
+			ImVector<ImDrawVert> vertices;
+			vertices.reserve(cmd_list->IdxBuffer.size());
+
+			for(auto &id: cmd_list->IdxBuffer)
+				vertices.push_back(cmd_list->VtxBuffer[id]);
+
+			glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)vertices.size() * sizeof(ImDrawVert), (GLvoid*)&vertices.front(), GL_STREAM_DRAW);
+		}
+		else
+		{
+			glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.size() * sizeof(ImDrawVert), (GLvoid*)&cmd_list->VtxBuffer.front(), GL_STREAM_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.size() * sizeof(ImDrawIdx), (GLvoid*)&cmd_list->IdxBuffer.front(), GL_STREAM_DRAW);
+		}
 
 		for (const ImDrawCmd* pcmd = cmd_list->CmdBuffer.begin(); pcmd != cmd_list->CmdBuffer.end(); pcmd++)
 		{
@@ -98,9 +114,15 @@ void ImGui_ImplSdlGLES2_RenderDrawLists(ImDrawData* draw_data)
 			{
 				glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
 				glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-				glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
+				if (g_DrawElemWorkaround)
+					glDrawArrays(GL_TRIANGLES, vtx_buffer_offset, (GLsizei)pcmd->ElemCount); // WARNING: inefficient workaround for devices not supporting GL_UNSIGNED_INT
+				else
+					glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
 			}
-			idx_buffer_offset += pcmd->ElemCount;
+			if (g_DrawElemWorkaround)
+				vtx_buffer_offset += pcmd->ElemCount;
+			else
+				idx_buffer_offset += pcmd->ElemCount;
 		}
 	}
 
@@ -131,7 +153,7 @@ void ImGui_ImplSdlGLES2_RenderDrawLists(ImDrawData* draw_data)
 	else
 		glDisable(GL_SCISSOR_TEST);
 
-    glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
+	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 }
 
 static const char* ImGui_ImplSdlGLES2_GetClipboardText()
@@ -215,6 +237,10 @@ void ImGui_ImplSdlGLES2_CreateFontsTexture()
 
 bool ImGui_ImplSdlGLES2_CreateDeviceObjects()
 {
+	g_DrawElemWorkaround = (SDL_GL_ExtensionSupported("GL_OES_element_index_uint") != SDL_TRUE) && (sizeof(ImDrawIdx) > sizeof(GLushort));
+	if (g_DrawElemWorkaround)
+		SDL_Log("[ImGui] Warning: GL_OES_element_index_uint not supported. Using glDrawArrays(). This will be slower.");
+
 	// Backup GL state
 	GLint last_texture, last_array_buffer;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -308,35 +334,35 @@ bool ImGui_ImplSdlGLES2_CreateDeviceObjects()
 
 void ImGui_ImplSdlGLES2_InvalidateDeviceObjects()
 {
-    if (g_VboHandle)
+	if (g_VboHandle)
 		glDeleteBuffers(1, &g_VboHandle);
-    if (g_ElementsHandle)
+	if (g_ElementsHandle)
 		glDeleteBuffers(1, &g_ElementsHandle);
-    g_VboHandle = g_ElementsHandle = 0;
+	g_VboHandle = g_ElementsHandle = 0;
 
-    glDetachShader(g_ShaderHandle, g_VertHandle);
-    glDeleteShader(g_VertHandle);
-    g_VertHandle = 0;
+	glDetachShader(g_ShaderHandle, g_VertHandle);
+	glDeleteShader(g_VertHandle);
+	g_VertHandle = 0;
 
-    glDetachShader(g_ShaderHandle, g_FragHandle);
-    glDeleteShader(g_FragHandle);
-    g_FragHandle = 0;
+	glDetachShader(g_ShaderHandle, g_FragHandle);
+	glDeleteShader(g_FragHandle);
+	g_FragHandle = 0;
 
-    glDeleteProgram(g_ShaderHandle);
-    g_ShaderHandle = 0;
+	glDeleteProgram(g_ShaderHandle);
+	g_ShaderHandle = 0;
 
-    if (g_FontTexture)
-    {
-        glDeleteTextures(1, &g_FontTexture);
-        ImGui::GetIO().Fonts->TexID = 0;
-        g_FontTexture = 0;
-    }
+	if (g_FontTexture)
+	{
+		glDeleteTextures(1, &g_FontTexture);
+		ImGui::GetIO().Fonts->TexID = 0;
+		g_FontTexture = 0;
+	}
 }
 
 bool ImGui_ImplSdlGLES2_Init(SDL_Window *window)
 {
 	g_Window = window;
-	
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;                     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
 	io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
@@ -367,7 +393,7 @@ bool ImGui_ImplSdlGLES2_Init(SDL_Window *window)
 
 void ImGui_ImplSdlGLES2_Shutdown()
 {
-    ImGui_ImplSdlGLES2_InvalidateDeviceObjects();
+	ImGui_ImplSdlGLES2_InvalidateDeviceObjects();
 	ImGui::Shutdown();
 }
 
