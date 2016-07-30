@@ -3,6 +3,7 @@
 #include "BRDFile.h"
 
 #include "imgui/imgui.h"
+#include <sqlite3.h>
 #include <algorithm>
 #include <functional>
 #include <map>
