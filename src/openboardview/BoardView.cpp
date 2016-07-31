@@ -1111,6 +1111,10 @@ void BoardView::Update() {
 				pinBlank ^= 1;
 				m_needsRedraw = true;
 			}
+			ImGui::Separator();
+			if (ImGui::Checkbox("Annotations", &m_annotations_active))  {
+				m_needsRedraw = true;
+			}
 
 			ImGui::EndMenu();
 		}
@@ -1144,6 +1148,7 @@ void BoardView::Update() {
 			}
 			ImGui::EndMenu();
 		}
+
 
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(60, 1));
@@ -1189,7 +1194,7 @@ void BoardView::Update() {
 			CenterView();
 		}
 
-		if (m_showContextMenu && m_file) {
+		if (m_showContextMenu && m_file && m_annotations_active) {
 			ImGui::OpenPopup("ContextOptions");
 		}
 
@@ -1419,6 +1424,7 @@ void BoardView::HandleInput() {
 
 			// Conext menu
 			if (m_file && m_board && ImGui::IsMouseClicked(1)) {
+				if (m_annotations_active) {
 				// Build context menu here, for annotations and inspection
 				//
 				ImVec2 spos                                        = ImGui::GetMousePos();
@@ -1429,6 +1435,7 @@ void BoardView::HandleInput() {
 				m_tooltips_enabled   = false;
 				m_needsRedraw        = true;
 				if (debug) fprintf(stderr, "context click request at (%f %f)\n", spos.x, spos.y);
+				}
 
 				// Flip the board with the middle click
 			} else if (m_file && m_board && ImGui::IsMouseReleased(2)) {
@@ -2392,7 +2399,7 @@ void BoardView::DrawBoard() {
 	DrawOutline(draw);
 	DrawParts(draw);
 	DrawPins(draw);
-	DrawAnnotations(draw);
+	if (m_annotations_active) DrawAnnotations(draw);
 
 	draw->ChannelsMerge();
 
