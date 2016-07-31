@@ -168,7 +168,7 @@ struct Component : BoardElement {
 	// Post calculated outlines
 	//
 	outline_pt outline[4];
-	Point p1 {0.0f, 0.0f}, p2 {0.0f, 0.0f}; // for debugging
+	Point p1{0.0f, 0.0f}, p2{0.0f, 0.0f}; // for debugging
 
 	bool outline_done = false;
 	outline_pt *hull  = NULL;
