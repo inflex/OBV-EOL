@@ -9,8 +9,8 @@
 #include <memory>
 #include <stdio.h>
 #ifndef _WIN32
-#include <sqlite3.h>
 #include <SDL2/SDL.h>
+#include <sqlite3.h>
 #else
 #include <winsqlite3/winsqlite.h>
 #endif
@@ -1330,7 +1330,7 @@ void BoardView::Update() {
 	}
 	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - (status_height + menu_height)));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	// ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(m_colors.backgroundColor));
 
 	ImGui::Begin("surface", nullptr, draw_surface_flags);
@@ -1615,11 +1615,10 @@ void BoardView::HandleInput() {
 			m_search3[0]  = '\0';
 			m_needsRedraw = true;
 		} else {
-			//fprintf(stderr,"F");
+			// fprintf(stderr,"F");
 		}
 	}
 }
-
 
 /* END UPDATE REGION */
 
