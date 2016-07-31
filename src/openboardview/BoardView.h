@@ -4,6 +4,11 @@
 #include "confparse.h"
 #include "history.h"
 #include "imgui/imgui.h"
+#ifndef _WIN32
+#include <sqlite3.h>
+#else
+#include <winsqlite3/winsqlite.h>
+#endif
 #include <stdint.h>
 #include <vector>
 
@@ -132,7 +137,7 @@ struct BoardView {
 	void AnnotationAdd(int side, double x, double y, char *net, char *part, char *pin, char *note);
 	void AnnotationGenerateList(void);
 	int AnnotationIsHovered(void);
-	bool m_annotations_active	= true;
+	bool m_annotations_active     = true;
 	bool AnnotationWasHovered     = false;
 	bool m_annotationnew_retain   = false;
 	bool m_annotationedit_retain  = false;
