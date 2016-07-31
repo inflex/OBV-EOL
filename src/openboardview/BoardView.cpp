@@ -650,9 +650,10 @@ void BoardView::ContextMenu(void) {
 	tx = trunc(pos.x);
 	ty = trunc(pos.y);
 
-	ImGui::SetNextWindowPos(m_showContextMenuPos);
+	ImGui::SetNextWindowPos(ImVec2(50,50));
 
 	if (ImGui::BeginPopupModal("ContextOptions", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders)) {
+				ImGui::Text("Annotation Add/Edit/Remove");
 
 		if (m_showContextMenu) {
 			contextbuf[0]     = 0;
@@ -737,9 +738,8 @@ void BoardView::ContextMenu(void) {
 			{
 
 				ImGui::NewLine();
-				ImGui::Text("Annotation");
-				if (m_annotation_clicked_id) {
-					if (ImGui::Button("View/Edit") || m_annotationedit_retain) {
+				if (m_annotation_clicked_id >= 0) {
+					if ( m_annotationedit_retain || (m_annotation_clicked_id >= 0)) {
 						if (!m_annotationedit_retain) {
 							snprintf(contextbuf, sizeof(contextbuf), "%s", m_annotations[m_annotation_clicked_id].note.c_str());
 							m_annotationedit_retain = true;
@@ -774,8 +774,9 @@ void BoardView::ContextMenu(void) {
 					if (m_annotationnew_retain == false) {
 						contextbuf[0]          = 0;
 						m_annotationnew_retain = true;
+						m_annotation_clicked_id = -1;
+						m_annotationedit_retain = false;
 					}
-					m_annotationedit_retain = false;
 					ImGui::Spacing();
 					ImGui::InputTextMultiline(
 					    "##annotationnew", contextbuf, sizeof(contextbuf), ImVec2(600, ImGui::GetTextLineHeight() * 16), 0, NULL, contextbuf);
@@ -2367,7 +2368,7 @@ int BoardView::AnnotationIsHovered(void) {
 		i++;
 	}
 
-	if (is_hovered == false) m_annotation_clicked_id = 0;
+	if (is_hovered == false) m_annotation_clicked_id = -1;
 
 	return is_hovered;
 }
