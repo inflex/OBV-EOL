@@ -17,12 +17,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+
 struct globals {
 	char *input_file;
 	char *config_file;
 	bool slowCPU;
 	int width;
 	int height;
+	int dpi;
 	double font_size;
 	bool debug;
 
@@ -32,6 +34,7 @@ struct globals {
 		this->slowCPU     = false;
 		this->width       = 0;
 		this->height      = 0;
+		this->dpi = 0;
 		this->font_size   = 0.0f;
 		this->debug       = false;
 	}
@@ -46,6 +49,7 @@ char help[] =
 	-x <width> : Set window width\n\
 	-y <height> : Set window height\n\
 	-z <pixels> : Set font size\n\
+	-p <dpi> : Set the dpi\n\
 	-d : Debug mode\n\
 ";
 
@@ -102,6 +106,14 @@ int parse_parameters(int argc, char **argv, struct globals *g) {
 			param++;
 			if (param < argc) {
 				g->font_size = strtof(argv[param], NULL);
+			} else {
+				fprintf(stderr, "Not enough parameters\n");
+			}
+
+		} else if (strcmp(p, "-p") == 0) {
+			param++;
+			if (param < argc) {
+				g->dpi = strtof(argv[param], NULL);
 			} else {
 				fprintf(stderr, "Not enough parameters\n");
 			}
@@ -216,16 +228,22 @@ int main(int argc, char **argv) {
 	ImGuiIO &io                          = ImGui::GetIO();
 	io.IniFilename                       = NULL;
 	std::string fontpath                 = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
-	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
-	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 	//	io.Fonts->AddFontDefault();
 
 	// Main loop
 	bool done             = false;
 	bool preload_required = false;
 
+	// Set the dpi, if we've not set any parameters it'll be 0 which
+	// will make the ConfigParse load and set the right dpi.
+	app.dpi = g.dpi;
+
 	// Now that the configuration file is loaded in to BoardView, parse its settings.
 	app.ConfigParse();
+
+	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
+	g.font_size = (g.font_size *app.dpi) / 100;
+	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 
 	// ImVec4 clear_color = ImColor(20, 20, 30);
 	ImVec4 clear_color = ImColor(app.m_colors.backgroundColor);
