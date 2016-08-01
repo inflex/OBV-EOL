@@ -33,7 +33,8 @@ if(MINGW)
 endif()
 
 set(SOURCES
-		annotations.cpp
+	sqlite3.c
+	annotations.cpp
 	confparse.cpp
 	vectorhulls.cpp
 	history.cpp
@@ -75,7 +76,6 @@ add_executable(openboardview
 )
 
 target_link_libraries(openboardview
-		sqlite3
 	dl
 	imgui
 	gl3w
