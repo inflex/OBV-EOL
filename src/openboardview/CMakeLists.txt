@@ -77,8 +77,8 @@ add_executable(openboardview
 
 target_link_libraries(openboardview
 	dl
-	imgui
 	gl3w
+	imgui
 	json11
 	${COCOA_LIBRARY}
 	${SDL2_LIBRARY}

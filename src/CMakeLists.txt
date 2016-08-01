@@ -30,7 +30,7 @@ execute_process(
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 add_definitions("-DImDrawIdx=unsigned int") # short is not enough for us
-add_library(imgui SHARED imgui/imgui.cpp imgui/imgui_draw.cpp)
+add_library(imgui STATIC imgui/imgui.cpp imgui/imgui_draw.cpp)
 target_link_libraries(imgui ${PLATFORM_TARGET_LIBS})
 install(TARGETS imgui DESTINATION ${INSTALL_LIBRARY_DIR})
 
@@ -39,7 +39,7 @@ execute_process(
 	COMMAND git submodule update --init src/json11
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
-add_library(json11 SHARED json11/json11.cpp)
+add_library(json11 STATIC json11/json11.cpp)
 #target_include_directories(json11 ${CMAKE_CURRENT_SOURCE_DIR}/json11)
 target_compile_options(json11
 	PUBLIC -std=c++11
