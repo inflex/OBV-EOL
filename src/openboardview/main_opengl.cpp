@@ -16,12 +16,12 @@
 #include "platform.h"
 #include "resource.h"
 #include <SDL2/SDL.h>
+#include <sstream>
 #include <stdio.h>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <string>
-#include <sstream>
 
 // Rendering stuff
 #ifdef ENABLE_GLES2
@@ -54,14 +54,11 @@ struct globals {
 	}
 };
 
-enum class Renderer {
-	OPENGL3,
-	OPENGLES2
-};
+enum class Renderer { OPENGL3, OPENGLES2 };
 static Renderer renderer = Renderer::OPENGL3;
 
 static SDL_GLContext glcontext = NULL;
-static SDL_Window *window = nullptr;
+static SDL_Window *window      = nullptr;
 
 char help[] =
     " [-h] [-l] [-c <config file>] [-i <intput file>]\n\
@@ -161,10 +158,8 @@ int parse_parameters(int argc, char **argv, struct globals *g) {
 }
 
 void cleanupAndExit(int c) {
-	if (glcontext)
-		SDL_GL_DeleteContext(glcontext);
-	if (window)
-		SDL_DestroyWindow(window);
+	if (glcontext) SDL_GL_DeleteContext(glcontext);
+	if (window) SDL_DestroyWindow(window);
 	SDL_Quit();
 	exit(c);
 }
@@ -247,7 +242,7 @@ int main(int argc, char **argv) {
 	if (g.width == 0) g.width   = app.obvconfig.ParseInt("windowX", 800);
 	if (g.height == 0) g.height = app.obvconfig.ParseInt("windowY", 600);
 
-	// Setup window
+// Setup window
 #ifdef ENABLE_GL3
 	if (renderer == Renderer::OPENGL3) {
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -272,26 +267,23 @@ int main(int argc, char **argv) {
 	SDL_DisplayMode current;
 	SDL_GetCurrentDisplayMode(0, &current);
 	window = SDL_CreateWindow("OpenFlex Board Viewer",
-	                                      SDL_WINDOWPOS_CENTERED,
-	                                      SDL_WINDOWPOS_CENTERED,
-	                                      g.width,
-	                                      g.height,
-	                                      SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	if (window == NULL)
-	{
+	                          SDL_WINDOWPOS_CENTERED,
+	                          SDL_WINDOWPOS_CENTERED,
+	                          g.width,
+	                          g.height,
+	                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	if (window == NULL) {
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create the sdlWindow: %s\n", SDL_GetError());
 		cleanupAndExit(1);
 	}
 
 	glcontext = SDL_GL_CreateContext(window);
-	if (glcontext == NULL)
-	{
+	if (glcontext == NULL) {
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to initialize OpenGL context: %s\n", SDL_GetError());
 		cleanupAndExit(1);
 	}
 
-	if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
-	{
+	if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "glad failed to load OpenGL\n");
 		cleanupAndExit(1);
 	}
@@ -299,31 +291,29 @@ int main(int argc, char **argv) {
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
 	bool initialized = false;
-	// Setup ImGui binding
+// Setup ImGui binding
 #ifdef ENABLE_GL3
 	if (renderer == Renderer::OPENGL3) {
 		initialized = ImGui_ImplSdlGL3_Init(window);
 	}
 #endif
 #ifdef ENABLE_GLES2
-	if (renderer == Renderer::OPENGLES2)
-	{
+	if (renderer == Renderer::OPENGLES2) {
 		initialized = ImGui_ImplSdlGLES2_Init(window);
 	}
 #endif
 
 #if defined(ENABLE_GLES2) || defined(ENABLE_GL3)
-	if (!initialized)
-	{
+	if (!initialized) {
 		SDL_LogError(SDL_LOG_CATEGORY_RENDER, "%s", "Selected renderer is not available. Exiting.");
 		cleanupAndExit(1);
 	}
 
 	/* Query OpenGL device information */
-	const GLubyte* strrenderer = glGetString(GL_RENDERER);
-	const GLubyte* vendor = glGetString(GL_VENDOR);
-	const GLubyte* version = glGetString(GL_VERSION);
-	const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+	const GLubyte *strrenderer = glGetString(GL_RENDERER);
+	const GLubyte *vendor      = glGetString(GL_VENDOR);
+	const GLubyte *version     = glGetString(GL_VERSION);
+	const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
 	std::stringstream ss;
 	ss << "\n-------------------------------------------------------------\n";
@@ -393,12 +383,10 @@ int main(int argc, char **argv) {
 		while (SDL_PollEvent(&event)) {
 			sleepout = 3;
 #ifdef ENABLE_GL3
-			if (renderer == Renderer::OPENGL3)
-				ImGui_ImplSdlGL3_ProcessEvent(&event);
+			if (renderer == Renderer::OPENGL3) ImGui_ImplSdlGL3_ProcessEvent(&event);
 #endif
 #ifdef ENABLE_GLES2
-			if (renderer == Renderer::OPENGLES2)
-				ImGui_ImplSdlGLES2_ProcessEvent(&event);
+			if (renderer == Renderer::OPENGLES2) ImGui_ImplSdlGLES2_ProcessEvent(&event);
 #endif
 
 			if (event.type == SDL_DROPFILE) {
@@ -428,12 +416,10 @@ int main(int argc, char **argv) {
 		} // puts OBV to sleep if nothing is happening.
 
 #ifdef ENABLE_GL3
-		if (renderer == Renderer::OPENGL3)
-			ImGui_ImplSdlGL3_NewFrame(window);
+		if (renderer == Renderer::OPENGL3) ImGui_ImplSdlGL3_NewFrame(window);
 #endif
 #ifdef ENABLE_GLES2
-		if (renderer == Renderer::OPENGLES2)
-			ImGui_ImplSdlGLES2_NewFrame();
+		if (renderer == Renderer::OPENGLES2) ImGui_ImplSdlGLES2_NewFrame();
 #endif
 
 		// If we have a board to view being passed from command line, then "inject"
@@ -459,7 +445,7 @@ int main(int argc, char **argv) {
 			app.history_file_has_changed = 0;
 		}
 
-		// Rendering
+// Rendering
 #if defined(ENABLE_GLES2) || defined(ENABLE_GL3)
 		glViewport(0, 0, static_cast<int>(ImGui::GetIO().DisplaySize.x), static_cast<int>(ImGui::GetIO().DisplaySize.y));
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -469,14 +455,12 @@ int main(int argc, char **argv) {
 		SDL_GL_SwapWindow(window);
 	}
 
-	// Cleanup
+// Cleanup
 #ifdef ENABLE_GL3
-	if (renderer == Renderer::OPENGL3)
-		ImGui_ImplSdlGL3_Shutdown();
+	if (renderer == Renderer::OPENGL3) ImGui_ImplSdlGL3_Shutdown();
 #endif
 #ifdef ENABLE_GLES2
-	if (renderer == Renderer::OPENGLES2)
-		ImGui_ImplSdlGLES2_Shutdown();
+	if (renderer == Renderer::OPENGLES2) ImGui_ImplSdlGLES2_Shutdown();
 #endif
 	SDL_GL_DeleteContext(glcontext);
 	SDL_DestroyWindow(window);

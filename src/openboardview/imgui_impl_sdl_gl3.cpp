@@ -15,9 +15,9 @@
 #include "imgui_impl_sdl_gl3.h"
 
 // SDL, glad
-#include <glad/glad.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
+#include <glad/glad.h>
 
 #include "TextureDDS.h"
 #include "platform.h"

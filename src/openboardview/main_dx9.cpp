@@ -195,15 +195,15 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	 */
 	app.ConfigParse();
 
-	/* 
+	/*
 	 * Set the font based on the dpi
 	 */
 	int ttf_size;
 	unsigned char *ttf_data = LoadAsset(&ttf_size, ASSET_FIRA_SANS);
 	ImFontConfig font_cfg{};
 	font_cfg.FontDataOwnedByAtlas = false;
-	io.Fonts->AddFontFromMemoryTTF(ttf_data, ttf_size, (app.obvconfig.ParseDouble("fontSize", 20.0f) *(app.dpi/100.0)), &font_cfg);
-
+	io.Fonts->AddFontFromMemoryTTF(
+	    ttf_data, ttf_size, (app.obvconfig.ParseDouble("fontSize", 20.0f) * (app.dpi / 100.0)), &font_cfg);
 
 	bool show_test_window    = true;
 	bool show_another_window = false;
