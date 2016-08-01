@@ -17,7 +17,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
 struct globals {
 	char *input_file;
 	char *config_file;
@@ -34,7 +33,7 @@ struct globals {
 		this->slowCPU     = false;
 		this->width       = 0;
 		this->height      = 0;
-		this->dpi = 0;
+		this->dpi         = 0;
 		this->font_size   = 0.0f;
 		this->debug       = false;
 	}
@@ -225,9 +224,9 @@ int main(int argc, char **argv) {
 	// Setup ImGui binding
 	ImGui_ImplSdlGL3_Init(window);
 
-	ImGuiIO &io                          = ImGui::GetIO();
-	io.IniFilename                       = NULL;
-	std::string fontpath                 = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
+	ImGuiIO &io          = ImGui::GetIO();
+	io.IniFilename       = NULL;
+	std::string fontpath = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	//	io.Fonts->AddFontDefault();
 
 	// Main loop
@@ -242,7 +241,7 @@ int main(int argc, char **argv) {
 	app.ConfigParse();
 
 	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
-	g.font_size = (g.font_size *app.dpi) / 100;
+	g.font_size                          = (g.font_size * app.dpi) / 100;
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 
 	// ImVec4 clear_color = ImColor(20, 20, 30);

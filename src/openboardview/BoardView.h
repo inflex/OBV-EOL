@@ -9,9 +9,8 @@
 #include <stdint.h>
 #include <vector>
 
-
-#define DPIF(x) (((x) *dpi) / 100.f)
-#define DPI(x) (((x) *dpi) / 100)
+#define DPIF(x) (((x)*dpi) / 100.f)
+#define DPI(x) (((x)*dpi) / 100)
 
 struct BRDPart;
 struct BRDFile;
@@ -92,8 +91,8 @@ struct BoardView {
 	FHistory fhistory;
 	bool debug                   = false;
 	int history_file_has_changed = 0;
-	int dpi	= 0;
-	double dpiscale = 1.0f;
+	int dpi                      = 0;
+	double dpiscale              = 1.0f;
 	float zoomFactor             = 0.5f;
 	int zoomModifier             = 5;
 	int panFactor                = 30;
