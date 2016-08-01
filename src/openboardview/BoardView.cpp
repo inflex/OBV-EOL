@@ -8,10 +8,11 @@
 #include <limits.h>
 #include <memory>
 #include <stdio.h>
-#ifndef _WIN32 // SDL not used on Windows
+#ifndef _WIN32
 #include <SDL2/SDL.h>
 #endif
 
+#include "sqlite3.h"
 #include "BDVFile.h"
 #include "BRD2File.h"
 #include "BRDBoard.h"
@@ -19,6 +20,7 @@
 #include "BVRFile.h"
 #include "Board.h"
 #include "FZFile.h"
+#include "annotations.h"
 #include "imgui/imgui.h"
 
 #include "NetList.h"
@@ -41,9 +43,9 @@ using namespace std::placeholders;
 BoardView::~BoardView() {
 	delete m_file;
 	delete m_board;
+	m_annotations.Close();
 	free(m_lastFileOpenName);
 }
-
 uint32_t BoardView::byte4swap(uint32_t x) {
 	/*
 	 * used to convert RGBA -> ABGR etc
@@ -133,6 +135,11 @@ int BoardView::ConfigParse(void) {
 
 	panFactor   = obvconfig.ParseInt("panFactor", 30);
 	panModifier = obvconfig.ParseInt("panModifier", 5);
+
+	annotationBoxSize             = obvconfig.ParseInt("annotationBoxSize", 15);
+	annotationBoxOffset           = obvconfig.ParseInt("annotationBoxOffset", 15);
+	m_colors.annotationBoxColor   = byte4swap(obvconfig.ParseHex("annotationBoxColor", 0xff0000aa));
+	m_colors.annotationStalkColor = byte4swap(obvconfig.ParseHex("annotationStalkColor", 0x000000ff));
 
 	/*
 	 * Colours in ImGui can be represented as a 4-byte packed uint32_t as ABGR
@@ -237,21 +244,13 @@ int BoardView::LoadFile(char *filename) {
 			else if (BVRFile::verifyFormat(buffer, buffer_size))
 				file = new BVRFile(buffer, buffer_size);
 
-			/*
-		if (!strcmp(ext, ".brd")) // Recognize file format using filename extension
-			file = new BRDFile(buffer, buffer_size);
-		else if (!strcmp(ext, ".bdv"))
-			file = new BDVFile(buffer, buffer_size);
-		else if (!strcmp(ext, ".bvr"))
-			file = new BVRFile(buffer, buffer_size);
-		else if (!strcmp(ext, ".fz"))
-			file = new FZFile(buffer, buffer_size, FZKey);
-			*/
-
 			if (file && file->valid) {
 				SetFile(file);
 				fhistory.Prepend_save(filename);
 				history_file_has_changed = 1; // used by main to know when to update the window title
+
+				m_annotations.SetFilename(filename);
+				m_annotations.Load();
 
 			} else {
 				m_lastFileOpenWasInvalid = true;
@@ -468,6 +467,268 @@ void BoardView::HelpControls(void) {
 		ImGui::Columns(1);
 
 		ImGui::EndPopup();
+	}
+}
+
+void BoardView::ContextMenu(void) {
+	static char contextbuf[10240]    = "";
+	static char contextbufnew[10240] = "";
+	static char *pin, *partn, *net;
+	static char empty[] = "";
+	double tx, ty;
+
+	pin = partn = net = empty;
+	ImGuiIO &io       = ImGui::GetIO();
+
+	ImVec2 pos = ScreenToCoord(m_showContextMenuPos.x, m_showContextMenuPos.y);
+
+	/*
+	 * So we don't have dozens of near-same-spot annotation points, we truncate
+	 * back to integer levels, which still gives us 1-thou precision
+	 */
+	tx = trunc(pos.x);
+	ty = trunc(pos.y);
+
+	/*
+	 * Originally the dialog was to follow the cursor but it proved to be an overkill
+	 * to try adjust things to keep it within the bounds of the window so as to not
+	 * lose the buttons.
+	 *
+	 * Now it's kept at a fixed point.
+	 */
+	ImGui::SetNextWindowPos(ImVec2(50, 50));
+
+	if (ImGui::BeginPopupModal("ContextOptions", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders)) {
+		ImGui::Text("Annotation Add/Edit/Remove");
+
+		if (m_showContextMenu) {
+			contextbuf[0]     = 0;
+			m_showContextMenu = false;
+		}
+
+		/*
+		 * For the new annotation possibility, we need to detect our various
+		 * attributes that we can bind to, such as pin, net, part
+		 */
+		//		ImGui::Text("POS:%0.0f,%0.0f (%c) ", tx, ty, m_current_side == 0 ? 'T' : 'B');
+		//		ImGui::SameLine();
+
+		{
+			/*
+			 * we're going to go through all the possible items we can annotate at this position and offer them
+			 */
+
+			float min_dist = m_pinDiameter * 1.0f;
+
+			/*
+			 * find the closest pin, starting at no more than
+			 * 1 radius away
+			 */
+			min_dist *= min_dist; // all distance squared
+			Pin *selection = nullptr;
+			for (auto &pin : m_board->Pins()) {
+				if (ComponentIsVisible(pin->component)) {
+					float dx   = pin->position.x - pos.x;
+					float dy   = pin->position.y - pos.y;
+					float dist = dx * dx + dy * dy;
+					if (dist < min_dist) {
+						selection = pin.get();
+						min_dist  = dist;
+					}
+				}
+			}
+
+			/*
+			 * If there was a pin selected, we can extract net/part off it
+			 */
+
+			if (selection != nullptr) {
+				pin   = strdup(selection->number.c_str());
+				partn = strdup(selection->component->name.c_str());
+				net   = strdup(selection->net->name.c_str());
+				/*
+				ImGui::Text("Pin: %s[%s], Net: %s",
+				            selection->component->name.c_str(),
+				            selection->number.c_str(),
+				            selection->net->name.c_str());
+				            */
+			} else {
+
+				/*
+				 * ELSE if we didn't get a pin selected, we can still
+				 * check for a part.
+				 *
+				 * There is a problem where we can be on two parts
+				 * but haven't decided what to do in such a situation
+				 */
+
+				//			m_partHighlighted.clear(); // I don't think this was intentionally meant to be here *whoops*
+				//
+				for (auto &part : m_board->Components()) {
+					int hit     = 0;
+					auto p_part = part.get();
+
+					if (!ComponentIsVisible(p_part)) continue;
+
+					// Work out if the point is inside the hull
+					{
+						int i, j, n;
+						outline_pt *poly;
+
+						n    = 4;
+						poly = p_part->outline;
+
+						for (i = 0, j = n - 1; i < n; j = i++) {
+							if (((poly[i].y > pos.y) != (poly[j].y > pos.y)) &&
+							    (pos.x < (poly[j].x - poly[i].x) * (pos.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+								hit = !hit;
+						}
+					} // hull test
+					if (hit) {
+						//		ImGui::Text("Part: %s", p_part->name.c_str());
+						partn = strdup(p_part->name.c_str());
+
+						ImGui::SameLine();
+					}
+
+				} // for each part
+			}
+
+			{
+
+				ImGui::NewLine();
+				/*
+				 * For existing annotations
+				 */
+				if (m_annotation_clicked_id >= 0) {
+					if (m_annotationedit_retain || (m_annotation_clicked_id >= 0)) {
+						Annotation ann = m_annotations.annotations[m_annotation_clicked_id];
+						if (!m_annotationedit_retain) {
+							snprintf(contextbuf, sizeof(contextbuf), "%s", ann.note.c_str());
+							m_annotationedit_retain = true;
+							m_annotationnew_retain  = false;
+						}
+						ImGui::Spacing();
+						ImGui::Text("%c(%0.0f,%0.0f) %s, %s%c%s%c",
+						            m_current_side ? 'B' : 'T',
+						            tx,
+						            ty,
+						            ann.net.c_str(),
+						            ann.part.c_str(),
+						            ann.part.size() && ann.pin.size() ? '[' : ' ',
+						            ann.pin.c_str(),
+						            ann.part.size() && ann.pin.size() ? ']' : ' ');
+						ImGui::InputTextMultiline("##annotationedit",
+						                          contextbuf,
+						                          sizeof(contextbuf),
+						                          ImVec2(600, ImGui::GetTextLineHeight() * 16),
+						                          0,
+						                          NULL,
+						                          contextbuf);
+
+						if (ImGui::Button("Update") || (ImGui::IsKeyPressed(SDLK_RETURN) && io.KeyShift)) {
+							m_annotationedit_retain = false;
+							m_annotations.Update(m_annotations.annotations[m_annotation_clicked_id].id, contextbuf);
+							m_annotations.GenerateList();
+							m_needsRedraw      = true;
+							m_tooltips_enabled = true;
+							ImGui::CloseCurrentPopup();
+						}
+						ImGui::SameLine();
+						if (ImGui::Button("Cancel")) {
+							ImGui::CloseCurrentPopup();
+							m_annotationnew_retain = false;
+							m_tooltips_enabled     = true;
+						}
+						ImGui::Separator();
+					}
+				}
+
+				/*
+				 * For generating a new annotation
+				 */
+				if ((m_annotation_clicked_id < 0) && (m_annotationnew_retain == false)) {
+					ImGui::Text("%c(%0.0f,%0.0f) %s %s%c%s%c",
+					            m_current_side ? 'B' : 'T',
+					            tx,
+					            ty,
+					            net,
+					            partn,
+					            partn == empty || pin == empty ? ' ' : '[',
+					            pin,
+					            partn == empty || pin == empty ? ' ' : ']');
+				}
+				if (ImGui::Button("Add New") || m_annotationnew_retain) {
+					if (m_annotationnew_retain == false) {
+						contextbufnew[0]        = 0;
+						m_annotationnew_retain  = true;
+						m_annotation_clicked_id = -1;
+						m_annotationedit_retain = false;
+					}
+
+					// ImGui::Text("%c(%0.0f,%0.0f) %s, %s[%s]", m_current_side?'B':'T', tx, ty, net, partn, pin);
+					ImGui::Text("%c(%0.0f,%0.0f) %s %s%c%s%c",
+					            m_current_side ? 'B' : 'T',
+					            tx,
+					            ty,
+					            net,
+					            partn,
+					            partn == empty || pin == empty ? ' ' : '[',
+					            pin,
+					            partn == empty || pin == empty ? ' ' : ']');
+					ImGui::Spacing();
+					ImGui::InputTextMultiline("New##annotationnew",
+					                          contextbufnew,
+					                          sizeof(contextbufnew),
+					                          ImVec2(600, ImGui::GetTextLineHeight() * 16),
+					                          0,
+					                          NULL,
+					                          contextbufnew);
+
+					if (ImGui::Button("Apply") || (ImGui::IsKeyPressed(SDLK_RETURN) && io.KeyShift)) {
+						m_tooltips_enabled     = true;
+						m_annotationnew_retain = false;
+						if (debug) fprintf(stderr, "DATA:'%s'\n\n", contextbufnew);
+
+						m_annotations.Add(m_current_side, tx, ty, net, partn, pin, contextbufnew);
+						m_annotations.GenerateList();
+						m_needsRedraw = true;
+
+						if (selection != nullptr) {
+							free(pin);
+							free(partn);
+							free(net);
+						}
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Cancel")) {
+						ImGui::CloseCurrentPopup();
+						m_tooltips_enabled     = true;
+						m_annotationnew_retain = false;
+					}
+					ImGui::Separator();
+				}
+
+				if ((m_annotation_clicked_id >= 0) && (ImGui::Button("Remove"))) {
+					m_annotations.Remove(m_annotations.annotations[m_annotation_clicked_id].id);
+					m_annotations.GenerateList();
+					m_needsRedraw = true;
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			// the position.
+		}
+
+		if (ImGui::Button("Exit") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
+			m_annotationnew_retain  = false;
+			m_annotationedit_retain = false;
+			m_tooltips_enabled      = true;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+		m_tooltips_enabled = true;
 	}
 }
 
@@ -692,6 +953,7 @@ void BoardView::Update() {
 		SearchComponent();
 		HelpControls();
 		HelpAbout();
+		ContextMenu();
 
 		// ImGui::PushStyleColor(0xeeeeeeee);
 
@@ -742,6 +1004,10 @@ void BoardView::Update() {
 			}
 			if (ImGui::MenuItem("Toggle Pin blank", "b")) {
 				pinBlank ^= 1;
+				m_needsRedraw = true;
+			}
+			ImGui::Separator();
+			if (ImGui::Checkbox("Annotations", &m_annotations_active)) {
 				m_needsRedraw = true;
 			}
 
@@ -820,6 +1086,10 @@ void BoardView::Update() {
 		ImGui::SameLine();
 		if (ImGui::Button("X")) {
 			CenterView();
+		}
+
+		if (m_showContextMenu && m_file && m_annotations_active) {
+			ImGui::OpenPopup("ContextOptions");
 		}
 
 		if (m_showHelpAbout) {
@@ -915,6 +1185,11 @@ void BoardView::Update() {
 			ImGui::SameLine();
 		}
 
+		if (debug) {
+			ImGui::Text("AnnID:%d ", m_annotation_clicked_id);
+			ImGui::SameLine();
+		}
+
 		if (showPosition == true) {
 			ImGui::Text("Position: %0.3f\", %0.3f\" (%0.2f, %0.2fmm)", pos.x / 1000, pos.y / 1000, pos.x * 0.0254, pos.y * 0.0254);
 			ImGui::SameLine();
@@ -936,7 +1211,8 @@ void BoardView::Update() {
 	}
 	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - (status_height + menu_height)));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	// ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(m_colors.backgroundColor));
 
 	ImGui::Begin("surface", nullptr, draw_surface_flags);
 	HandleInput();
@@ -979,11 +1255,6 @@ void BoardView::Pan(int direction, int amount) {
 #define DIR_DOWN 2
 #define DIR_LEFT 3
 #define DIR_RIGHT 4
-#ifdef _WIN32
-#define KM(x) (x)
-#else
-#define KM(x) (((x)&0xFF) | 0x100)
-#endif
 
 	amount = amount / m_scale;
 
@@ -1022,13 +1293,15 @@ void BoardView::Pan(int direction, int amount) {
  * for menus is handled within the menu generation itself.
  */
 void BoardView::HandleInput() {
+#ifdef _WIN32
+#define KM(x) (x)
+#else
+#define KM(x) (((x)&0xFF) | 0x100)
+#endif
 	const ImGuiIO &io = ImGui::GetIO();
 
-	// ImGuiContext& g = *GImGui;
-	//	fprintf(stderr,"%s =!? %s\n", g.CurrentWindow->Name,
-	// g.FocusedWindow->Name);
-
 	if (ImGui::IsWindowHovered()) {
+
 		if (ImGui::IsMouseDragging()) {
 			ImVec2 delta = ImGui::GetMouseDragDelta();
 			if ((abs(delta.x) > 500) || (abs(delta.y) > 500)) {
@@ -1045,10 +1318,19 @@ void BoardView::HandleInput() {
 		} else {
 
 			// Conext menu
-			if (m_file && m_board && ImGui::IsMouseReleased(1) && !m_draggingLastFrame) {
-				// Build context menu here, for annotations and inspection
-				//
-				Rotate(1);
+			if (m_file && m_board && ImGui::IsMouseClicked(1)) {
+				if (m_annotations_active) {
+					// Build context menu here, for annotations and inspection
+					//
+					ImVec2 spos                                        = ImGui::GetMousePos();
+					if (AnnotationIsHovered()) m_annotation_clicked_id = m_annotation_last_hovered;
+
+					m_showContextMenu    = true;
+					m_showContextMenuPos = spos;
+					m_tooltips_enabled   = false;
+					m_needsRedraw        = true;
+					if (debug) fprintf(stderr, "context click request at (%f %f)\n", spos.x, spos.y);
+				}
 
 				// Flip the board with the middle click
 			} else if (m_file && m_board && ImGui::IsMouseReleased(2)) {
@@ -1105,7 +1387,18 @@ void BoardView::HandleInput() {
 						m_partHighlighted.push_back(p_part);
 					}
 				}
+			} else {
+				if (!m_showContextMenu) {
+					if (AnnotationIsHovered()) {
+						m_needsRedraw        = true;
+						AnnotationWasHovered = true;
+					} else {
+						AnnotationWasHovered = false;
+						m_needsRedraw        = true;
+					}
+				}
 			}
+
 			m_draggingLastFrame = false;
 		}
 
@@ -1118,7 +1411,7 @@ void BoardView::HandleInput() {
 		}
 	}
 
-	if (!io.WantCaptureKeyboard) {
+	if ((!io.WantCaptureKeyboard)) {
 
 		if (ImGui::IsKeyPressed(SDLK_n)) {
 			// Search for net
@@ -1178,6 +1471,7 @@ void BoardView::HandleInput() {
 			Zoom(m_lastWidth / 2, m_lastHeight / 2, -zoomFactor);
 
 		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_2)) || ImGui::IsKeyPressed(SDLK_s)) {
+			fprintf(stderr, "D");
 			Pan(DIR_DOWN, panFactor);
 
 		} else if (ImGui::IsKeyPressed(KM(SDL_SCANCODE_KP_8)) || ImGui::IsKeyPressed(SDLK_w)) {
@@ -1201,6 +1495,8 @@ void BoardView::HandleInput() {
 			m_search2[0]  = '\0';
 			m_search3[0]  = '\0';
 			m_needsRedraw = true;
+		} else {
+			// fprintf(stderr,"F");
 		}
 	}
 }
@@ -1222,6 +1518,7 @@ void BoardView::ShowPartList(bool *p_open) {
 }
 
 void BoardView::RenderOverlay() {
+
 	// Listing of Net elements
 	if (m_showNetList) {
 		ShowNetList(&m_showNetList);
@@ -1914,7 +2211,8 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				pos.y -= text_size.y * 2;
 				pos.x -= text_size.x * 0.5f;
 				draw->ChannelsSetCurrent(kChannelPolylines);
-				// draw->AddRectFilled(ImVec2(pos.x - 2.0f, pos.y - 1.0f), ImVec2(pos.x + text_size.x + 2.0f, pos.y + text_size.y +
+				// draw->AddRectFilled(ImVec2(pos.x - 2.0f, pos.y - 1.0f), ImVec2(pos.x + text_size.x + 2.0f, pos.y +
+				// text_size.y +
 				// 1.0f), m_colors.backgroundColor, 3.0f);
 				// This is the background of the part text.
 				draw->AddRectFilled(ImVec2(pos.x - 2.0f, pos.y - 2.0f),
@@ -1926,6 +2224,72 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			}
 		}
 	} // for each part
+}
+
+inline void BoardView::DrawAnnotations(ImDrawList *draw) {
+	draw->ChannelsSetCurrent(kChannelAnnotations);
+	for (auto &ann : m_annotations.annotations) {
+		if (ann.side == m_current_side) {
+			ImVec2 a, b, s;
+			if (debug) fprintf(stderr, "%d:%d:%f %f: %s\n", ann.id, ann.side, ann.x, ann.y, ann.note.c_str());
+			a = s = CoordToScreen(ann.x, ann.y);
+			a.x += annotationBoxOffset;
+			a.y -= annotationBoxOffset;
+			b = ImVec2(a.x + annotationBoxSize, a.y - annotationBoxSize);
+
+			if ((ann.hovered == true) && (m_tooltips_enabled)) {
+				char buf[60];
+
+				snprintf(buf, sizeof(buf), "%s", ann.note.c_str());
+				buf[50] = '\0';
+
+				ImGui::BeginTooltip();
+				ImGui::Text("%c(%0.0f,%0.0f) %s %s%c%s%c\n%s%s",
+				            m_current_side ? 'B' : 'T',
+				            ann.x,
+				            ann.y,
+				            ann.net.c_str(),
+				            ann.part.c_str(),
+				            ann.part.size() && ann.pin.size() ? '[' : ' ',
+				            ann.pin.c_str(),
+				            ann.part.size() && ann.pin.size() ? ']' : ' ',
+				            buf,
+				            ann.note.size() > 50 ? "..." : "");
+
+				ImGui::EndTooltip();
+			} else {
+			}
+			draw->AddCircleFilled(s, 2, m_colors.annotationStalkColor, 8);
+			draw->AddRectFilled(a, b, m_colors.annotationBoxColor);
+			draw->AddRect(a, b, m_colors.annotationStalkColor);
+			draw->AddLine(s, a, m_colors.annotationStalkColor);
+		}
+	}
+}
+
+int BoardView::AnnotationIsHovered(void) {
+	ImVec2 mp       = ImGui::GetMousePos();
+	bool is_hovered = false;
+	int i           = 0;
+
+	m_annotation_last_hovered = 0;
+
+	for (auto &ann : m_annotations.annotations) {
+		ImVec2 a = CoordToScreen(ann.x, ann.y);
+		if ((mp.x > a.x + annotationBoxOffset) && (mp.x < a.x + (annotationBoxOffset + annotationBoxSize)) &&
+		    (mp.y < a.y - annotationBoxOffset) && (mp.y > a.y - (annotationBoxOffset + annotationBoxSize))) {
+			ann.hovered               = true;
+			is_hovered                = true;
+			m_annotation_last_hovered = i;
+		} else {
+			ann.hovered = false;
+		}
+		i++;
+	}
+
+	if (is_hovered == false) m_annotation_clicked_id = -1;
+
+	return is_hovered;
 }
 
 void BoardView::DrawBoard() {
@@ -1947,6 +2311,7 @@ void BoardView::DrawBoard() {
 	DrawOutline(draw);
 	DrawParts(draw);
 	DrawPins(draw);
+	if (m_annotations_active) DrawAnnotations(draw);
 
 	draw->ChannelsMerge();
 

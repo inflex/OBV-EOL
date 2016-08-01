@@ -33,6 +33,8 @@ if(MINGW)
 endif()
 
 set(SOURCES
+	sqlite3.c
+	annotations.cpp
 	confparse.cpp
 	vectorhulls.cpp
 	history.cpp

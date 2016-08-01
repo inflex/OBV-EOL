@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Board.h"
+#include "annotations.h"
 #include "confparse.h"
 #include "history.h"
 #include "imgui/imgui.h"
+#include "sqlite3.h"
 #include <stdint.h>
 #include <vector>
 
@@ -62,7 +64,9 @@ struct ColorScheme {
 	uint32_t pinHighlighted      = 0xffffffff;
 	uint32_t pinHighlightSameNet = 0xff99f8ff;
 
-	uint32_t annotationPartAlias = 0xcc00ffff;
+	uint32_t annotationPartAlias  = 0xcc00ffff;
+	uint32_t annotationBoxColor   = 0xaa0000ff;
+	uint32_t annotationStalkColor = 0xff000000;
 
 	uint32_t partHullColor       = 0x80808080;
 	uint32_t selectedMaskPins    = 0x4FFFFFFF;
@@ -88,17 +92,21 @@ struct BoardView {
 	int zoomModifier             = 5;
 	int panFactor                = 30;
 	int panModifier              = 5;
-	float pinSizeThresholdLow    = 0.0f;
-	bool pinShapeSquare          = false;
-	bool pinShapeCircle          = true;
-	bool slowCPU                 = false;
-	bool showFPS                 = false;
-	bool pinHalo                 = true;
-	bool fillParts               = true;
-	bool showPosition            = true;
-	bool reloadConfig            = false;
-	int pinBlank                 = 0;
-	uint32_t FZKey[44]           = {0};
+
+	int annotationBoxOffset = 10;
+	int annotationBoxSize   = 10;
+
+	float pinSizeThresholdLow = 0.0f;
+	bool pinShapeSquare       = false;
+	bool pinShapeCircle       = true;
+	bool slowCPU              = false;
+	bool showFPS              = false;
+	bool pinHalo              = true;
+	bool fillParts            = true;
+	bool showPosition         = true;
+	bool reloadConfig         = false;
+	int pinBlank              = 0;
+	uint32_t FZKey[44]        = {0};
 
 	int ConfigParse(void);
 	uint32_t byte4swap(uint32_t x);
@@ -113,6 +121,20 @@ struct BoardView {
 	void HelpControls(void);
 	void SearchNet(void);
 	void SearchComponent(void);
+
+	/* Context menu, sql stuff */
+	Annotations m_annotations;
+	void ContextMenu(void);
+	int AnnotationIsHovered(void);
+	bool m_annotations_active     = true;
+	bool AnnotationWasHovered     = false;
+	bool m_annotationnew_retain   = false;
+	bool m_annotationedit_retain  = false;
+	bool m_tooltips_enabled       = true;
+	int m_annotation_last_hovered = 0;
+	int m_annotation_clicked_id   = 0;
+
+	ImVec2 m_showContextMenuPos;
 
 	Pin *m_pinSelected = nullptr;
 	vector<Pin *> m_pinHighlighted;
@@ -154,6 +176,7 @@ struct BoardView {
 	// The app will crash or break if this flag is not set when it should be.
 	bool m_needsRedraw = true;
 	bool m_draggingLastFrame;
+	bool m_showContextMenu;
 	bool m_showNetfilterSearch;
 	bool m_showComponentSearch;
 	bool m_showNetList;
@@ -172,6 +195,7 @@ struct BoardView {
 	void Update();
 	void HandleInput();
 	void RenderOverlay();
+	void DrawAnnotations(ImDrawList *draw);
 	void DrawOutline(ImDrawList *draw);
 	void DrawPins(ImDrawList *draw);
 	void DrawParts(ImDrawList *draw);
