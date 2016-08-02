@@ -449,7 +449,7 @@ void BoardView::HelpControls(void) {
 		ImGui::Text("Move board");
 		ImGui::Text("Zoom (CTRL for finer steps)");
 		ImGui::Text("Flip board");
-		ImGui::Text("Rotate board");
+		ImGui::Text("Context menu");
 
 		ImGui::NextColumn();
 		ImGui::Text("Click (on pin)");
