@@ -582,7 +582,6 @@ void BoardView::ContextMenu(void) {
 				/*
 				 * For existing annotations
 				 */
-				ImGui::NewLine();
 				if (m_annotation_clicked_id >= 0) {
 					if (m_annotationedit_retain || (m_annotation_clicked_id >= 0)) {
 						Annotation ann = m_annotations.annotations[m_annotation_clicked_id];
@@ -591,7 +590,7 @@ void BoardView::ContextMenu(void) {
 							m_annotationedit_retain = true;
 							m_annotationnew_retain  = false;
 						}
-						ImGui::Spacing();
+				//		ImGui::Spacing();
 						ImGui::Text("%c(%0.0f,%0.0f) %s, %s%c%s%c",
 						            m_current_side ? 'B' : 'T',
 						            tx,
@@ -1651,10 +1650,11 @@ void BoardView::OutlineGenFillDraw(ImDrawList *draw, int ydelta, double thicknes
 				// test to see if this segment makes the scan-cut.
 				if ((pa.y > pb.y && y < pa.y && y > pb.y) || (pa.y < pb.y && y > pa.y && y < pb.y)) {
 					intersect.y = y;
-					if (pa.x == pb.x)
+					if (pa.x == pb.x) { 
 						intersect.x = pa.x;
-					else
+					 } else {
 						intersect.x = (pb.x - pa.x) / (pb.y - pa.y) * (y - pa.y) + pa.x;
+					 }
 					scanhits.push_back(intersect);
 				}
 			} // if we did get an intersection
@@ -1664,7 +1664,7 @@ void BoardView::OutlineGenFillDraw(ImDrawList *draw, int ydelta, double thicknes
 			// now finally generate the lines.
 			{
 				int i = 0;
-				int l = scanhits.size();
+				int l = scanhits.size() -1; // safety catch, ensures that we only use up to the last pair
 				for (i = 0; i < l; i += 2) {
 					draw->AddLine(CoordToScreen(scanhits[i].x, y), CoordToScreen(scanhits[i + 1].x, y), m_colors.boardFillColor);
 				}
