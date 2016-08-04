@@ -31,7 +31,7 @@ add_subdirectory(src)
 
 set(CPACK_BUNDLE_NAME OpenBoardView)
 set(CPACK_PACKAGE_NAME OpenBoardView)
-set(CPACK_PACKAGE_VERSION 3.2)
+set(CPACK_PACKAGE_VERSION R3)
 set(CPACK_OUTPUT_FILE_PREFIX  "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(APPLE)
@@ -44,6 +44,7 @@ if(APPLE)
 	set(DIRS "\${LIBRARY_OUTPUT_PATH};/Library/Frameworks")
 
 	INSTALL(CODE "
+		set(BU_CHMOD_BUNDLE_ITEMS ON)
 		file(GLOB_RECURSE LIBS
 			\"${BUNDLE_OUTPUT_PATH}/Contents/MacOS/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
 		include(BundleUtilities)
