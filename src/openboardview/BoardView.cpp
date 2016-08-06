@@ -466,7 +466,7 @@ void BoardView::HelpControls(void) {
 }
 
 void BoardView::ContextMenu(void) {
-	bool dummy = true;
+	bool dummy                       = true;
 	static char contextbuf[10240]    = "";
 	static char contextbufnew[10240] = "";
 	static char *pin, *partn, *net;
@@ -639,7 +639,7 @@ void BoardView::ContextMenu(void) {
 					            pin,
 					            partn == empty || pin == empty ? ' ' : ']');
 				}
-				if (ImGui::Button("Add New##1") || m_annotationnew_retain) {
+				if (ImGui::Button("Add New##1") || m_annotationnew_retain || (m_annotation_clicked_id < 0)) {
 					if (m_annotationnew_retain == false) {
 						contextbufnew[0]        = 0;
 						m_annotationnew_retain  = true;
@@ -2690,26 +2690,27 @@ bool BoardView::AnyItemVisible(void) {
 
 	return any_visible;
 }
+
 #ifdef _WIN32
 char *strcasestr(const char *str, const char *pattern) {
 	size_t i;
 
-	if (!*pattern)
-		return (char*)str;
+	if ((!str) || (!pattern)) return NULL;
+
+	if (!*pattern) return (char *)str;
 
 	for (; *str; str++) {
 		if (toupper(*str) == toupper(*pattern)) {
 			for (i = 1;; i++) {
-				if (!pattern[i])
-					return (char*)str;
-				if (toupper(str[i]) != toupper(pattern[i]))
-					break;
+				if (!pattern[i]) return (char *)str;
+				if (toupper(str[i]) != toupper(pattern[i])) break;
 			}
 		}
 	}
 	return NULL;
 }
 #endif
+
 void BoardView::SetNetFilterNoClear(const char *name) {
 
 	if (!m_file || !m_board || !(*name)) return;
