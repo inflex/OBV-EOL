@@ -639,7 +639,7 @@ void BoardView::ContextMenu(void) {
 					            pin,
 					            partn == empty || pin == empty ? ' ' : ']');
 				}
-				if ((m_annotation_clicked_id < 0) || ImGui::Button("Add New##1") || m_annotationnew_retain ) {
+				if ((m_annotation_clicked_id < 0) || ImGui::Button("Add New##1") || m_annotationnew_retain) {
 					if (m_annotationnew_retain == false) {
 						contextbufnew[0]        = 0;
 						m_annotationnew_retain  = true;
@@ -979,10 +979,12 @@ void BoardView::Update() {
 			}
 
 			if (ImGui::Checkbox("Board fill", &boardFill)) {
+				obvconfig.WriteBool("boardFill", boardFill);
 				m_needsRedraw = true;
 			}
 
 			if (ImGui::Checkbox("Part fill", &fillParts)) {
+				obvconfig.WriteBool("fillParts", fillParts);
 				m_needsRedraw = true;
 			}
 
@@ -1341,7 +1343,7 @@ void BoardView::HandleInput() {
 				m_needsRedraw = true;
 
 				// threshold to within a pin's diameter of the pin center
-				//float min_dist = m_pinDiameter * 1.0f;
+				// float min_dist = m_pinDiameter * 1.0f;
 				float min_dist = m_pinDiameter * 0.5f;
 				min_dist *= min_dist; // all distance squared
 				Pin *selection = nullptr;
@@ -1356,7 +1358,7 @@ void BoardView::HandleInput() {
 						}
 					}
 				}
-		
+
 				m_pinSelected = selection;
 
 				// check also for a part hit.
