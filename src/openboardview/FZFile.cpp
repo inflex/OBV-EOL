@@ -206,9 +206,8 @@ FZFile::FZFile(const char *buf, size_t buffer_size, uint32_t *fzkey) {
 
 	//	ENSURE(content != nullptr);
 	//	ENSURE(content_size > 0);
-	content = FZFile::decompress(file_buf + 4,
-	                             content_size,
-	                             content_size); // and decompress zlib content data, discard first 4 bytes
+	content =
+	    FZFile::decompress(file_buf + 4, content_size, content_size); // and decompress zlib content data, discard first 4 bytes
 
 	if (content == nullptr) return;
 	if (content_size < 1) return;

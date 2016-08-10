@@ -54,11 +54,11 @@ struct ColorScheme {
 	uint32_t partTextColor            = 0xff808000;
 	uint32_t partTextBackgroundColor  = 0xff00eeee;
 	uint32_t partOutlineColor         = 0xff444444;
-	uint32_t partHullColor       = 0x80808080;
+	uint32_t partHullColor            = 0x80808080;
 	uint32_t partFillColor            = 0xffffffff;
 	uint32_t partHighlightedColor     = 0xff0000ee;
 	uint32_t partHighlightedFillColor = 0xffeeeeff;
-	uint32_t boardOutlineColor             = 0xff00ffff;
+	uint32_t boardOutlineColor        = 0xff00ffff;
 
 	//	uint32_t boxColor = 0xffcccccc;
 
@@ -73,11 +73,11 @@ struct ColorScheme {
 	uint32_t pinHighlightedColor      = 0xffffffff;
 	uint32_t pinHighlightSameNetColor = 0xff99f8ff;
 
-	uint32_t annotationPartAliasColor  = 0xcc00ffff;
-	uint32_t annotationBoxColor   = 0xaa0000ff;
-	uint32_t annotationStalkColor = 0xff000000;
+	uint32_t annotationPartAliasColor       = 0xcc00ffff;
+	uint32_t annotationBoxColor             = 0xaa0000ff;
+	uint32_t annotationStalkColor           = 0xff000000;
 	uint32_t annotationPopupBackgroundColor = 0xffeeeeee;
-	uint32_t annotationPopupTextColor = 0xff000000;
+	uint32_t annotationPopupTextColor       = 0xff000000;
 
 	uint32_t selectedMaskPins    = 0x4FFFFFFF;
 	uint32_t selectedMaskParts   = 0x8FFFFFFF;
