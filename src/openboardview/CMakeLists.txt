@@ -1,5 +1,6 @@
 find_package(SDL2 REQUIRED) # is this really required by windows?
 
+option(ENABLE_GL1 "Build OpenGL 1 renderer." ON)
 option(ENABLE_GL3 "Build OpenGL 3 renderer." ON)
 option(ENABLE_GLES2 "Build OpenGL ES 2 renderer." ON)
 
@@ -58,17 +59,21 @@ set(SOURCES
 	main_opengl.cpp
 	NetList.cpp
 	PartList.cpp
-	TextureDDS.cpp
 )
 
+if(ENABLE_GL1)
+	LIST(APPEND SOURCES
+		Renderers/imgui_impl_sdl.cpp
+	)
+endif()
 if(ENABLE_GL3)
 	LIST(APPEND SOURCES
-		imgui_impl_sdl_gl3.cpp
+		Renderers/imgui_impl_sdl_gl3.cpp
 	)
 endif()
 if(ENABLE_GLES2)
 	LIST(APPEND SOURCES
-		imgui_impl_sdl_gles2.cpp
+		Renderers/imgui_impl_sdl_gles2.cpp
 	)
 endif()
 
@@ -109,6 +114,10 @@ target_link_libraries(openboardview
 	${SQLITE3_LIBRARIES}
 )
 
+
+if(ENABLE_GL1)
+	add_definitions(-DENABLE_GL1)
+endif()
 if(ENABLE_GL3)
 	add_definitions(-DENABLE_GL3)
 endif()
