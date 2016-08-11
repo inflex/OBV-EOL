@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #include "imgui/imgui.h"
 #include "platform.h"
-#include <Windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <stdint.h>
 

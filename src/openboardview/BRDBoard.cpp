@@ -2,7 +2,6 @@
 
 #include "BRDFile.h"
 #include "json11/json11.hpp"
-#include "platform.h"
 
 #include <algorithm>
 #include <cerrno>
