@@ -210,7 +210,11 @@ int main(int argc, char **argv) {
 #endif
 		sr = stat(s, &st);
 		if (sr == -1) {
+#ifdef _WIN32
+			mkdir(s);
+#else
 			mkdir(s, S_IRWXU);
+#endif
 			sr = stat(s, &st);
 		}
 
@@ -344,7 +348,6 @@ int main(int argc, char **argv) {
 
 	ImGuiIO &io          = ImGui::GetIO();
 	io.IniFilename       = NULL;
-	std::string fontpath = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	//	io.Fonts->AddFontDefault();
 
 	// Main loop
@@ -358,9 +361,19 @@ int main(int argc, char **argv) {
 	// Now that the configuration file is loaded in to BoardView, parse its settings.
 	app.ConfigParse();
 
+
 	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
 	g.font_size                          = (g.font_size * app.dpi) / 100;
+#ifdef _WIN32
+	int ttf_size;
+	ImFontConfig font_cfg{};
+	font_cfg.FontDataOwnedByAtlas = false;
+	unsigned char *ttf_data = LoadAsset(&ttf_size, ASSET_FIRA_SANS);
+	io.Fonts->AddFontFromMemoryTTF(ttf_data, ttf_size, (app.obvconfig.ParseDouble("fontSize", 20.0f) * (app.dpi / 100.0)), &font_cfg);
+#else
+	std::string fontpath = get_asset_path(app.obvconfig.ParseStr("fontPath", "DroidSans.ttf"));
 	io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
+#endif
 
 	// ImVec4 clear_color = ImColor(20, 20, 30);
 	ImVec4 clear_color = ImColor(app.m_colors.backgroundColor);
