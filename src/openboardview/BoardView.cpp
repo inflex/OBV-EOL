@@ -1495,7 +1495,7 @@ void BoardView::Update() {
 		}
 
 		{
-			if (m_file) {
+			if (m_validBoard) {
 				ImVec2 s = ImGui::CalcTextSize(fhistory.history[0]);
 				ImGui::SameLine(ImGui::GetWindowWidth() - s.x - 20);
 				ImGui::Text("%s", fhistory.history[0]);
@@ -1895,7 +1895,7 @@ void BoardView::CenterZoomSearchResults(void) {
 	}
 
 	// Bounds check!
-	if ((min.x == FLT_MAX)||(min.y == FLT_MAX)||(max.x == FLT_MIN)||(max.y == FLT_MIN)) return;
+	if ((min.x == FLT_MAX) || (min.y == FLT_MAX) || (max.x == FLT_MIN) || (max.y == FLT_MIN)) return;
 
 	if (debug) fprintf(stderr, "CenterzoomSearchResults: bbox[%d]: %0.1f %0.1f - %0.1f %0.1f\n", i, min.x, min.y, max.x, max.y);
 
