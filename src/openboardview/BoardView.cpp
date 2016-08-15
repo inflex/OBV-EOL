@@ -1,4 +1,5 @@
-#define _CRT_SECURE_NO_WARNINGS 1
+#include "platform.h"
+#include "utf8/utf8.h"
 #include "BoardView.h"
 #include "history.h"
 
@@ -25,8 +26,6 @@
 #include "NetList.h"
 #include "PartList.h"
 #include "vectorhulls.h"
-
-#include "platform.h"
 
 using namespace std;
 using namespace std::placeholders;

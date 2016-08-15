@@ -1,11 +1,14 @@
 #ifdef _WIN32
 
-#define _CRT_SECURE_NO_WARNINGS 1
-#include "imgui/imgui.h"
 #include "platform.h"
+#include "utf8/utf8.h"
+#include "imgui/imgui.h"
+#include <winnls.h>
 #include <assert.h>
 #include <stdint.h>
-#include <windows.h>
+#include <iostream>
+#include <locale>
+#include <codecvt>
 
 wchar_t *utf8_to_wide(const char *s) {
 	size_t len   = utf8len(s);
@@ -80,12 +83,40 @@ char *show_file_picker() {
 	return nullptr;
 }
 
-unsigned char *LoadAsset(int *asset_size, int asset_id) {
-	HRSRC resinfo       = FindResource(NULL, MAKEINTRESOURCE(asset_id), L"Asset");
-	HGLOBAL res         = LoadResource(NULL, resinfo);
-	*asset_size         = (int)SizeofResource(NULL, resinfo);
-	unsigned char *data = (unsigned char *)LockResource(res);
-	UnlockResource(res);
+const std::vector<char> load_font(const std::string &name) {
+	std::vector<char> data;
+	HFONT fontHandle;
+
+	auto u16name = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(name.c_str());
+	auto wname = reinterpret_cast<const wchar_t*>(u16name.c_str());
+
+	fontHandle = CreateFont(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, name.empty() ? NULL : wname);
+	if (!fontHandle) {
+		std::cerr << "CreateFont failed" << std::endl;
+		return data;
+	}
+	HDC hdc = ::CreateCompatibleDC(NULL);
+	if (hdc != NULL) {
+		::SelectObject(hdc, fontHandle);
+
+		int ncount = ::GetTextFaceW(hdc, 0, nullptr);
+		LPWSTR fname = new wchar_t[ncount];
+		::GetTextFaceW(hdc, ncount, fname);
+
+		if (!name.empty() && ::CompareStringEx(NULL, NORM_IGNORECASE, wname, name.size(), fname, ncount-1, NULL, NULL, 0) != CSTR_EQUAL) // We didn't get the font we requested
+			return data;
+
+		const size_t size = ::GetFontData(hdc, 0, 0, NULL, 0);
+		if (size > 0) {
+			char* buffer = new char[size];
+			if (::GetFontData(hdc, 0, 0, buffer, size) == size) {
+				data = std::vector<char>(buffer, buffer+size);
+			}
+			delete[] buffer;
+		}
+		::DeleteDC(hdc);
+	}
+	DeleteObject(fontHandle);
 	return data;
 }
 
