@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#if defined(_WIN32) && !defined(ENABLE_SDL2)
+#if (defined(_WIN32) && !defined(ENABLE_SDL2))
 #define SDLK_ESCAPE VK_ESCAPE
 #define SDLK_RETURN VK_RETURN
 #define SDL_SCANCODE_LCTRL VK_CONTROL
@@ -56,7 +56,6 @@
 #define SDL_SCANCODE_KP_PLUS VK_ADD
 #define SDL_SCANCODE_KP_MINUS VK_SUBTRACT
 #endif
-
 
 #ifdef _MSC_VER // Visual Studio prefixes non-standard C functions with _
 #define _CRT_SECURE_NO_WARNINGS 1
