@@ -291,7 +291,7 @@ FZFile::FZFile(const char *buf, size_t buffer_size, uint32_t *fzkey) {
 				LOAD_DOUBLE(radius);
 				radius /= 100;
 				if (radius < 0.5f) radius = 0.5f;
-				pin.radius = radius;
+				pin.radius                = radius;
 				pins.push_back(pin);
 			} break;
 			case 3: {   // Nails

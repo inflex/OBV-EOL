@@ -124,8 +124,8 @@ struct BoardView {
 	bool pinShapeCircle       = true;
 	bool slowCPU              = false;
 	bool showFPS              = false;
-	bool showPins				= true;
-	bool showAnnotations = true;
+	bool showPins             = true;
+	bool showAnnotations      = true;
 	bool pinHalo              = true;
 	float pinHaloDiameter     = 1.25;
 	float pinHaloThickness    = 1.5;

@@ -262,10 +262,10 @@ int BoardView::ConfigParse(void) {
 	pinHaloDiameter  = obvconfig.ParseDouble("pinHaloDiameter", 1.25);
 	pinHaloThickness = obvconfig.ParseDouble("pinHaloThickness", 1.5);
 
-	showFPS   = obvconfig.ParseBool("showFPS", false);
-	showPins = obvconfig.ParseBool("showPins", true);
+	showFPS         = obvconfig.ParseBool("showFPS", false);
+	showPins        = obvconfig.ParseBool("showPins", true);
 	showAnnotations = obvconfig.ParseBool("showAnnotations", true);
-	fillParts = obvconfig.ParseBool("fillParts", true);
+	fillParts       = obvconfig.ParseBool("fillParts", true);
 
 	boardFill        = obvconfig.ParseBool("boardFill", true);
 	boardFillSpacing = obvconfig.ParseInt("boardFillSpacing", 5);
@@ -396,7 +396,7 @@ int BoardView::LoadFile(char *filename) {
 	if (filename) {
 		char *ext = strrchr(filename, '.');
 		if (ext) {
-//			for (int i = 0; ext[i]; i++) ext[i] = tolower(ext[i]); // Convert extension to lowercase
+			//			for (int i = 0; ext[i]; i++) ext[i] = tolower(ext[i]); // Convert extension to lowercase
 		} else {
 			ext = strrchr(filename, '\0'); // No extension, point to end of filename
 		}
@@ -1528,18 +1528,18 @@ void BoardView::Update() {
 		}
 
 		ImGui::SameLine();
-		ImGui::Dummy(ImVec2(DPI(10),1));
+		ImGui::Dummy(ImVec2(DPI(10), 1));
 		ImGui::SameLine();
-					if (ImGui::Checkbox("Annotations", &showAnnotations)) {
-						obvconfig.WriteBool("showAnnotations", showAnnotations);
-				m_needsRedraw = true;
-			}
+		if (ImGui::Checkbox("Annotations", &showAnnotations)) {
+			obvconfig.WriteBool("showAnnotations", showAnnotations);
+			m_needsRedraw = true;
+		}
 
 		ImGui::SameLine();
-			if (ImGui::Checkbox("Board fill", &boardFill)) {
-				obvconfig.WriteBool("boardFill", boardFill);
-				m_needsRedraw = true;
-			}
+		if (ImGui::Checkbox("Board fill", &boardFill)) {
+			obvconfig.WriteBool("boardFill", boardFill);
+			m_needsRedraw = true;
+		}
 
 		ImGui::SameLine();
 		{
@@ -1548,8 +1548,6 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 		}
-
-
 
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(DPI(40), 1));
@@ -2780,7 +2778,8 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			 * overhead but it keeps the code simpler and saves us replicating things.
 			 */
 
-			if ((pincount == 3) && (abs(aspect > 0.5)) && ((strchr("DQZ", p0) || (strchr("DQZ", p1)) || strcmp(p_part->name.c_str(),"LED")))) {
+			if ((pincount == 3) && (abs(aspect > 0.5)) &&
+			    ((strchr("DQZ", p0) || (strchr("DQZ", p1)) || strcmp(p_part->name.c_str(), "LED")))) {
 				outline_pt *hpt;
 
 				memcpy(part->outline, dbox, sizeof(dbox));
@@ -3493,16 +3492,16 @@ void BoardView::FlipBoard() {
 	ImVec2 mpos = ImGui::GetMousePos();
 	ImVec2 view = ImGui::GetIO().DisplaySize;
 	ImVec2 bpos = ScreenToCoord(mpos.x, mpos.y);
-	auto io = ImGui::GetIO();
+	auto io     = ImGui::GetIO();
 
 	m_current_side ^= 1;
 	m_dx = -m_dx;
 	if (m_flipVertically) {
 		Rotate(2);
 		if (io.KeyShift) {
-			SetTarget( bpos.x, bpos.y );
-			Pan(DIR_RIGHT, view.x/2 -mpos.x);
-			Pan(DIR_DOWN, view.y/2 -mpos.y);
+			SetTarget(bpos.x, bpos.y);
+			Pan(DIR_RIGHT, view.x / 2 - mpos.x);
+			Pan(DIR_DOWN, view.y / 2 - mpos.y);
 		}
 	}
 	m_needsRedraw = true;

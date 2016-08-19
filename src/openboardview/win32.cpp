@@ -88,7 +88,7 @@ const std::vector<char> load_font(const std::string &name) {
 	HFONT fontHandle;
 
 	auto u16name = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}.from_bytes(name.c_str());
-	auto wname = reinterpret_cast<const wchar_t *>(u16name.c_str());
+	auto wname   = reinterpret_cast<const wchar_t *>(u16name.c_str());
 
 	fontHandle = CreateFont(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, name.empty() ? NULL : wname);
 	if (!fontHandle) {
