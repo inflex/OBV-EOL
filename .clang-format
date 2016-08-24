@@ -33,3 +33,8 @@ AlwaysBreakBeforeMultilineStrings: true
 # Misc
 PointerBindsToType: false
 IndentCaseLabels: true
+
+# Includes ordering
+IncludeCategories:
+  - Regex:           '^"platform.h"$' # Keep platform.h first
+    Priority:        -1
