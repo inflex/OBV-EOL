@@ -12,9 +12,9 @@
 #include "Renderers/imgui_impl_dx9.h"
 #include <d3d9.h>
 #define DIRECTINPUT_VERSION 0x0800
+#include "platform.h"
 #include "confparse.h"
 #include "crtdbg.h"
-#include "platform.h"
 #include "resource.h"
 #include <dinput.h>
 #include <direct.h>

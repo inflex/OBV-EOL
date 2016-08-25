@@ -1,8 +1,8 @@
 #ifndef _WIN32
 
 #define _CRT_SECURE_NO_WARNINGS 1
-#include "imgui/imgui.h"
 #include "platform.h"
+#include "imgui/imgui.h"
 #include <SDL2/SDL.h>
 #include <assert.h>
 #include <fstream>
