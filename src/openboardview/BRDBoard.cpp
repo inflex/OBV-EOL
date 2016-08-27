@@ -1,7 +1,6 @@
 #include "BRDBoard.h"
 
 #include "BRDFile.h"
-#include "json11/json11.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -14,7 +13,6 @@
 
 using namespace std;
 using namespace std::placeholders;
-using namespace json11;
 
 const string BRDBoard::kNetUnconnectedPrefix = "UNCONNECTED";
 const string BRDBoard::kComponentDummyName   = "...";
@@ -203,11 +201,6 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 }
 
 BRDBoard::~BRDBoard() {}
-
-bool BRDBoard::FetchPartAnnotations() {
-	// TODO: error handling
-	throw "Not implemented.";
-}
 
 SharedVector<Component> &BRDBoard::Components() {
 	return components_;

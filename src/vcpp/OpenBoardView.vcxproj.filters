@@ -27,9 +27,6 @@
     <ClInclude Include="..\imgui\stb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\json11\json11.hpp">
-      <Filter>json11</Filter>
-    </ClInclude>
     <ClInclude Include="..\openboardview\BDVFile.h" />
     <ClInclude Include="..\openboardview\FZFile.h" />
     <ClInclude Include="..\openboardview\vectorhulls.h" />
@@ -58,9 +55,6 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\json11\json11.cpp">
-      <Filter>json11</Filter>
-    </ClCompile>
     <ClCompile Include="..\openboardview\BDVFile.cpp" />
     <ClCompile Include="..\openboardview\FZFile.cpp" />
     <ClCompile Include="..\openboardview\vectorhulls.cpp" />
@@ -84,9 +78,6 @@
     </Filter>
     <Filter Include="assets">
       <UniqueIdentifier>{b4435e3d-2332-4ff1-bb62-fbbe51cbc394}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="json11">
-      <UniqueIdentifier>{b7ecd7d3-056d-4ee1-88da-2194f0b6c5ca}</UniqueIdentifier>
     </Filter>
     <Filter Include="zlib">
       <UniqueIdentifier>{f118c824-66f3-47df-9172-189a4b988b08}</UniqueIdentifier>

@@ -48,7 +48,6 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/..
 	${CMAKE_CURRENT_SOURCE_DIR}/../imgui
-	${CMAKE_CURRENT_SOURCE_DIR}/../json11
 	${SDL2_INCLUDE_DIRS}
 	${GLAD_INCLUDE_DIRS}
 	${GTK_INCLUDE_DIRS}
@@ -129,7 +128,6 @@ endif()
 
 target_link_libraries(openboardview
 	imgui
-	json11
 	${GLAD_LIBRARIES}
 	${COCOA_LIBRARY}
 	${ZLIB_LIBRARIES}

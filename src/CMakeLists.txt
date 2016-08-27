@@ -12,19 +12,6 @@ add_definitions("-DImDrawIdx=unsigned int") # short is not enough for us
 add_library(imgui STATIC imgui/imgui.cpp imgui/imgui_draw.cpp)
 #install(TARGETS imgui DESTINATION ${INSTALL_ARCHIVE_DIR}) # No need to install a static lib
 
-## JSON11 ##
-execute_process(
-	COMMAND git submodule update --init src/json11
-	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-)
-add_library(json11 STATIC json11/json11.cpp)
-#target_include_directories(json11 ${CMAKE_CURRENT_SOURCE_DIR}/json11)
-target_compile_options(json11
-	PUBLIC -std=c++11
-	PRIVATE -fno-rtti -fno-exceptions -Wall -Wextra -Werror)
-
-#install(TARGETS json11 DESTINATION ${INSTALL_ARCHIVE_DIR})
-
 ## utf8.h ##
 execute_process(
 	COMMAND git submodule update --init src/utf8
