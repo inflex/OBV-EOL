@@ -75,7 +75,7 @@ before_deploy: |-
 deploy:
   provider: releases
   api_key:
-    secure: ENCRYPTED_API_KEY
+    secure: 6564122509d786d241513785fd14b0ebd5f2c891
   file_glob: true
   file: "${DEPLOY_FILES}"
   skip_cleanup: true
