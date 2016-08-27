@@ -1,25 +1,21 @@
 os:
-  - linux
-
+- linux
 compiler:
-  - clang
-
+- clang
 matrix:
   include:
-    - os: linux
-      compiler: gcc
-      env: DEPLOY=yes DEPLOY_DEB=yes
-    - os: osx
-      compiler: clang
-      env: DEPLOY=yes
-    - os: linux
-      compiler: gcc
-      env: CROSS=mingw64 DEPLOY=yes
-
+  - os: linux
+    compiler: gcc
+    env: DEPLOY=yes DEPLOY_DEB=yes
+  - os: osx
+    compiler: clang
+    env: DEPLOY=yes
+  - os: linux
+    compiler: gcc
+    env: CROSS=mingw64 DEPLOY=yes
 dist: trusty
 sudo: required
 language: cpp
-
 addons:
   apt:
     sources:
@@ -27,7 +23,6 @@ addons:
     packages:
     - gcc-6
     - g++-6
-
 install: |-
   if [ "$TRAVIS_OS_NAME" == "linux" ]
   then
@@ -49,7 +44,6 @@ install: |-
     brew update
     brew install sdl2
   fi
-
 script: |-
   if [ "$CXX" = "g++" ]; then export CXX="g++-6" CC="gcc-6"; fi
   ./build.sh
@@ -59,7 +53,6 @@ script: |-
     make package
     popd
   fi
-
 before_deploy: |-
   if [ "$TRAVIS_OS_NAME" == "osx" ]
   then
@@ -71,14 +64,16 @@ before_deploy: |-
   then
     export DEPLOY_FILES=$(ls OpenBoardView-*.deb)
   fi
-
 deploy:
   provider: releases
   api_key:
-    secure: 6564122509d786d241513785fd14b0ebd5f2c891
+    secure: ENCRYPTED_API_KEY
   file_glob: true
   file: "${DEPLOY_FILES}"
   skip_cleanup: true
   on:
     tags: true
     condition: "$DEPLOY == yes"
+env:
+  global:
+    secure: bSK38mm5OzK0MTCa3zJohuyD9X7HwcGRJMUGSeRLAiiihNUp9ltf9vIdTh1YhmWOvlbLjWqk5MBpRypP9rbZ1QkDqXMArAKB9GtY4fCoaZSLEndHnuOu0FjkPj4Pkh+KZYcpATgXVFwLbH39vJVEBvzuVqByXWdP5k5Ka2Ol479DWP9OAyRwjaIhbRPH5ULg3R0dbs2V8ZhZjYxdgyU0Mm0KNW1b/tCuy2Svn34jUYBe44VwvaQ+83cxmSVQBv9PNQkcKkNuXGh/81Iu6EbKU/vlQhGwHNSS2PTDLU/1kRdTaU0QbpHI4SerGWxLkIbxgAIP2bAi85dKMBHgzt2yPlmXL/Ur0mn3nHlP6Xb0W0IPK8c7MtbEfROTWQIJTJyEYuTK+85hPrmM2FCc3RiISClJGDftW5Ci07h0KNU4z9EZQIj2p6ZqELOCbv7611LYUvbyNVZzpKOg9+N4yTztGWImX7yNbNYxaBARVRvTuhVmguz4iFSQnfo4u9luhLwLCIq9plOUH6rJYrPFs6zf8uNWR9sKkDPFhpNzoyWKg35FxQpw1KIOgNd7guWHW27y7AqyD9uaIWDkxiWFK2TorCPVy4nNCnrqAD6xtVqY1D7vnNDqZRF6/YcdHyWirHL4SUBiib46pmHmL0m5WeDBEAINe9SFjkDdTIyo2cLp5ME=
