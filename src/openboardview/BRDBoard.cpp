@@ -2,7 +2,6 @@
 
 #include "BRDFile.h"
 
-#include <algorithm>
 #include <cerrno>
 #include <fstream>
 #include <functional>

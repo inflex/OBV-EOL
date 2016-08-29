@@ -66,6 +66,7 @@ set(SOURCES
 	confparse.cpp
 	vectorhulls.cpp
 	history.cpp
+	utils.cpp
 	BRD2File.cpp
 	BVRFile.cpp
 	BDVFile.cpp
