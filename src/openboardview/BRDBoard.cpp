@@ -1,9 +1,7 @@
 #include "BRDBoard.h"
 
 #include "BRDFile.h"
-#include "json11/json11.hpp"
 
-#include <algorithm>
 #include <cerrno>
 #include <fstream>
 #include <functional>
@@ -14,7 +12,6 @@
 
 using namespace std;
 using namespace std::placeholders;
-using namespace json11;
 
 const string BRDBoard::kNetUnconnectedPrefix = "UNCONNECTED";
 const string BRDBoard::kComponentDummyName   = "...";
@@ -102,8 +99,8 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 		comp_dummy->component_type = Component::kComponentTypeDummy;
 
 		// NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
-		int pin_idx  = 0;
-		int part_idx = 1;
+		unsigned int pin_idx  = 0;
+		unsigned int part_idx = 1;
 		auto pins    = m_pins;
 		auto parts   = m_parts;
 
@@ -203,11 +200,6 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 }
 
 BRDBoard::~BRDBoard() {}
-
-bool BRDBoard::FetchPartAnnotations() {
-	// TODO: error handling
-	throw "Not implemented.";
-}
 
 SharedVector<Component> &BRDBoard::Components() {
 	return components_;

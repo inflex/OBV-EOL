@@ -218,10 +218,7 @@ int Confparse::Load(const std::string &utf8_filename) {
 
 	std::streampos sz = file.tellg();
 	buffer_size       = sz;
-	buffer_size++;
-	conf = (char *)malloc(buffer_size);
-	memset(conf, 0, buffer_size);
-	buffer_size--;
+	conf = (char *)calloc(1, buffer_size+1);
 	file.seekg(0, std::ios::beg);
 	file.read(conf, sz);
 	limit = conf + sz;
@@ -317,7 +314,7 @@ char *Confparse::Parse(const char *key) {
 	return NULL;
 }
 
-char *Confparse::ParseStr(const char *key, char *defaultv) {
+const char *Confparse::ParseStr(const char *key, const char *defaultv) {
 	char *p = Parse(key);
 	if (p)
 		return p;
@@ -381,7 +378,7 @@ bool Confparse::ParseBool(const char *key, bool defaultv) {
  * Write parts
  *
  */
-bool Confparse::WriteStr(const char *key, char *value) {
+bool Confparse::WriteStr(const char *key, const char *value) {
 	char *p, *op;
 	char *llimit;
 	int keylen;

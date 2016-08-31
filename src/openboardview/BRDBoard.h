@@ -26,9 +26,6 @@ class BRDBoard : public Board {
 	static const string kNetUnconnectedPrefix;
 	static const string kComponentDummyName;
 
-	// Reading annotations for this board from json file.
-	bool FetchPartAnnotations();
-
 	SharedVector<Net> nets_;
 	SharedVector<Component> components_;
 	SharedVector<Pin> pins_;

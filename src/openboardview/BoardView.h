@@ -12,7 +12,7 @@
 #define DPI(x) (((x)*dpi) / 100)
 
 struct BRDPart;
-struct BRDFile;
+class BRDFile;
 
 struct BitVec {
 	uint32_t *m_bits;
@@ -154,7 +154,7 @@ struct BoardView {
 	void DrawDiamond(ImDrawList *draw, ImVec2 c, double r, uint32_t color);
 	void DrawHex(ImDrawList *draw, ImVec2 c, double r, uint32_t color);
 	void DrawBox(ImDrawList *draw, ImVec2 c, double r, uint32_t color);
-	void SetFZKey(char *keytext);
+	void SetFZKey(const char *keytext);
 	void HelpAbout(void);
 	void HelpControls(void);
 	void SearchColumnGenerate(char *search, int buttons_max);
@@ -197,7 +197,7 @@ struct BoardView {
 	char m_search2[128];
 	char m_search3[128];
 	char m_netFilter[128];
-	char *m_lastFileOpenName;
+	std::string m_lastFileOpenName;
 	float m_dx; // display top-right coordinate?
 	float m_dy;
 	float m_mx; // board *maxiumum* size? scaled relative to m_boardwidth/height
@@ -259,7 +259,7 @@ struct BoardView {
 	void DrawBoard();
 	void DrawNetWeb(ImDrawList *draw);
 	void SetFile(BRDFile *file);
-	int LoadFile(char *filename);
+	int LoadFile(const std::string &filename);
 	ImVec2 CoordToScreen(float x, float y, float w = 1.0f);
 	ImVec2 ScreenToCoord(float x, float y, float w = 1.0f);
 	void Move(float x, float y);
@@ -289,6 +289,6 @@ struct BoardView {
 	void SearchCompound(const char *item);
 	void SearchCompoundNoClear(const char *item);
 
-	void SetLastFileOpenName(char *name);
+	void SetLastFileOpenName(const std::string &name);
 	void FlipBoard(int mode = 0);
 };

@@ -6,15 +6,23 @@
 #include <string>
 #include <vector>
 
-#define LOAD_INT(var) var    = strtol(p, &p, 10)
-#define LOAD_DOUBLE(var) var = strtod(p, &p);
-#define LOAD_STR(var)                            \
-	while ((*p) && (isspace((uint8_t)*p))) ++p;  \
-	s = p;                                       \
-	while ((*p) && (!isspace((uint8_t)*p))) ++p; \
-	*p = 0;                                      \
-	p++;                                         \
-	var = fix_to_utf8(s, &arena, arena_end);
+#define ENSURE(X) assert(X);
+#define READ_INT() strtol(p, &p, 10);
+// Warning: read as int then cast to uint if positive
+#define READ_UINT [&]() {                                    \
+		int value = strtol(p, &p, 10);               \
+		ENSURE(value >= 0);                          \
+		return static_cast<unsigned int>(value);     \
+	}
+#define READ_DOUBLE() strtod(p, &p);
+#define READ_STR [&]() {                                     \
+		while ((*p) && (isspace((uint8_t)*p))) ++p;  \
+		s = p;                                       \
+		while ((*p) && (!isspace((uint8_t)*p))) ++p; \
+		*p = 0;                                      \
+		p++;                                         \
+		return fix_to_utf8(s, &arena, arena_end);    \
+	}
 
 static constexpr std::array<uint8_t, 4> signature = {0x23, 0xe2, 0x63, 0x28};
 
@@ -24,9 +32,9 @@ struct BRDPoint {
 };
 
 struct BRDPart {
-	char *name;
-	int type;
-	int end_of_pins;
+	const char *name;
+	unsigned int type;
+	unsigned int end_of_pins;
 	BRDPoint p1{0, 0};
 	BRDPoint p2{0, 0};
 };
@@ -34,11 +42,11 @@ struct BRDPart {
 struct BRDPin {
 	BRDPoint pos;
 	int probe;
-	int part;
-	int side = 0;
-	char *net;
+	unsigned int part;
+	unsigned int side = 0;
+	const char *net;
 	double radius = 0.5f;
-	char *snum    = nullptr;
+	const char *snum = nullptr;
 
 	bool operator<(const BRDPin &p) const // For sorting the vector
 	{
@@ -47,35 +55,35 @@ struct BRDPin {
 };
 
 struct BRDNail {
-	int probe;
+	unsigned int probe;
 	BRDPoint pos;
-	int side;
-	char *net;
+	unsigned int side;
+	const char *net;
 };
 
 class BRDFile {
   public:
-	int num_format;
-	int num_parts;
-	int num_pins;
-	int num_nails;
+	unsigned int num_format = 0;
+	unsigned int num_parts = 0;
+	unsigned int num_pins = 0;
+	unsigned int num_nails = 0;
 
 	std::vector<BRDPoint> format;
 	std::vector<BRDPart> parts;
 	std::vector<BRDPin> pins;
 	std::vector<BRDNail> nails;
 
-	char *file_buf;
+	char *file_buf = nullptr;
 
-	bool valid;
+	bool valid = false;
 
-	BRDFile(const char *buf, size_t buffer_size);
+	BRDFile(std::vector<char> &buf);
 	BRDFile(){};
 	~BRDFile() {
 		free(file_buf);
 	}
 
-	static bool verifyFormat(const char *buf, size_t buffer_size);
+	static bool verifyFormat(std::vector<char> &buf);
 
   private:
 	static constexpr std::array<uint8_t, 4> signature = {0x23, 0xe2, 0x63, 0x28};

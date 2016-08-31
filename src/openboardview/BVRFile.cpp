@@ -1,5 +1,6 @@
 #include "BVRFile.h"
 
+#include "utils.h"
 #include <assert.h>
 #include <cmath>
 #include <ctype.h>
@@ -17,27 +18,23 @@ char *nextfield(char *p) {
 	return p;
 }
 
-bool BVRFile::verifyFormat(const char *buf, size_t buffer_size) {
-	std::string sbuf(buf, buffer_size);
-	if (sbuf.find("BVRAW_FORMAT_1") != std::string::npos) return true;
-	return false;
+bool BVRFile::verifyFormat(std::vector<char> &buf) {
+	return find_str_in_buf("BVRAW_FORMAT_1", buf);
 }
 
-BVRFile::BVRFile(const char *buf, size_t buffer_size) {
+BVRFile::BVRFile(std::vector<char> &buf) {
+	auto buffer_size = buf.size();
+
 	char *saved_locale;
 	char ppn[100] = {0};                        // previous part name
 	saved_locale  = setlocale(LC_NUMERIC, "C"); // Use '.' as delimiter for strtod
 
-	memset(this, 0, sizeof(*this));
-#define ENSURE(X) \
-	assert(X);    \
-	if (!(X)) return;
-
-#define FAIL_LABEL fail
 	ENSURE(buffer_size > 4);
 	size_t file_buf_size = 3 * (1 + buffer_size);
-	file_buf             = (char *)malloc(file_buf_size);
-	memcpy(file_buf, buf, buffer_size);
+	file_buf             = (char *)calloc(1, file_buf_size);
+	ENSURE(file_buf != nullptr);
+
+	std::copy(buf.begin(), buf.end(), file_buf);
 	file_buf[buffer_size] = 0;
 	// This is for fixing degenerate utf8
 	char *arena     = &file_buf[buffer_size + 1];
@@ -47,11 +44,8 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 	int current_block = 0;
 
 	char **lines = stringfile(file_buf);
-	if (!lines) return;
-	//		goto fail;
-	char **lines_begin = lines;
-#undef FAIL_LABEL
-#define FAIL_LABEL fail_lines
+	ENSURE(lines);
+
 	while (*lines) {
 		char *line = *lines;
 		++lines;
@@ -84,13 +78,10 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 		switch (current_block) {
 			case 1: { // Format
 				BRDPoint point;
-				double x;
-				//				fprintf(stderr,"Decoding format ");
-				LOAD_DOUBLE(x);
+				double x = READ_DOUBLE();
 				point.x = trunc(x * 1000); // OBV uses integers
 				if (*p == ',') p++;
-				double y;
-				LOAD_DOUBLE(y);
+				double y = READ_DOUBLE();
 				point.y = trunc(y * 1000);
 				format.push_back(point);
 			} break;
@@ -99,10 +90,9 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 				BRDPart part;
 				BRDPin pin;
 
-				LOAD_STR(part.name);
+				part.name = READ_STR();
 
-				char *loc;
-				LOAD_STR(loc);
+				char *loc = READ_STR();
 				if (!strcmp(loc, "(T)"))
 					part.type = 10; // SMD part on top
 				else
@@ -117,30 +107,17 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 
 				pin.part = parts.size(); // the part this pin is associated with, is the last part on the vector
 
-				int id;
-				LOAD_INT(id);
-
-				char *name;
-				LOAD_STR(name);
-
-				double posx;
-				LOAD_DOUBLE(posx);
+				/*int id =*/ READ_INT(); // uint
+				/*char *name =*/ READ_STR();
+				double posx = READ_DOUBLE();
 				pin.pos.x = trunc(posx * 1000);
-
-				double posy;
-				LOAD_DOUBLE(posy);
+				double posy = READ_DOUBLE();
 				pin.pos.y = trunc(posy * 1000);
-
-				int layer;
-				LOAD_INT(layer);
-
-				LOAD_STR(pin.net);
-
-				// LOAD_INT(pin.probe);
+				/*int layer =*/ READ_INT(); // uint
+				pin.net = READ_STR();
+				// pin.probe = READ_INT();
 				//
-
 				pins.push_back(pin);
-
 				parts.back().end_of_pins = pins.size();
 			} break;
 
@@ -148,44 +125,24 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 				BRDNail nail;
 
 				p = nextfield(p);
-				double posx;
-				LOAD_DOUBLE(posx);
+				double posx = READ_DOUBLE();
 				nail.pos.x = trunc(posx * 1000);
-				//				fprintf(stderr,"%d ",nail.pos.x);
-
-				double posy;
-				LOAD_DOUBLE(posy);
+				double posy = READ_DOUBLE();
 				nail.pos.y = trunc(posy * 1000);
-				//				fprintf(stderr,"%d ",nail.pos.y);
-
-				int type;
-				LOAD_INT(type);
-				//				fprintf(stderr,"Type:%d ",type);
-
-				char *grid;
-				LOAD_STR(grid);
-				//				fprintf(stderr,"Grid:%s ", grid);
-
-				char *loc;
-				LOAD_STR(loc);
+				/*int type =*/ READ_INT(); // uint
+				/*char *grid =*/ READ_STR();
+				char *loc = READ_STR();
 				if (!strcmp(loc, "(T)"))
 					nail.side = 1;
 				else
 					nail.side = 2;
-				//				fprintf(stderr,"Side:%d ",nail.side);
 
-				char *netid;
-				LOAD_STR(netid);
-				//				fprintf(stderr,"ID:%s ", netid);
-
-				LOAD_STR(nail.net);
-				//				fprintf(stderr,"Net:%s\n", nail.net);
-
+				/*char *netid =*/ READ_STR();
+				nail.net = READ_STR();
 				nail.pos.x = posx * 1000;
 				nail.pos.y = posy * 1000;
-
 				nails.push_back(nail);
-				// LOAD_INT(nail.probe);
+				// nail.probe = READ_INT();
 				//
 			} break;
 
@@ -201,9 +158,4 @@ BVRFile::BVRFile(const char *buf, size_t buffer_size) {
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 
 	valid = current_block != 0;
-fail_lines:
-	free(lines_begin);
-fail:;
-#undef FAIL_LABEL
-#undef ENSURE
 }
