@@ -1,3 +1,4 @@
+#include "platform.h"
 #include "utils.h"
 #include <cstring>
 #include <fstream>
