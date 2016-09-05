@@ -2052,15 +2052,15 @@ void BoardView::HandleInput() {
 						 * If we aren't holding down CTRL and we click to a
 						 * non pin, non part area, then we clear everything
 						 */
-						if ((!any_hits)&&(!io.KeyCtrl)) {
+						if ((!any_hits) && (!io.KeyCtrl)) {
 							for (auto part : m_board->Components()) {
-							auto p = part.get();
-							p->visualmode = p->CVMNormal;
+								auto p        = part.get();
+								p->visualmode = p->CVMNormal;
 							}
 							m_partHighlighted.clear();
 						}
 
-					}         // if a pin wasn't selected
+					} // if a pin wasn't selected
 
 				} else {
 					if (!m_showContextMenu) {
@@ -2347,7 +2347,7 @@ int BoardView::EPCCheck(void) {
 
 	} // side
 
-	if ((epc[0] || epc[1])&&(epc[0] > epc[1])) {
+	if ((epc[0] || epc[1]) && (epc[0] > epc[1])) {
 		for (auto &p : outline) p->y = max.y - p->y;
 	}
 
@@ -3532,35 +3532,32 @@ void BoardView::Mirror(void) {
 	}
 
 	for (auto &p : outline) {
-		p->x = max.x -p->x;
+		p->x = max.x - p->x;
 	}
 
 	for (auto pin : m_board->Pins()) {
-		auto p      = pin.get();
-		p->position.x = max.x -p->position.x;
+		auto p        = pin.get();
+		p->position.x = max.x - p->position.x;
 	}
 
 	for (auto &part : m_board->Components()) {
 
-		part->centerpoint.x = max.x -part->centerpoint.x;
+		part->centerpoint.x = max.x - part->centerpoint.x;
 
 		if (part->outline_done) {
 			for (int i = 0; i < 4; i++) {
-				part->outline[i].x = max.x -part->outline[i].x;
+				part->outline[i].x = max.x - part->outline[i].x;
 			}
 		}
 
 		for (int i = 0; i < part->hull_count; i++) {
-			part->hull[i].x = max.x -part->hull[i].x;
+			part->hull[i].x = max.x - part->hull[i].x;
 		}
-
 	}
 
 	for (auto &ann : m_annotations.annotations) {
-		ann.x = max.x -ann.x;
+		ann.x = max.x - ann.x;
 	}
-
-
 }
 
 void BoardView::SetTarget(float x, float y) {
