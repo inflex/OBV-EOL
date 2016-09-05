@@ -3536,6 +3536,10 @@ void BoardView::Mirror(void) {
 
 	}
 
+	for (auto &ann : m_annotations.annotations) {
+		ann.x = max.x -ann.x;
+	}
+
 
 }
 
