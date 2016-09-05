@@ -1,6 +1,6 @@
 #include "BRDBoard.h"
 
-#include "BRDFile.h"
+#include "FileFormats/BRDFile.h"
 
 #include <cerrno>
 #include <fstream>
