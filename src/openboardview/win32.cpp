@@ -22,9 +22,11 @@
 const std::string utf16_to_utf8(const std::wstring &text) {
 // See https://connect.microsoft.com/VisualStudio/feedback/details/1348277/link-error-when-using-std-codecvt-utf8-utf16-char16-t
 #if defined(_MSC_VER) && _MSC_VER <= 1900 // Should be fixed "in the next major version"
-	return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}.to_bytes(reinterpret_cast<const wchar_t *>(text.c_str()));
+	return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t>{}.to_bytes(
+	    reinterpret_cast<const wchar_t *>(text.c_str()));
 #else
-	return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(reinterpret_cast<const char16_t *>(text.c_str()));
+	return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(
+	    reinterpret_cast<const char16_t *>(text.c_str()));
 #endif
 }
 
@@ -43,9 +45,9 @@ const std::u16string utf8_to_utf16(const std::string &text) {
 #endif
 
 #if defined(_MSC_VER) && _MSC_VER <= 1900
-const wchar_t* utf16_to_wchar(const std::wstring &text) {
+const wchar_t *utf16_to_wchar(const std::wstring &text) {
 #else
-const wchar_t* utf16_to_wchar(const std::u16string &text) {
+const wchar_t *utf16_to_wchar(const std::u16string &text) {
 #endif
 	return reinterpret_cast<const wchar_t *>(text.c_str());
 }
@@ -61,7 +63,7 @@ const std::string show_file_picker() {
 	if (!SUCCEEDED(hr)) return file_path;
 
 	// Create the FileOpenDialog object.
-	hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+	hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void **>(&pFileOpen));
 	if (SUCCEEDED(hr)) {
 		// Show the Open dialog box.
 		hr = pFileOpen->Show(NULL);
@@ -108,7 +110,7 @@ const std::vector<char> load_font(const std::string &name) {
 		if (ncount == 0) return data;
 
 		LPWSTR fname = new wchar_t[ncount];
-		ncount = ::GetTextFaceW(hdc, ncount, fname);
+		ncount       = ::GetTextFaceW(hdc, ncount, fname);
 
 		if (!name.empty() &&
 		    ::CompareStringEx(NULL, NORM_IGNORECASE, wname, name.size(), fname, ncount - 1, NULL, NULL, 0) !=
@@ -139,8 +141,10 @@ const std::string get_user_dir(const UserDir userdir) {
 	int cdret = 0;
 	std::string configPath;
 	PWSTR envVar = nullptr;
-	if (userdir == UserDir::Config) SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &envVar);
-	else if (userdir == UserDir::Data) SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &envVar);
+	if (userdir == UserDir::Config)
+		SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &envVar);
+	else if (userdir == UserDir::Data)
+		SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &envVar);
 
 	if (envVar) {
 		configPath = utf16_to_utf8(envVar);
@@ -150,8 +154,7 @@ const std::string get_user_dir(const UserDir userdir) {
 	}
 	CoTaskMemFree(envVar);
 
-	if (configPath.empty() || ( cdret == 0 && GetLastError() != ERROR_ALREADY_EXISTS ))
-		configPath = ".\\"; // Fallback to current dir
+	if (configPath.empty() || (cdret == 0 && GetLastError() != ERROR_ALREADY_EXISTS)) configPath = ".\\"; // Fallback to current dir
 	return configPath;
 }
 

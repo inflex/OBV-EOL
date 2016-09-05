@@ -8,8 +8,7 @@
 
 #include "history.h"
 
-FHistory::~FHistory() {
-}
+FHistory::~FHistory() {}
 
 int FHistory::Set_filename(const std::string &name) {
 	fname = name;

@@ -218,7 +218,7 @@ int Confparse::Load(const std::string &utf8_filename) {
 
 	std::streampos sz = file.tellg();
 	buffer_size       = sz;
-	conf = (char *)calloc(1, buffer_size+1);
+	conf              = (char *)calloc(1, buffer_size + 1);
 	file.seekg(0, std::ios::beg);
 	file.read(conf, sz);
 	limit = conf + sz;

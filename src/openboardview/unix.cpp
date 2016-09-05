@@ -200,15 +200,14 @@ bool create_dir(const std::string &path) {
 		mkdir(path.c_str(), S_IRWXU);
 		sr = stat(path.c_str(), &st);
 	}
-	if ((sr == 0) && (S_ISDIR(st.st_mode)))
-		return true;
+	if ((sr == 0) && (S_ISDIR(st.st_mode))) return true;
 	return false;
 }
 
 // Recursively create directories
 bool create_dirs(const std::string &path) {
-	for (size_t pos = 0; (pos = path.find("/", pos+1)) != std::string::npos; ) {
-		if (!create_dir(path.substr(0, pos+1))) return false;
+	for (size_t pos = 0; (pos = path.find("/", pos + 1)) != std::string::npos;) {
+		if (!create_dir(path.substr(0, pos + 1))) return false;
 	}
 	return true;
 }
@@ -217,15 +216,19 @@ const std::string get_user_dir(const UserDir userdir) {
 	std::string path;
 	std::string envVar;
 
-	if (userdir == UserDir::Config) envVar = get_env_var("XDG_CONFIG_HOME");
-	else if (userdir == UserDir::Data) envVar = get_env_var("XDG_DATA_HOME");
+	if (userdir == UserDir::Config)
+		envVar = get_env_var("XDG_CONFIG_HOME");
+	else if (userdir == UserDir::Data)
+		envVar = get_env_var("XDG_DATA_HOME");
 
 	if (envVar.empty()) {
 		envVar = get_env_var("HOME");
 		if (!envVar.empty()) {
 			path += std::string(envVar);
-			if (userdir == UserDir::Config) path += "/.config";
-			else if (userdir == UserDir::Data) path += "/.local/share";
+			if (userdir == UserDir::Config)
+				path += "/.config";
+			else if (userdir == UserDir::Data)
+				path += "/.local/share";
 		}
 	}
 	if (!path.empty()) {

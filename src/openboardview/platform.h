@@ -7,7 +7,7 @@
 #define OBV_BUILD "unknown"
 #endif
 #endif
-#define NTDDI_VERSION NTDDI_VISTA // Not caring about XP. If this is a concern, find a replacement for SHGetKnownFolderPath()
+#define NTDDI_VERSION NTDDI_VISTA       // Not caring about XP. If this is a concern, find a replacement for SHGetKnownFolderPath()
 #define _WIN32_WINNT _WIN32_WINNT_VISTA // and CompareStringEx() in win32.cpp.
 #include <windows.h>
 #endif
@@ -71,8 +71,5 @@ const std::string show_file_picker();
 const std::string get_font_path(const std::string &name);
 const std::vector<char> load_font(const std::string &name);
 
-enum class UserDir {
-	Config,
-	Data
-};
+enum class UserDir { Config, Data };
 const std::string get_user_dir(const UserDir userdir);

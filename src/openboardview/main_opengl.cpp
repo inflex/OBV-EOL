@@ -375,7 +375,7 @@ int main(int argc, char **argv) {
 		}
 #else
 		const std::string fontpath = get_font_path(name);
-		if (fontpath.empty()) continue; // Font not found
+		if (fontpath.empty()) continue;        // Font not found
 		if (check_fileext(fontpath, ".ttf")) { // ImGui handles only TrueType fonts so exclude anything which has a different ext
 			io.Fonts->AddFontFromFileTTF(fontpath.c_str(), g.font_size);
 			break;

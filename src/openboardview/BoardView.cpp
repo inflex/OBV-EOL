@@ -233,7 +233,7 @@ void BoardView::ThemeSetStyle(const char *name) {
 
 int BoardView::ConfigParse(void) {
 	ImGuiStyle &style = ImGui::GetStyle();
-	const char *v = obvconfig.ParseStr("colorTheme", "light");
+	const char *v     = obvconfig.ParseStr("colorTheme", "light");
 	ThemeSetStyle(v);
 
 	pinSizeThresholdLow = obvconfig.ParseDouble("pinSizeThresholdLow", 0);
@@ -453,6 +453,15 @@ int BoardView::LoadFile(const std::string &filename) {
 				m_annotations.SetFilename(filename);
 				m_annotations.Load();
 
+				/*
+				 * Set pins to a known lower size, they get resized
+				 * in DrawParts() when the component is analysed
+				 */
+				for (auto &pin : m_board->Pins()) {
+					auto p      = pin.get();
+					p->diameter = 7;
+				}
+
 				CenterView();
 				m_lastFileOpenWasInvalid = false;
 				m_validBoard             = true;
@@ -519,7 +528,8 @@ void u32tof4(uint32_t c, float *f) {
 	c >>= 8;
 	f[3] = (c & 0xff) / 0xff;
 }
-void BoardView::ColorPreferencesItem(const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c) {
+void BoardView::ColorPreferencesItem(
+    const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c) {
 	char buf[20];
 	snprintf(buf, sizeof(buf), "%08X", byte4swap(*c));
 	RA(label, label_width);
@@ -547,7 +557,7 @@ void BoardView::ColorPreferences(void) {
 		RA("Base theme", DPI(200));
 		ImGui::SameLine();
 		{
-			int tc  = 0;
+			int tc        = 0;
 			const char *v = obvconfig.ParseStr("colorTheme", "default");
 			if (strcmp(v, "dark") == 0) {
 				tc = 1;
@@ -568,7 +578,8 @@ void BoardView::ColorPreferences(void) {
 
 		ColorPreferencesItem("Background", DPI(200), "##Background", "backgroundColor", DPI(150), &m_colors.backgroundColor);
 		ColorPreferencesItem("Board fill", DPI(200), "##Boardfill", "boardFillColor", DPI(150), &m_colors.boardFillColor);
-		ColorPreferencesItem("Board outline", DPI(200), "##BoardOutline", "boardOutlineColor", DPI(150), &m_colors.boardOutlineColor);
+		ColorPreferencesItem(
+		    "Board outline", DPI(200), "##BoardOutline", "boardOutlineColor", DPI(150), &m_colors.boardOutlineColor);
 
 		ImGui::Dummy(ImVec2(1, DPI(10)));
 		ImGui::Text("Parts");
@@ -576,18 +587,28 @@ void BoardView::ColorPreferences(void) {
 		ColorPreferencesItem("Outline", DPI(200), "##PartOutline", "partOutlineColor", DPI(150), &m_colors.partOutlineColor);
 		ColorPreferencesItem("Hull", DPI(200), "##PartHull", "partHullColor", DPI(150), &m_colors.partHullColor);
 		ColorPreferencesItem("Fill", DPI(200), "##PartFill", "partFillColor", DPI(150), &m_colors.partFillColor);
-		ColorPreferencesItem("Selected", DPI(200), "##PartSelected", "partHighlightedColor", DPI(150), &m_colors.partHighlightedColor);
 		ColorPreferencesItem(
-		    "Fill (selected)", DPI(200), "##PartFillSelected", "partHighlightedFillColor", DPI(150), &m_colors.partHighlightedFillColor);
+		    "Selected", DPI(200), "##PartSelected", "partHighlightedColor", DPI(150), &m_colors.partHighlightedColor);
+		ColorPreferencesItem("Fill (selected)",
+		                     DPI(200),
+		                     "##PartFillSelected",
+		                     "partHighlightedFillColor",
+		                     DPI(150),
+		                     &m_colors.partHighlightedFillColor);
 		ColorPreferencesItem("Text", DPI(200), "##PartText", "partTextColor", DPI(150), &m_colors.partTextColor);
-		ColorPreferencesItem(
-		    "Text background", DPI(200), "##PartTextBackground", "partTextBackgroundColor", DPI(150), &m_colors.partTextBackgroundColor);
+		ColorPreferencesItem("Text background",
+		                     DPI(200),
+		                     "##PartTextBackground",
+		                     "partTextBackgroundColor",
+		                     DPI(150),
+		                     &m_colors.partTextBackgroundColor);
 
 		ImGui::Dummy(ImVec2(1, DPI(10)));
 		ImGui::Text("Pins");
 		ImGui::Separator();
 		ColorPreferencesItem("Default", DPI(200), "##PinDefault", "pinDefaultColor", DPI(150), &m_colors.pinDefaultColor);
-		ColorPreferencesItem("Default text", DPI(200), "##PinDefaultText", "pinDefaultTextColor", DPI(150), &m_colors.pinDefaultTextColor);
+		ColorPreferencesItem(
+		    "Default text", DPI(200), "##PinDefaultText", "pinDefaultTextColor", DPI(150), &m_colors.pinDefaultTextColor);
 		ColorPreferencesItem("Ground", DPI(200), "##PinGround", "pinGroundColor", DPI(150), &m_colors.pinGroundColor);
 		ColorPreferencesItem("NC", DPI(200), "##PinNC", "pinNotConnectedColor", DPI(150), &m_colors.pinNotConnectedColor);
 		ColorPreferencesItem("Test pad", DPI(200), "##PinTP", "pinTestPadColor", DPI(150), &m_colors.pinTestPadColor);
@@ -595,11 +616,14 @@ void BoardView::ColorPreferences(void) {
 		ColorPreferencesItem("Selected", DPI(200), "##PinSelected", "pinSelectedColor", DPI(150), &m_colors.pinSelectedColor);
 		ColorPreferencesItem(
 		    "Selected text", DPI(200), "##PinSelectedText", "pinSelectedTextColor", DPI(150), &m_colors.pinSelectedTextColor);
-		ColorPreferencesItem("Highlighted", DPI(200), "##PinHighlighted", "pinHighlightedColor", DPI(150), &m_colors.pinHighlightedColor);
+		ColorPreferencesItem(
+		    "Highlighted", DPI(200), "##PinHighlighted", "pinHighlightedColor", DPI(150), &m_colors.pinHighlightedColor);
 		ColorPreferencesItem("Halo", DPI(200), "##PinHalo", "pinHaloColor", DPI(150), &m_colors.pinHaloColor);
-		ColorPreferencesItem("Same net", DPI(200), "##PinSameNet", "pinHighlightSameNetColor", DPI(150), &m_colors.pinHighlightSameNetColor);
+		ColorPreferencesItem(
+		    "Same net", DPI(200), "##PinSameNet", "pinHighlightSameNetColor", DPI(150), &m_colors.pinHighlightSameNetColor);
 		ColorPreferencesItem("Net web strands", DPI(200), "##NetWebStrands", "pinNetWebColor", DPI(150), &m_colors.pinNetWebColor);
-		ColorPreferencesItem("Net web (otherside)", DPI(200), "##NetWebOSStrands", "pinNetWebOSColor", DPI(150), &m_colors.pinNetWebOSColor);
+		ColorPreferencesItem(
+		    "Net web (otherside)", DPI(200), "##NetWebOSStrands", "pinNetWebOSColor", DPI(150), &m_colors.pinNetWebOSColor);
 
 		ImGui::Dummy(ImVec2(1, DPI(10)));
 		ImGui::Text("Annotations");
@@ -608,7 +632,8 @@ void BoardView::ColorPreferences(void) {
 		ColorPreferencesItem("Stalk", DPI(200), "##AnnStalk", "annotationStalkColor", DPI(150), &m_colors.annotationStalkColor);
 		ColorPreferencesItem(
 		    "Popup text", DPI(200), "##AnnPopupText", "annotationPopupTextColor", DPI(150), &m_colors.annotationPopupTextColor);
-		ColorPreferencesItem("Popup background", DPI(200),
+		ColorPreferencesItem("Popup background",
+		                     DPI(200),
 		                     "##AnnPopupBackground",
 		                     "annotationPopupBackgroundColor",
 		                     DPI(150),
@@ -998,7 +1023,7 @@ void BoardView::ContextMenu(void) {
 	static std::string pin, partn, net;
 	double tx, ty;
 
-	ImGuiIO &io       = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 
 	ImVec2 pos = ScreenToCoord(m_showContextMenuPos.x, m_showContextMenuPos.y);
 
@@ -1237,9 +1262,9 @@ void BoardView::ContextMenu(void) {
 
 	/** if the dialog was closed by using the (X) icon **/
 	if (!dummy) {
-			m_annotationnew_retain  = false;
-			m_annotationedit_retain = false;
-			m_tooltips_enabled      = true;
+		m_annotationnew_retain  = false;
+		m_annotationedit_retain = false;
+		m_tooltips_enabled      = true;
 	}
 }
 
@@ -1902,10 +1927,10 @@ void BoardView::HandleInput() {
 						if (AnnotationIsHovered()) m_annotation_clicked_id = m_annotation_last_hovered;
 
 						m_annotationedit_retain = false;
-						m_showContextMenu    = true;
-						m_showContextMenuPos = spos;
-						m_tooltips_enabled   = false;
-						m_needsRedraw        = true;
+						m_showContextMenu       = true;
+						m_showContextMenuPos    = spos;
+						m_tooltips_enabled      = false;
+						m_needsRedraw           = true;
 						if (debug) fprintf(stderr, "context click request at (%f %f)\n", spos.x, spos.y);
 					}
 
@@ -1922,7 +1947,7 @@ void BoardView::HandleInput() {
 
 					// threshold to within a pin's diameter of the pin center
 					// float min_dist = m_pinDiameter * 1.0f;
-					float min_dist = m_pinDiameter * 0.5f;
+					float min_dist = m_pinDiameter / 2.0f;
 					min_dist *= min_dist; // all distance squared
 					Pin *selection = nullptr;
 					for (auto &pin : m_board->Pins()) {
@@ -1930,7 +1955,7 @@ void BoardView::HandleInput() {
 							float dx   = pin->position.x - pos.x;
 							float dy   = pin->position.y - pos.y;
 							float dist = dx * dx + dy * dy;
-							if (dist < min_dist) {
+							if ((dist < (pin->diameter * pin->diameter)) && (dist < min_dist)) {
 								selection = pin.get();
 								min_dist  = dist;
 							}
@@ -1938,46 +1963,81 @@ void BoardView::HandleInput() {
 					}
 
 					m_pinSelected = selection;
+					// if (selection == nullptr) {
+					if (1) {
+						for (auto part : m_board->Components()) {
+							int hit     = 0;
+							auto p_part = part.get();
 
-					// check also for a part hit.
+							if (!ComponentIsVisible(p_part)) continue;
 
-					for (auto part : m_board->Components()) {
-						int hit     = 0;
-						auto p_part = part.get();
+							// Work out if the point is inside the hull
+							{
+								int i, j, n;
+								outline_pt *poly;
 
-						if (!ComponentIsVisible(p_part)) continue;
+								n    = 4;
+								poly = p_part->outline;
 
-						// Work out if the point is inside the hull
-						{
-							int i, j, n;
-							outline_pt *poly;
-
-							n    = 4;
-							poly = p_part->outline;
-
-							for (i = 0, j = n - 1; i < n; j = i++) {
-								if (((poly[i].y > pos.y) != (poly[j].y > pos.y)) &&
-								    (pos.x < (poly[j].x - poly[i].x) * (pos.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
-									hit ^= 1;
-							}
-						}
-
-						if (hit) {
-							// highlight all the pins
-							if (part->visualmode == part->CVMNormal) {
-								if (!contains(*part, m_partHighlighted)) {
-									m_partHighlighted.push_back(p_part);
+								for (i = 0, j = n - 1; i < n; j = i++) {
+									if (((poly[i].y > pos.y) != (poly[j].y > pos.y)) &&
+									    (pos.x <
+									     (poly[j].x - poly[i].x) * (pos.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+										hit ^= 1;
 								}
 							}
 
-							part->visualmode++;
-							part->visualmode %= part->CVMModeCount;
+							if (hit) {
 
-							if (part->visualmode == part->CVMNormal) {
-								remove(*part, m_partHighlighted);
-							}
-						}
-					}
+								bool partInList = contains(*part, m_partHighlighted);
+
+								/*
+								 * If the CTRL key isn't held down, then we have to
+								 * flush any existing highlighted parts
+								 */
+								if (io.KeyCtrl) {
+									if (!partInList) {
+										m_partHighlighted.push_back(p_part);
+										p_part->visualmode = part->CVMSelected;
+									} else {
+										remove(*part, m_partHighlighted);
+										p_part->visualmode = part->CVMNormal;
+									}
+
+								} else {
+
+									for (auto p : m_partHighlighted) {
+										p->visualmode = p->CVMNormal;
+									}
+									m_partHighlighted.clear(); // only append to list if ctrl is pressed to collect multiples
+									if (!partInList) {
+										m_partHighlighted.push_back(p_part);
+										p_part->visualmode = part->CVMSelected;
+									}
+								}
+
+								/*
+								 * If this part has a non-selected visual mode (normal)
+								 * AND it's not in the existing part list, then add it
+								 */
+								/*
+								if (part->visualmode == part->CVMNormal) {
+								    if (!partInList) {
+								        m_partHighlighted.push_back(p_part);
+								    }
+								}
+
+								part->visualmode++;
+								part->visualmode %= part->CVMModeCount;
+
+								if (part->visualmode == part->CVMNormal) {
+								    remove(*part, m_partHighlighted);
+								}
+								*/
+							} // if hit
+						}     // for each part on the board
+					}         // if a pin wasn't selected
+
 				} else {
 					if (!m_showContextMenu) {
 						if (AnnotationIsHovered()) {
@@ -2387,7 +2447,8 @@ void BoardView::OutlineGenFillDraw(ImDrawList *draw, int ydelta, double thicknes
 				int i = 0;
 				int l = scanhits.size() - 1;
 				for (i = 0; i < l; i += 2) {
-					draw->AddLine(CoordToScreen(scanhits[i].x, y), CoordToScreen(scanhits[i + 1].x, y), m_colors.boardFillColor, thickness);
+					draw->AddLine(
+					    CoordToScreen(scanhits[i].x, y), CoordToScreen(scanhits[i + 1].x, y), m_colors.boardFillColor, thickness);
 				}
 			}
 		}
@@ -2487,7 +2548,7 @@ void BoardView::DrawNetWeb(ImDrawList *draw) {
 			uint32_t col = m_colors.pinNetWebColor;
 			if (!ComponentIsVisible(p->component)) {
 				col = m_colors.pinNetWebOSColor;
-				draw->AddCircle(CoordToScreen(p->position.x, p->position.y), p->diameter * m_scale * 20.0f, col, 16);
+				draw->AddCircle(CoordToScreen(p->position.x, p->position.y), p->diameter * m_scale, col, 16);
 			}
 
 			draw->AddLine(CoordToScreen(m_pinSelected->position.x, m_pinSelected->position.y),
@@ -2532,7 +2593,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 
 	for (auto &pin : m_board->Pins()) {
 		auto p_pin = pin.get();
-		float psz  = pin->diameter * m_scale * 20.0f;
+		float psz  = pin->diameter * m_scale;
 		uint32_t fill_color;
 
 		// continue if pin is not visible anyway
@@ -2596,7 +2657,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 			}
 
 			// If the part itself is highlighted ( CVMShowPins )
-			if (p_pin->component->visualmode == p_pin->component->CVMShowPins) {
+			if (p_pin->component->visualmode == p_pin->component->CVMSelected) {
 				show_text = true;
 			}
 
@@ -2764,62 +2825,62 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 					// 0603
 					pin_radius = 15;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 247) && (distance < 253)) {
 					// SMC diode?
 					pin_radius = 50;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 195) && (distance < 199)) {
 					// Inductor?
 					pin_radius = 50;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 165) && (distance < 169)) {
 					// SMB diode?
 					pin_radius = 35;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 101) && (distance < 109)) {
 					// SMA diode / tant cap
 					pin_radius = 30;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 108) && (distance < 112)) {
 					// 1206
 					pin_radius = 30;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 64) && (distance < 68)) {
 					// 0805
 					pin_radius = 25;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 
 				} else if ((distance > 18) && (distance < 22)) {
 					// 0201 cap/resistor?
 					pin_radius = 5;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 				} else if ((distance > 28) && (distance < 32)) {
 					// 0402 cap/resistor
 					pin_radius = 10;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 				}
 			}
@@ -2882,7 +2943,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				if (((p0 == 'L') || (p1 == 'L')) && (distance > 50)) {
 					pin_radius = 15;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 					army = distance / 2;
 					armx = pin_radius;
@@ -2891,7 +2952,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 
 					pin_radius = 15;
 					for (auto pin : part->pins) {
-						pin->diameter = pin_radius * 0.05;
+						pin->diameter = pin_radius; // * 0.05;
 					}
 					army = distance / 2 - distance / 4;
 					armx = pin_radius;
@@ -3155,35 +3216,46 @@ inline void BoardView::DrawAnnotations(ImDrawList *draw) {
 }
 
 bool BoardView::HighlightedPinIsHovered(void) {
-	ImVec2 mp = ImGui::GetMousePos();
-	int r     = m_scale * 10.0f;
-	// int r = 2.0f /m_scale;
+	ImVec2 mp  = ImGui::GetMousePos();
+	ImVec2 mpc = ScreenToCoord(mp.x, mp.y); // it's faster to compute this once than convert all pins
 
 	m_pinHighlightedHovered = nullptr;
 
+	/*
+	 * See if any of the pins listed in the m_pinHighlighted vector are hovered over
+	 */
 	for (auto p : m_pinHighlighted) {
-		ImVec2 a = CoordToScreen(p->position.x, p->position.y);
-		if ((mp.x > a.x - r) && (mp.x < a.x + r) && (mp.y > a.y - r) && (mp.y < a.y + r)) {
+		ImVec2 a = ImVec2(p->position.x, p->position.y);
+		double r = p->diameter / 2.0f;
+		if ((mpc.x > a.x - r) && (mpc.x < a.x + r) && (mpc.y > a.y - r) && (mpc.y < a.y + r)) {
 			m_pinHighlightedHovered = p;
 			return true;
 		}
 	}
 
+	/*
+	 * See if any of the pins in the same network as the SELECTED pin (single) are hovered
+	 */
 	for (auto pin : m_board->Pins()) {
-		auto p = pin.get();
+		auto p   = pin.get();
+		double r = p->diameter / 2.0f * m_scale;
 		if (m_pinSelected && p->net == m_pinSelected->net) {
-			ImVec2 a = CoordToScreen(p->position.x, p->position.y);
-			if ((mp.x > a.x - r) && (mp.x < a.x + r) && (mp.y > a.y - r) && (mp.y < a.y + r)) {
+			ImVec2 a = ImVec2(p->position.x, p->position.y);
+			if ((mpc.x > a.x - r) && (mpc.x < a.x + r) && (mpc.y > a.y - r) && (mpc.y < a.y + r)) {
 				m_pinHighlightedHovered = p;
 				return true;
 			}
 		}
 	}
 
+	/*
+	 * See if any pins of a highlighted part are hovered
+	 */
 	for (auto part : m_partHighlighted) {
 		for (auto p : part->pins) {
-			ImVec2 a = CoordToScreen(p->position.x, p->position.y);
-			if ((mp.x > a.x - r) && (mp.x < a.x + r) && (mp.y > a.y - r) && (mp.y < a.y + r)) {
+			double r = p->diameter / 2.0f * m_scale;
+			ImVec2 a = ImVec2(p->position.x, p->position.y);
+			if ((mpc.x > a.x - r) && (mpc.x < a.x + r) && (mpc.y > a.y - r) && (mpc.y < a.y + r)) {
 				m_pinHighlightedHovered = p;
 				return true;
 			}
@@ -3312,7 +3384,7 @@ void BoardView::SetFile(BRDFile *file) {
 	m_nets = m_board->Nets();
 
 	int min_x = INT_MAX, max_x = INT_MIN, min_y = INT_MAX, max_y = INT_MIN;
-	for (auto &pa: m_file->format) {
+	for (auto &pa : m_file->format) {
 		if (pa.x < min_x) min_x = pa.x;
 		if (pa.y < min_y) min_y = pa.y;
 		if (pa.x > max_x) max_x = pa.x;
