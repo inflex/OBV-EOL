@@ -69,6 +69,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 			auto comp = make_shared<Component>();
 
 			comp->name = string(brd_part.name);
+			comp->mfgcode = std::move(brd_part.mfgcode);
 
 			comp->p1 = {brd_part.p1.x, brd_part.p1.y};
 			comp->p2 = {brd_part.p2.x, brd_part.p2.y};
