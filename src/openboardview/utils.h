@@ -21,4 +21,3 @@ std::string lookup_file_insensitive(const std::string &path, const std::string &
 
 // Split a string in a vector, delimiter is a space (stringstream iterator)
 std::vector<std::string> split_string(const std::string str);
-
