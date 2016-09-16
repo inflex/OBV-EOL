@@ -3186,32 +3186,33 @@ void BoardView::DrawPartTooltips(ImDrawList *draw) {
 	ImVec2 spos = ImGui::GetMousePos();
 	ImVec2 pos  = ScreenToCoord(spos.x, spos.y);
 
-			/*
-		 * I am loathing that I have to add this, but basically check every pin on the board so we can 
-		 * determine if we're hovering over a testpad
-		 */
-		for (auto p : m_board->Pins()) {
-			auto pin = p.get();
-			if (pin->type == Pin::kPinTypeTestPad) {
-				float dx   = pin->position.x - pos.x;
-				float dy   = pin->position.y - pos.y;
-				float dist = dx * dx + dy * dy;
-				if ((dist < (pin->diameter * pin->diameter))) {
+	/*
+ * I am loathing that I have to add this, but basically check every pin on the board so we can
+ * determine if we're hovering over a testpad
+ */
+	for (auto p : m_board->Pins()) {
+		auto pin = p.get();
+		if (pin->type == Pin::kPinTypeTestPad) {
+			float dx   = pin->position.x - pos.x;
+			float dy   = pin->position.y - pos.y;
+			float dist = dx * dx + dy * dy;
+			if ((dist < (pin->diameter * pin->diameter))) {
 
-			draw->AddCircle(CoordToScreen(pin->position.x, pin->position.y), pin->diameter * m_scale, m_colors.pinHaloColor, 32, pinHaloThickness);
-			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
-			ImGui::BeginTooltip();
-				ImGui::Text("TP[%s]%s",
-				            pin->number.c_str(),
-				            pin->net->name.c_str());
-			ImGui::EndTooltip();
-			ImGui::PopStyleColor(2);
-					break;
-				} // if in the required diameter
-			}
+				draw->AddCircle(CoordToScreen(pin->position.x, pin->position.y),
+				                pin->diameter * m_scale,
+				                m_colors.pinHaloColor,
+				                32,
+				                pinHaloThickness);
+				ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
+				ImGui::BeginTooltip();
+				ImGui::Text("TP[%s]%s", pin->number.c_str(), pin->net->name.c_str());
+				ImGui::EndTooltip();
+				ImGui::PopStyleColor(2);
+				break;
+			} // if in the required diameter
 		}
-
+	}
 
 	currentlyHoveredPart = nullptr;
 	for (auto part : m_board->Components()) {
@@ -3271,7 +3272,12 @@ void BoardView::DrawPartTooltips(ImDrawList *draw) {
 
 			draw->ChannelsSetCurrent(kChannelAnnotations);
 
-			if (currentlyHoveredPin) draw->AddCircle(CoordToScreen(currentlyHoveredPin->position.x, currentlyHoveredPin->position.y), currentlyHoveredPin->diameter * m_scale, m_colors.pinHaloColor, 32, pinHaloThickness);
+			if (currentlyHoveredPin)
+				draw->AddCircle(CoordToScreen(currentlyHoveredPin->position.x, currentlyHoveredPin->position.y),
+				                currentlyHoveredPin->diameter * m_scale,
+				                m_colors.pinHaloColor,
+				                32,
+				                pinHaloThickness);
 			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
 			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
 			ImGui::BeginTooltip();
@@ -3285,9 +3291,7 @@ void BoardView::DrawPartTooltips(ImDrawList *draw) {
 			}
 			ImGui::EndTooltip();
 			ImGui::PopStyleColor(2);
-
-		}  
-
+		}
 
 	} // for each part on the board
 }
