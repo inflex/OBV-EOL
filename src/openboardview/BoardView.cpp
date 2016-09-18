@@ -257,7 +257,7 @@ int BoardView::ConfigParse(void) {
 	pinSelectMasks   = obvconfig.ParseBool("pinSelectMasks", true);
 
 	showFPS                   = obvconfig.ParseBool("showFPS", false);
-	showInfoPanel                  = obvconfig.ParseBool("showInfoPanel", true);
+	showInfoPanel             = obvconfig.ParseBool("showInfoPanel", true);
 	showPins                  = obvconfig.ParseBool("showPins", true);
 	showNetWeb                = obvconfig.ParseBool("showNetWeb", true);
 	showAnnotations           = obvconfig.ParseBool("showAnnotations", true);
@@ -1052,31 +1052,22 @@ void BoardView::ShowInfoPane(void) {
 			ImGui::Text("Pin count: %d", part->pins.size());
 			if (part->mfgcode.size()) ImGui::TextWrapped("Package Info: %s", part->mfgcode.c_str());
 
-
 			/*
 			 * Generate the pin# and net table
 			 */
-				ImGui::PushItemWidth(-1);
-				  ImGui::ListBoxHeader((std::string("##")+part->name).c_str());//, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
+			ImGui::PushItemWidth(-1);
+			std::string str = std::string("##") + part->name;
+			ImGui::ListBoxHeader(str.c_str()); //, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
 			for (auto pin : part->pins) {
 				char ss[1024];
-//				ImGui::Columns(2);
 				snprintf(ss, sizeof(ss), "%10s %s", pin->number.c_str(), pin->net->name.c_str());
 				if (ImGui::Selectable(ss, false)) {
 					m_pinSelected = pin;
 					m_needsRedraw = true;
 				}
-//				ImGui::Text("%10s %s", pin->number.c_str(), pin->net->name.c_str());
-//				ImGui::NextColumn();
-//				ImGui::TextWrapped("%s", pin->net->name.c_str());
-//				ImGui::Columns(1);
 			}
-ImGui::ListBoxFooter();
-ImGui::PopItemWidth();
-			/*
-			for (auto &pin : part->pins) {
-			}
-			*/
+			ImGui::ListBoxFooter();
+			ImGui::PopItemWidth();
 			ImGui::Separator();
 
 		} // for each part in the list
@@ -1373,7 +1364,7 @@ void BoardView::SearchColumnGenerate(char *title, char *search, int buttons_max)
 				}
 			}
 		}
-	ImGui::ListBoxFooter();
+		ImGui::ListBoxFooter();
 	}
 }
 
