@@ -1014,24 +1014,16 @@ void BoardView::HelpControls(void) {
 	}
 }
 
-
-
-
-
-
-
-
-
 void BoardView::ShowInfoPane(void) {
-	bool dummy                       = true;
+	bool dummy  = true;
 	ImGuiIO &io = ImGui::GetIO();
 	ImVec2 view = io.DisplaySize;
 	double width, height;
 
-	width = view.x /4;
-	if (width < DPIF(100))  width = DPIF(100);
+	width                        = view.x / 4;
+	if (width < DPIF(100)) width = DPIF(100);
 
-	height = view.y -m_status_height -m_menu_height;
+	height = view.y - m_status_height - m_menu_height;
 
 	/*
 	 * Originally the dialog was to follow the cursor but it proved to be an overkill
@@ -1040,48 +1032,53 @@ void BoardView::ShowInfoPane(void) {
 	 *
 	 * Now it's kept at a fixed point.
 	 */
-	ImGui::SetNextWindowPos(ImVec2(view.x -width, m_menu_height));
+	ImGui::SetNextWindowPos(ImVec2(view.x - width, m_menu_height));
 	ImGui::SetNextWindowSize(ImVec2(width, height));
-	ImGui::Begin("Info Pane", NULL,
-		   	ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_ShowBorders|ImGuiWindowFlags_NoSavedSettings
-			);
+	ImGui::Begin("Info Pane",
+	             NULL,
+	             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+	                 ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoSavedSettings);
 
 	if (m_partHighlighted.size()) {
-	ImGui::Columns(2, "Pins");
 
-	for (auto part : m_partHighlighted) {
-		ImGui::Text("%s", part->name.c_str());
-		for (auto pin: part->pins) {
-			ImGui::Text("%s", pin->number.c_str());
-		}
-	}
+		for (auto part : m_partHighlighted) {
 
-	ImGui::NextColumn();
-
-	for (auto part : m_partHighlighted) {
-		ImGui::Text("Net");
-		for (auto &pin: part->pins) {
-			ImGui::Text("%s", pin->net->name.c_str());
-		}
-	}
+			ImGui::Text("Part: %s", part->name.c_str());
+			ImGui::Text("Pin count: %d", part->pins.size());
+			if (part->mfgcode.size()) ImGui::TextWrapped("Package Info: %s", part->mfgcode.c_str());
 
 
-	ImGui::Columns(1);
+			/*
+			 * Generate the pin# and net table
+			 */
+				ImGui::PushItemWidth(-1);
+				  ImGui::ListBoxHeader((std::string("##")+part->name).c_str());//, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
+			for (auto pin : part->pins) {
+				char ss[1024];
+//				ImGui::Columns(2);
+				snprintf(ss, sizeof(ss), "%10s %s", pin->number.c_str(), pin->net->name.c_str());
+				if (ImGui::Selectable(ss, false)) {
+					m_pinSelected = pin;
+					m_needsRedraw = true;
+				}
+//				ImGui::Text("%10s %s", pin->number.c_str(), pin->net->name.c_str());
+//				ImGui::NextColumn();
+//				ImGui::TextWrapped("%s", pin->net->name.c_str());
+//				ImGui::Columns(1);
+			}
+ImGui::ListBoxFooter();
+ImGui::PopItemWidth();
+			/*
+			for (auto &pin : part->pins) {
+			}
+			*/
+			ImGui::Separator();
+
+		} // for each part in the list
 	}
 
 	ImGui::End();
-
 }
-
-
-
-
-
-
-
-
-
-
 
 void BoardView::ContextMenu(void) {
 	bool dummy                       = true;
@@ -1335,16 +1332,17 @@ void BoardView::ContextMenu(void) {
 	}
 }
 
-void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
+void BoardView::SearchColumnGenerate(char *title, char *search, int buttons_max) {
 
 	int buttons_left = buttons_max;
 
 	if (search[0]) {
+		ImGui::ListBoxHeader(title);
 		if (m_searchComponents) {
 			for (auto &part : m_file->parts) {
 				if (buttons_left > 0) {
 					if (utf8casestr(part.name, search)) {
-						if (ImGui::SmallButton(part.name)) {
+						if (ImGui::Selectable(part.name, false)) {
 							FindComponent(part.name);
 							snprintf(search, 128, "%s", part.name);
 							buttons_left = 0;
@@ -1360,7 +1358,7 @@ void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
 			for (auto &net : m_nets) {
 				if (buttons_left > 0) {
 					if (utf8casestr(net->name.c_str(), search)) {
-						if (ImGui::SmallButton(net->name.c_str())) {
+						if (ImGui::Selectable(net->name.c_str(), false)) {
 							FindNet(net->name.c_str());
 							snprintf(search, 128, "%s", net->name.c_str());
 							buttons_left = 0;
@@ -1370,6 +1368,7 @@ void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
 				}
 			}
 		}
+	ImGui::ListBoxFooter();
 	}
 }
 
@@ -1448,7 +1447,9 @@ void BoardView::SearchComponent(void) {
 			ImGui::SetKeyboardFocusHere(-1);
 		} // set keyboard focus
 
-		SearchColumnGenerate(m_search, 10);
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC1", m_search, 30);
+		ImGui::PopItemWidth();
 
 		ImGui::PushItemWidth(DPI(500));
 		ImGui::NextColumn();
@@ -1457,8 +1458,10 @@ void BoardView::SearchComponent(void) {
 		if (ImGui::InputText("##search2", m_search2, 128, ImGuiInputTextFlags_CharsNoBlank)) {
 			SearchCompound(m_search2);
 		}
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC2", m_search2, 30);
 		ImGui::PopItemWidth();
-		SearchColumnGenerate(m_search2, 10);
+		ImGui::PopItemWidth();
 
 		ImGui::NextColumn();
 		ImGui::Text("Item #3");
@@ -1467,8 +1470,10 @@ void BoardView::SearchComponent(void) {
 		if (ImGui::InputText("##search3", m_search3, 128, ImGuiInputTextFlags_CharsNoBlank)) {
 			SearchCompound(m_search3);
 		}
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC3", m_search3, 30);
 		ImGui::PopItemWidth();
-		SearchColumnGenerate(m_search3, 10);
+		ImGui::PopItemWidth();
 
 		ImGui::Columns(1); // reset back to single column mode
 		ImGui::Separator();
@@ -1637,11 +1642,10 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 
-
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Info Pane", "i")) {
-				m_showInfoPane = !m_showInfoPane; 
+				m_showInfoPane = !m_showInfoPane;
 			}
 			if (ImGui::MenuItem("Net List", "l")) {
 				m_showNetList = !m_showNetList;
@@ -1815,8 +1819,9 @@ void BoardView::Update() {
 		}
 	}
 
-	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_ShowBorders |
-	                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+	                         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+	                         ImGuiWindowFlags_NoSavedSettings;
 
 	ImGuiWindowFlags draw_surface_flags = flags | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
@@ -1878,10 +1883,10 @@ void BoardView::Update() {
 		m_lastHeight  = io.DisplaySize.y;
 		m_needsRedraw = true;
 	}
-	if (!m_showInfoPane) { 
+	if (!m_showInfoPane) {
 		m_board_surface = ImVec2(io.DisplaySize.x, io.DisplaySize.y - (m_status_height + m_menu_height));
 	} else {
-		m_board_surface = ImVec2(io.DisplaySize.x -(io.DisplaySize.x /4), io.DisplaySize.y - (m_status_height + m_menu_height));
+		m_board_surface = ImVec2(io.DisplaySize.x - (io.DisplaySize.x / 4), io.DisplaySize.y - (m_status_height + m_menu_height));
 	}
 
 	ImGui::SetNextWindowSize(m_board_surface);
@@ -3594,7 +3599,7 @@ int qsort_netstrings(const void *a, const void *b) {
  *
  */
 void BoardView::CenterView(void) {
-	//ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
 	ImVec2 view = m_board_surface;
 
 	float dx = 1.1f * (m_boardWidth);
@@ -3625,7 +3630,7 @@ void BoardView::SetFile(BRDFile *file) {
 		if (pa.y > max_y) max_y = pa.y;
 	}
 
-	//ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
 	ImVec2 view = m_board_surface;
 
 	m_mx = (float)(min_x + max_x) / 2.0f;
@@ -3767,7 +3772,7 @@ void BoardView::Mirror(void) {
 }
 
 void BoardView::SetTarget(float x, float y) {
-	//ImVec2 view  = ImGui::GetIO().DisplaySize;
+	// ImVec2 view  = ImGui::GetIO().DisplaySize;
 	ImVec2 view  = m_board_surface;
 	ImVec2 coord = ScreenToCoord(view.x / 2.0f, view.y / 2.0f);
 	m_dx += coord.x - x;
@@ -3785,7 +3790,7 @@ inline bool BoardView::ComponentIsVisible(const Component *part) {
 }
 
 inline bool BoardView::IsVisibleScreen(float x, float y, float radius, const ImGuiIO &io) {
-	//if (x < -radius || y < -radius || x - radius > io.DisplaySize.x || y - radius > io.DisplaySize.y) return false;
+	// if (x < -radius || y < -radius || x - radius > io.DisplaySize.x || y - radius > io.DisplaySize.y) return false;
 	if (x < -radius || y < -radius || x - radius > m_board_surface.x || y - radius > m_board_surface.y) return false;
 	return true;
 }
@@ -3915,7 +3920,7 @@ void BoardView::SetLastFileOpenName(const std::string &name) {
 
 void BoardView::FlipBoard(int mode) {
 	ImVec2 mpos = ImGui::GetMousePos();
-	//ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
 	ImVec2 view = m_board_surface;
 	ImVec2 bpos = ScreenToCoord(mpos.x, mpos.y);
 	auto io     = ImGui::GetIO();
