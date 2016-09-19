@@ -243,6 +243,7 @@ int main(int argc, char **argv) {
 	// Preset some workable sizes
 	app.m_board_surface.x = g.width;
 	app.m_board_surface.y = g.height;
+	if (app.showInfoPanel) app.m_board_surface.x -= app.m_board_surface.x / 4;
 
 	if (g.renderer == Renderer::DEFAULT) {
 		switch (app.obvconfig.ParseInt("renderer", 2)) {
@@ -366,10 +367,10 @@ int main(int argc, char **argv) {
 
 	if (g.font_size == 0.0f) g.font_size = app.obvconfig.ParseDouble("fontSize", 20.0f);
 	g.font_size                          = (g.font_size * app.dpi) / 100;
-	
+
 	{
 		ImGuiStyle &style = ImGui::GetStyle();
-		style.ScrollbarSize *= app.dpi /100;
+		style.ScrollbarSize *= app.dpi / 100;
 	}
 
 	for (auto name : {"Liberation Sans", "DejaVu Sans", "Arial", "Helvetica", ""}) { // Empty string = use system default font

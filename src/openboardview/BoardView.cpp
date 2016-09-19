@@ -1020,7 +1020,6 @@ void BoardView::HelpControls(void) {
 }
 
 void BoardView::ShowInfoPane(void) {
-	bool dummy  = true;
 	ImGuiIO &io = ImGui::GetIO();
 	ImVec2 view = io.DisplaySize;
 	double width, height;
@@ -1054,14 +1053,14 @@ void BoardView::ShowInfoPane(void) {
 			ImGui::Text("Pin count");
 			if (part->mfgcode.size()) {
 				ImGui::PushItemWidth(-1);
-			   	ImGui::TextWrapped("Package Info");
+				ImGui::TextWrapped("Package Info");
 			}
 			ImGui::PopItemWidth();
 
 			ImGui::NextColumn();
 
 			ImGui::Text("%s", part->name.c_str());
-			ImGui::Text("%d", part->pins.size());
+			ImGui::Text("%ld", part->pins.size());
 			if (part->mfgcode.size()) ImGui::TextWrapped("%s", part->mfgcode.c_str());
 
 			ImGui::Columns(1);
@@ -1074,10 +1073,11 @@ void BoardView::ShowInfoPane(void) {
 			ImGui::ListBoxHeader(str.c_str()); //, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
 			for (auto pin : part->pins) {
 				char ss[1024];
-				snprintf(ss, sizeof(ss), "%10s %s", pin->number.c_str(), pin->net->name.c_str());
+				snprintf(ss, sizeof(ss), "%4s  %s", pin->number.c_str(), pin->net->name.c_str());
 				if (ImGui::Selectable(ss, false)) {
 					m_pinSelected = pin;
 					m_needsRedraw = true;
+					//					m_listPartsOnPinNet = true;
 				}
 				ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0xffeeeeee));
 				ImGui::Separator();
@@ -1354,7 +1354,8 @@ void BoardView::SearchColumnGenerate(char *title, char *search, int buttons_max)
 		if (m_searchComponents) {
 			for (auto &part : m_file->parts) {
 				if (buttons_left > 0) {
-					if (utf8casestr(part.name, search)) {
+					//if (utf8casestr(part.name, search)) {
+					if (strstrModeSearch(part.name, search)) {
 						if (ImGui::Selectable(part.name, false)) {
 							FindComponent(part.name);
 							snprintf(search, 128, "%s", part.name);
@@ -1370,7 +1371,8 @@ void BoardView::SearchColumnGenerate(char *title, char *search, int buttons_max)
 		if (m_searchNets) {
 			for (auto &net : m_nets) {
 				if (buttons_left > 0) {
-					if (utf8casestr(net->name.c_str(), search)) {
+					//if (utf8casestr(net->name.c_str(), search)) {
+					if (strstrModeSearch(net->name.c_str(), search)) {
 						if (ImGui::Selectable(net->name.c_str(), false)) {
 							FindNet(net->name.c_str());
 							snprintf(search, 128, "%s", net->name.c_str());
@@ -1443,6 +1445,23 @@ void BoardView::SearchComponent(void) {
 
 		ImGui::SameLine();
 		ImGui::Checkbox("Nets", &m_searchNets);
+
+		{
+			ImGui::SameLine();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::RadioButton("Any", &m_searchMode, searchModeAny)) {
+				m_searchMode = searchModeAny;
+			}
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Prefix", &m_searchMode, searchModePrefix)) {
+				m_searchMode = searchModePrefix;
+			}
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Whole", &m_searchMode, searchModeWhole)) {
+				m_searchMode = searchModeWhole;
+			}
+			ImGui::PopItemWidth();
+		}
 
 		ImGui::Separator();
 
@@ -3277,7 +3296,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				                    m_colors.partTextBackgroundColor,
 				                    0.0f);
 				draw->AddText(pos, m_colors.partTextColor, text.c_str());
-				if ((!showInfoPanel)&&(mcode.size())) {
+				if ((!showInfoPanel) && (mcode.size())) {
 					//	pos.y += text_size.y;
 					pos.y += text_size.y + DPIF(2.0f);
 					draw->AddRectFilled(ImVec2(pos.x - DPIF(2.0f), pos.y - DPIF(2.0f)),
@@ -3842,6 +3861,7 @@ bool BoardView::AnyItemVisible(void) {
 	return any_visible;
 }
 
+
 #ifdef _WIN32
 char *strcasestr(const char *str, const char *pattern) {
 	size_t i;
@@ -3862,6 +3882,23 @@ char *strcasestr(const char *str, const char *pattern) {
 }
 #endif
 
+bool BoardView::strstrModeSearch(const  char *haystack, const char *needle) {
+
+	size_t nl = strlen(needle);
+	size_t hl = strlen(haystack);
+	const char *sr;
+
+	sr = strcasestr(haystack, needle);
+	if (sr) {
+		if ((m_searchMode == searchModeAny) || ((m_searchMode == searchModePrefix) && (sr == haystack)) ||
+		    ((m_searchMode == searchModeWhole) && (sr == haystack) && (nl == hl))) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void BoardView::FindNetNoClear(const char *name) {
 
 	if (!m_file || !m_board || !(*name)) return;
@@ -3869,7 +3906,7 @@ void BoardView::FindNetNoClear(const char *name) {
 	if (*name) {
 
 		for (auto net : m_board->Nets()) {
-			if (strcasestr(net->name.c_str(), name)) {
+			if (strstrModeSearch(net->name.c_str(), name)) {
 				for (auto pin : net->pins) {
 					m_pinHighlighted.push_back(pin);
 				}
@@ -3890,10 +3927,12 @@ void BoardView::FindComponentNoClear(const char *name) {
 		Component *part_found = nullptr;
 
 		for (auto &component : m_board->Components()) {
-			if (strcasestr(component->name.c_str(), name)) {
-				auto p = component.get();
-				m_partHighlighted.push_back(p);
-				part_found = p;
+			const char *haystack = component->name.c_str();
+
+			if (strstrModeSearch(haystack,  name)) {
+					auto p = component.get();
+					m_partHighlighted.push_back(p);
+					part_found = p;
 			}
 		}
 
