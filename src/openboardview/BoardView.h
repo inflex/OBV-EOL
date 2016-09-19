@@ -293,7 +293,7 @@ struct BoardView {
 	// ImGuiIO screen rect.
 	// bool IsVisibleScreen(float x, float y, float radius = 0.0f);
 
-	bool strstrModeSearch(const  char *haystack, const char *needle);
+	bool strstrModeSearch(const char *haystack, const char *needle);
 	bool PartIsHighlighted(const Component &component);
 	void FindNet(const char *net);
 	void FindNetNoClear(const char *name);
