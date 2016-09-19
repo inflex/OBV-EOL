@@ -257,6 +257,8 @@ int BoardView::ConfigParse(void) {
 	pinSelectMasks   = obvconfig.ParseBool("pinSelectMasks", true);
 
 	showFPS                   = obvconfig.ParseBool("showFPS", false);
+	showInfoPanel             = obvconfig.ParseBool("showInfoPanel", true);
+	m_info_surface.x		  = obvconfig.ParseInt("infoPanelWidth", 350);
 	showPins                  = obvconfig.ParseBool("showPins", true);
 	showNetWeb                = obvconfig.ParseBool("showNetWeb", true);
 	showAnnotations           = obvconfig.ParseBool("showAnnotations", true);
@@ -781,6 +783,10 @@ void BoardView::Preferences(void) {
 			obvconfig.WriteBool("centerZoomSearchResults", m_centerZoomSearchResults);
 		}
 
+		if (ImGui::Checkbox("Show Info Panel", &showInfoPanel)) {
+			obvconfig.WriteBool("showInfoPanel", showInfoPanel);
+		}
+
 		if (ImGui::Checkbox("Show net web", &showNetWeb)) {
 			obvconfig.WriteBool("showNetWeb", showNetWeb);
 		}
@@ -1012,6 +1018,120 @@ void BoardView::HelpControls(void) {
 
 		ImGui::EndPopup();
 	}
+}
+
+void BoardView::ShowInfoPane(void) {
+	ImGuiIO &io = ImGui::GetIO();
+	ImVec2 ds   = io.DisplaySize;
+
+	if (m_info_surface.x < DPIF(100)) {
+		//	fprintf(stderr,"Too small (%f), set to (%f)\n", width, DPIF(100));
+		m_info_surface.x  = DPIF(100) + 1;
+		m_board_surface.x = ds.x - m_info_surface.x;
+	}
+
+	m_info_surface.y = m_board_surface.y;
+
+	/*
+	 * Originally the dialog was to follow the cursor but it proved to be an overkill
+	 * to try adjust things to keep it within the bounds of the window so as to not
+	 * lose the buttons.
+	 *
+	 * Now it's kept at a fixed point.
+	 */
+	ImGui::SetNextWindowPos(ImVec2(ds.x - m_info_surface.x, m_menu_height));
+	ImGui::SetNextWindowSize(m_info_surface);
+	ImGui::Begin("Info Panel",
+	             NULL,
+	             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+	                 ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoSavedSettings);
+
+	if (ImGui::IsMouseDragging(0)) {
+		if ((m_dragging_token == 0) && (io.MouseClickedPos[0].x > m_board_surface.x)) m_dragging_token = 2; // own it.
+		if (m_dragging_token == 2) {
+			ImVec2 delta = ImGui::GetMouseDragDelta();
+			if ((abs(delta.x) > 500) || (abs(delta.y) > 500)) {
+				delta.x = 0;
+				delta.y = 0;
+			} // If the delta values are crazy just drop them (happens when panning
+			// off screen). 500 arbritary chosen
+			ImGui::ResetMouseDragDelta();
+			m_board_surface.x += delta.x;
+			m_info_surface.x = ds.x - m_board_surface.x;
+			if (m_board_surface.x < ds.x * 0.66) {
+				m_board_surface.x = ds.x * 0.66;
+				m_info_surface.x  = ds.x - m_board_surface.x;
+			}
+			if (delta.x > 0) m_needsRedraw = true;
+		}
+	} else {
+		if (m_dragging_token == 2) {
+			obvconfig.WriteInt("infoPanelWidth", m_info_surface.x);
+		}
+		m_dragging_token = 0;
+	}
+
+	ImGui::Text("Board Statistics");
+	if (m_board) {
+		ImGui::Text("Pins: %ld", m_board->Pins().size());
+		ImGui::Text("Parts:  %ld", m_board->Components().size());
+		ImGui::Text("Parts:  %ld", m_board->Nets().size());
+		ImGui::Text("Size: %0.2f x %0.2f\"", m_boardWidth / 1000.0f, m_boardHeight / 1000.0f);
+		ImGui::Separator();
+		ImGui::Checkbox("Zoom on selected net", &m_centerZoomNets);
+	} else {
+		ImGui::Text("No board currently loaded.");
+	}
+
+	if (m_partHighlighted.size()) {
+
+		for (auto part : m_partHighlighted) {
+
+			ImGui::Text(" ");
+			ImGui::Columns(2);
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("Part");
+			ImGui::Text("Pin count");
+			if (part->mfgcode.size()) {
+				ImGui::PushItemWidth(-1);
+				ImGui::TextWrapped("Package Info");
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::NextColumn();
+
+			ImGui::Text("%s", part->name.c_str());
+			ImGui::Text("%ld", part->pins.size());
+			if (part->mfgcode.size()) ImGui::TextWrapped("%s", part->mfgcode.c_str());
+
+			ImGui::Columns(1);
+
+			/*
+			 * Generate the pin# and net table
+			 */
+			ImGui::PushItemWidth(-1);
+			std::string str = std::string("##") + part->name;
+			ImGui::ListBoxHeader(str.c_str()); //, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
+			for (auto pin : part->pins) {
+				char ss[1024];
+				snprintf(ss, sizeof(ss), "%4s  %s", pin->number.c_str(), pin->net->name.c_str());
+				if (ImGui::Selectable(ss, false)) {
+					m_pinSelected = pin;
+					CenterZoomNet(pin->net->name);
+					m_needsRedraw = true;
+					//					m_listPartsOnPinNet = true;
+				}
+				ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0xffeeeeee));
+				ImGui::Separator();
+				ImGui::PopStyleColor();
+			}
+			ImGui::ListBoxFooter();
+			ImGui::PopItemWidth();
+
+		} // for each part in the list
+	}
+
+	ImGui::End();
 }
 
 void BoardView::ContextMenu(void) {
@@ -1266,16 +1386,18 @@ void BoardView::ContextMenu(void) {
 	}
 }
 
-void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
+void BoardView::SearchColumnGenerate(char *title, char *search, int buttons_max) {
 
 	int buttons_left = buttons_max;
 
 	if (search[0]) {
+		ImGui::ListBoxHeader(title);
 		if (m_searchComponents) {
 			for (auto &part : m_file->parts) {
 				if (buttons_left > 0) {
-					if (utf8casestr(part.name, search)) {
-						if (ImGui::SmallButton(part.name)) {
+					// if (utf8casestr(part.name, search)) {
+					if (strstrModeSearch(part.name, search)) {
+						if (ImGui::Selectable(part.name, false)) {
 							FindComponent(part.name);
 							snprintf(search, 128, "%s", part.name);
 							buttons_left = 0;
@@ -1290,8 +1412,9 @@ void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
 		if (m_searchNets) {
 			for (auto &net : m_nets) {
 				if (buttons_left > 0) {
-					if (utf8casestr(net->name.c_str(), search)) {
-						if (ImGui::SmallButton(net->name.c_str())) {
+					// if (utf8casestr(net->name.c_str(), search)) {
+					if (strstrModeSearch(net->name.c_str(), search)) {
+						if (ImGui::Selectable(net->name.c_str(), false)) {
 							FindNet(net->name.c_str());
 							snprintf(search, 128, "%s", net->name.c_str());
 							buttons_left = 0;
@@ -1301,6 +1424,7 @@ void BoardView::SearchColumnGenerate(char *search, int buttons_max) {
 				}
 			}
 		}
+		ImGui::ListBoxFooter();
 	}
 }
 
@@ -1353,8 +1477,9 @@ void BoardView::SearchComponent(void) {
 		} // exit button
 
 		ImGui::SameLine();
-		ImGui::Dummy(ImVec2(DPI(200), 1));
-		ImGui::SameLine();
+		//		ImGui::Dummy(ImVec2(DPI(200), 1));
+		//		ImGui::SameLine();
+		ImGui::PushItemWidth(-1);
 		ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
 
 		ImGui::Separator();
@@ -1362,6 +1487,25 @@ void BoardView::SearchComponent(void) {
 
 		ImGui::SameLine();
 		ImGui::Checkbox("Nets", &m_searchNets);
+
+		{
+			ImGui::SameLine();
+			ImGui::Text(" Search mode: ");
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Substring", &m_searchMode, searchModeSub)) {
+				m_searchMode = searchModeSub;
+			}
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Prefix", &m_searchMode, searchModePrefix)) {
+				m_searchMode = searchModePrefix;
+			}
+			ImGui::SameLine();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::RadioButton("Whole", &m_searchMode, searchModeWhole)) {
+				m_searchMode = searchModeWhole;
+			}
+			ImGui::PopItemWidth();
+		}
 
 		ImGui::Separator();
 
@@ -1379,7 +1523,9 @@ void BoardView::SearchComponent(void) {
 			ImGui::SetKeyboardFocusHere(-1);
 		} // set keyboard focus
 
-		SearchColumnGenerate(m_search, 10);
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC1", m_search, 30);
+		ImGui::PopItemWidth();
 
 		ImGui::PushItemWidth(DPI(500));
 		ImGui::NextColumn();
@@ -1388,8 +1534,10 @@ void BoardView::SearchComponent(void) {
 		if (ImGui::InputText("##search2", m_search2, 128, ImGuiInputTextFlags_CharsNoBlank)) {
 			SearchCompound(m_search2);
 		}
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC2", m_search2, 30);
 		ImGui::PopItemWidth();
-		SearchColumnGenerate(m_search2, 10);
+		ImGui::PopItemWidth();
 
 		ImGui::NextColumn();
 		ImGui::Text("Item #3");
@@ -1398,8 +1546,10 @@ void BoardView::SearchComponent(void) {
 		if (ImGui::InputText("##search3", m_search3, 128, ImGuiInputTextFlags_CharsNoBlank)) {
 			SearchCompound(m_search3);
 		}
+		ImGui::PushItemWidth(-1);
+		SearchColumnGenerate("##SC3", m_search3, 30);
 		ImGui::PopItemWidth();
-		SearchColumnGenerate(m_search3, 10);
+		ImGui::PopItemWidth();
 
 		ImGui::Columns(1); // reset back to single column mode
 		ImGui::Separator();
@@ -1443,7 +1593,6 @@ void BoardView::Update() {
 	bool open_file = false;
 	// ImGuiIO &io = ImGui::GetIO();
 	char *preset_filename = NULL;
-	float menu_height     = 0;
 	ImGuiIO &io           = ImGui::GetIO();
 
 	/**
@@ -1463,7 +1612,7 @@ void BoardView::Update() {
 	}
 
 	if (ImGui::BeginMainMenuBar()) {
-		menu_height = ImGui::GetWindowHeight();
+		m_menu_height = ImGui::GetWindowHeight();
 
 		/*
 		 * Create these dialogs, but they're not actually
@@ -1538,6 +1687,11 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 
+			if (ImGui::MenuItem("Show Info Panel", "i")) {
+				showInfoPanel ^= 1;
+				m_needsRedraw = true;
+			}
+
 			ImGui::Separator();
 			if (ImGui::Checkbox("Show FPS", &showFPS)) {
 				obvconfig.WriteBool("showFPS", showFPS);
@@ -1568,12 +1722,17 @@ void BoardView::Update() {
 				obvconfig.WriteBool("fillParts", fillParts);
 				m_needsRedraw = true;
 			}
+
 			ImGui::Separator();
+
+			if (ImGui::MenuItem("Info Pane", "i")) {
+				showInfoPanel = !showInfoPanel;
+			}
 			if (ImGui::MenuItem("Net List", "l")) {
-				m_showNetList = m_showNetList ? false : true;
+				m_showNetList = !m_showNetList;
 			}
 			if (ImGui::MenuItem("Part List", "k")) {
-				m_showPartList = m_showPartList ? false : true;
+				m_showPartList = !m_showPartList;
 			}
 
 			ImGui::EndMenu();
@@ -1742,18 +1901,19 @@ void BoardView::Update() {
 	}
 
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-	                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+	                         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+	                         ImGuiWindowFlags_NoSavedSettings;
 
 	ImGuiWindowFlags draw_surface_flags = flags | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 	/*
 	 * Status footer
 	 */
-	float status_height = (DPIF(10.0f) + ImGui::GetFontSize());
+	m_status_height = (DPIF(10.0f) + ImGui::GetFontSize());
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(DPIF(4.0f), DPIF(3.0f)));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::SetNextWindowPos(ImVec2{0, io.DisplaySize.y - status_height});
-	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, status_height));
+	ImGui::SetNextWindowPos(ImVec2{0, io.DisplaySize.y - m_status_height});
+	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, m_status_height));
 	ImGui::Begin("status", nullptr, flags | ImGuiWindowFlags_NoFocusOnAppearing);
 	if (m_file && m_board && m_pinSelected) {
 		auto pin = m_pinSelected;
@@ -1798,13 +1958,20 @@ void BoardView::Update() {
 	/*
 	 * Drawing surface, where the actual PCB/board is plotted out
 	 */
-	ImGui::SetNextWindowPos(ImVec2(0, menu_height));
+	ImGui::SetNextWindowPos(ImVec2(0, m_menu_height));
 	if (io.DisplaySize.x != m_lastWidth || io.DisplaySize.y != m_lastHeight) {
 		m_lastWidth   = io.DisplaySize.x;
 		m_lastHeight  = io.DisplaySize.y;
 		m_needsRedraw = true;
 	}
-	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - (status_height + menu_height)));
+	if (!showInfoPanel) {
+		m_board_surface = ImVec2(io.DisplaySize.x, io.DisplaySize.y - (m_status_height + m_menu_height));
+	} else {
+		m_board_surface = ImVec2(io.DisplaySize.x - m_info_surface.x, io.DisplaySize.y - (m_status_height + m_menu_height));
+	}
+
+	ImGui::SetNextWindowSize(m_board_surface);
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(m_colors.backgroundColor));
 
@@ -1902,20 +2069,25 @@ void BoardView::HandleInput() {
 
 	if (ImGui::IsWindowHovered()) {
 
-		if (ImGui::IsMouseDragging()) {
-			ImVec2 delta = ImGui::GetMouseDragDelta();
-			if ((abs(delta.x) > 500) || (abs(delta.y) > 500)) {
-				delta.x = 0;
-				delta.y = 0;
-			} // If the delta values are crazy just drop them (happens when panning
-			// off screen). 500 arbritary chosen
-			ImGui::ResetMouseDragDelta();
-			ImVec2 td = ScreenToCoord(delta.x, delta.y, 0);
-			m_dx += td.x;
-			m_dy += td.y;
-			m_draggingLastFrame = true;
-			m_needsRedraw       = true;
+		if (ImGui::IsMouseDragging(0)) {
+			if ((m_dragging_token == 0) && (io.MouseClickedPos[0].x < m_board_surface.x)) m_dragging_token = 1; // own it.
+			if (m_dragging_token == 1) {
+				//		   if ((io.MouseClickedPos[0].x < m_info_surface.x)) {
+				ImVec2 delta = ImGui::GetMouseDragDelta();
+				if ((abs(delta.x) > 500) || (abs(delta.y) > 500)) {
+					delta.x = 0;
+					delta.y = 0;
+				} // If the delta values are crazy just drop them (happens when panning
+				// off screen). 500 arbritary chosen
+				ImGui::ResetMouseDragDelta();
+				ImVec2 td = ScreenToCoord(delta.x, delta.y, 0);
+				m_dx += td.x;
+				m_dy += td.y;
+				m_draggingLastFrame = true;
+				m_needsRedraw       = true;
+			}
 		} else {
+			m_dragging_token = 0;
 
 			if (m_lastFileOpenWasInvalid == false) {
 				// Conext menu
@@ -2125,6 +2297,9 @@ void BoardView::HandleInput() {
 				m_wantsQuit = true;
 			}
 
+		} else if (ImGui::IsKeyPressed(SDLK_i)) {
+			showInfoPanel = !showInfoPanel;
+
 		} else if (ImGui::IsKeyPressed(SDLK_l)) {
 			// Show Net List
 			m_showNetList = m_showNetList ? false : true;
@@ -2184,6 +2359,9 @@ void BoardView::ShowPartList(bool *p_open) {
 
 void BoardView::RenderOverlay() {
 
+	if (showInfoPanel) {
+		ShowInfoPane();
+	}
 	// Listing of Net elements
 	if (m_showNetList) {
 		ShowNetList(&m_showNetList);
@@ -2201,6 +2379,45 @@ void BoardView::RenderOverlay() {
  *
  *
  */
+
+void BoardView::CenterZoomNet(string netname) {
+	ImVec2 view = m_board_surface;
+	ImVec2 min, max;
+	int i = 0;
+
+	if (!m_centerZoomNets) return;
+
+	min.x = min.y = FLT_MAX;
+	max.x = max.y = FLT_MIN;
+
+	for (auto pin : m_board->Pins()) {
+		auto pp = pin.get();
+		if (pp->net->name == netname) {
+			auto p                 = pp->position;
+			if (p.x < min.x) min.x = p.x;
+			if (p.y < min.y) min.y = p.y;
+			if (p.x > max.x) max.x = p.x;
+			if (p.y > max.y) max.y = p.y;
+		}
+	}
+
+	// Bounds check!
+	if ((min.x == FLT_MAX) || (min.y == FLT_MAX) || (max.x == FLT_MIN) || (max.y == FLT_MIN)) return;
+
+	if (debug) fprintf(stderr, "CenterzoomNet: bbox[%d]: %0.1f %0.1f - %0.1f %0.1f\n", i, min.x, min.y, max.x, max.y);
+
+	float dx = 1.6f * (max.x - min.x);
+	float dy = 1.6f * (max.y - min.y);
+	float sx = dx > 0 ? view.x / dx : 1.0f;
+	float sy = dy > 0 ? view.y / dy : 1.0f;
+
+	//  m_rotation = 0;
+	m_scale = sx < sy ? sx : sy;
+	m_dx    = (max.x - min.x) / 2 + min.x;
+	m_dy    = (max.y - min.y) / 2 + min.y;
+	SetTarget(m_dx, m_dy);
+	m_needsRedraw = true;
+}
 
 void BoardView::CenterZoomSearchResults(void) {
 	ImVec2 view = ImGui::GetIO().DisplaySize;
@@ -3148,7 +3365,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				ImVec2 text_size    = ImGui::CalcTextSize(text.c_str());
 				ImVec2 mfgcode_size = ImGui::CalcTextSize(mcode.c_str());
 
-				if (mfgcode_size.x > text_size.x) text_size.x = mfgcode_size.x;
+				if ((!showInfoPanel) && (mfgcode_size.x > text_size.x)) text_size.x = mfgcode_size.x;
 
 				float top_y = a.y;
 
@@ -3167,7 +3384,7 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 				                    m_colors.partTextBackgroundColor,
 				                    0.0f);
 				draw->AddText(pos, m_colors.partTextColor, text.c_str());
-				if (mcode.size()) {
+				if ((!showInfoPanel) && (mcode.size())) {
 					//	pos.y += text_size.y;
 					pos.y += text_size.y + DPIF(2.0f);
 					draw->AddRectFilled(ImVec2(pos.x - DPIF(2.0f), pos.y - DPIF(2.0f)),
@@ -3507,7 +3724,8 @@ int qsort_netstrings(const void *a, const void *b) {
  *
  */
 void BoardView::CenterView(void) {
-	ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
+	ImVec2 view = m_board_surface;
 
 	float dx = 1.1f * (m_boardWidth);
 	float dy = 1.1f * (m_boardHeight);
@@ -3537,7 +3755,8 @@ void BoardView::SetFile(BRDFile *file) {
 		if (pa.y > max_y) max_y = pa.y;
 	}
 
-	ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
+	ImVec2 view = m_board_surface;
 
 	m_mx = (float)(min_x + max_x) / 2.0f;
 	m_my = (float)(min_y + max_y) / 2.0f;
@@ -3678,7 +3897,8 @@ void BoardView::Mirror(void) {
 }
 
 void BoardView::SetTarget(float x, float y) {
-	ImVec2 view  = ImGui::GetIO().DisplaySize;
+	// ImVec2 view  = ImGui::GetIO().DisplaySize;
+	ImVec2 view  = m_board_surface;
 	ImVec2 coord = ScreenToCoord(view.x / 2.0f, view.y / 2.0f);
 	m_dx += coord.x - x;
 	m_dy += coord.y - y;
@@ -3695,7 +3915,8 @@ inline bool BoardView::ComponentIsVisible(const Component *part) {
 }
 
 inline bool BoardView::IsVisibleScreen(float x, float y, float radius, const ImGuiIO &io) {
-	if (x < -radius || y < -radius || x - radius > io.DisplaySize.x || y - radius > io.DisplaySize.y) return false;
+	// if (x < -radius || y < -radius || x - radius > io.DisplaySize.x || y - radius > io.DisplaySize.y) return false;
+	if (x < -radius || y < -radius || x - radius > m_board_surface.x || y - radius > m_board_surface.y) return false;
 	return true;
 }
 
@@ -3748,6 +3969,23 @@ char *strcasestr(const char *str, const char *pattern) {
 }
 #endif
 
+bool BoardView::strstrModeSearch(const char *haystack, const char *needle) {
+
+	size_t nl = strlen(needle);
+	size_t hl = strlen(haystack);
+	const char *sr;
+
+	sr = strcasestr(haystack, needle);
+	if (sr) {
+		if ((m_searchMode == searchModeSub) || ((m_searchMode == searchModePrefix) && (sr == haystack)) ||
+		    ((m_searchMode == searchModeWhole) && (sr == haystack) && (nl == hl))) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void BoardView::FindNetNoClear(const char *name) {
 
 	if (!m_file || !m_board || !(*name)) return;
@@ -3755,7 +3993,7 @@ void BoardView::FindNetNoClear(const char *name) {
 	if (*name) {
 
 		for (auto net : m_board->Nets()) {
-			if (strcasestr(net->name.c_str(), name)) {
+			if (strstrModeSearch(net->name.c_str(), name)) {
 				for (auto pin : net->pins) {
 					m_pinHighlighted.push_back(pin);
 				}
@@ -3776,7 +4014,9 @@ void BoardView::FindComponentNoClear(const char *name) {
 		Component *part_found = nullptr;
 
 		for (auto &component : m_board->Components()) {
-			if (strcasestr(component->name.c_str(), name)) {
+			const char *haystack = component->name.c_str();
+
+			if (strstrModeSearch(haystack, name)) {
 				auto p = component.get();
 				m_partHighlighted.push_back(p);
 				part_found = p;
@@ -3824,7 +4064,8 @@ void BoardView::SetLastFileOpenName(const std::string &name) {
 
 void BoardView::FlipBoard(int mode) {
 	ImVec2 mpos = ImGui::GetMousePos();
-	ImVec2 view = ImGui::GetIO().DisplaySize;
+	// ImVec2 view = ImGui::GetIO().DisplaySize;
+	ImVec2 view = m_board_surface;
 	ImVec2 bpos = ScreenToCoord(mpos.x, mpos.y);
 	auto io     = ImGui::GetIO();
 

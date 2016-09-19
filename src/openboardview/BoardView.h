@@ -104,6 +104,7 @@ enum DrawChannel {
 };
 
 enum FlipModes { flipModeVP = 0, flipModeMP = 1, NUM_FLIP_MODES };
+enum SearchModes { searchModeSub, searchModePrefix, searchModeWhole };
 
 struct BoardView {
 	BRDFile *m_file;
@@ -131,6 +132,7 @@ struct BoardView {
 	bool slowCPU              = false;
 	bool showFPS              = false;
 	bool showNetWeb           = true;
+	bool showInfoPanel        = true;
 	bool showPins             = true;
 	bool showAnnotations      = true;
 	bool pinHalo              = true;
@@ -158,13 +160,16 @@ struct BoardView {
 	void SetFZKey(const char *keytext);
 	void HelpAbout(void);
 	void HelpControls(void);
-	void SearchColumnGenerate(char *search, int buttons_max);
+	void SearchColumnGenerate(char *title, char *search, int buttons_max);
 	void Preferences(void);
 	void ColorPreferencesItem(
 	    const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c);
 	void ColorPreferences(void);
 	bool AnyItemVisible(void);
 	void ThemeSetStyle(const char *name);
+
+	bool m_centerZoomNets = true;
+	void CenterZoomNet(string netname);
 
 	bool m_centerZoomSearchResults = true;
 	void CenterZoomSearchResults(void);
@@ -184,6 +189,9 @@ struct BoardView {
 	int m_hoverframes             = 0;
 	ImVec2 m_previous_mouse_pos;
 
+	/* Info/Side Pane */
+	void ShowInfoPane(void);
+
 	bool HighlightedPinIsHovered(void);
 	Pin *m_pinHighlightedHovered    = nullptr;
 	Pin *currentlyHoveredPin        = nullptr;
@@ -201,10 +209,11 @@ struct BoardView {
 	char m_search2[128];
 	char m_search3[128];
 	char m_netFilter[128];
+	int m_searchMode = searchModeSub;
 	std::string m_lastFileOpenName;
 	float m_dx; // display top-right coordinate?
 	float m_dy;
-	float m_mx; // board *maxiumum* size? scaled relative to m_boardwidth/height
+	float m_mx; // board MID POINTS
 	float m_my;
 	float m_scale = 1.0f;
 	float m_lastWidth; // previously checked on-screen window size; use to redraw
@@ -214,6 +223,11 @@ struct BoardView {
 	int m_current_side;
 	int m_boardWidth; // board size in what coordinates? thou?
 	int m_boardHeight;
+	float m_menu_height;
+	float m_status_height;
+	ImVec2 m_board_surface;
+	ImVec2 m_info_surface;
+	int m_dragging_token = 0; // 1 = board window, 2 = side pane
 
 	ColorScheme m_colors;
 
@@ -284,6 +298,7 @@ struct BoardView {
 	// ImGuiIO screen rect.
 	// bool IsVisibleScreen(float x, float y, float radius = 0.0f);
 
+	bool strstrModeSearch(const char *haystack, const char *needle);
 	bool PartIsHighlighted(const Component &component);
 	void FindNet(const char *net);
 	void FindNetNoClear(const char *name);
