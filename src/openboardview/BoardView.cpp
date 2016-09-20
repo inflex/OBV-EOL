@@ -258,7 +258,7 @@ int BoardView::ConfigParse(void) {
 
 	showFPS                   = obvconfig.ParseBool("showFPS", false);
 	showInfoPanel             = obvconfig.ParseBool("showInfoPanel", true);
-	m_info_surface.x		  = obvconfig.ParseInt("infoPanelWidth", 350);
+	m_info_surface.x          = obvconfig.ParseInt("infoPanelWidth", 350);
 	showPins                  = obvconfig.ParseBool("showPins", true);
 	showNetWeb                = obvconfig.ParseBool("showNetWeb", true);
 	showAnnotations           = obvconfig.ParseBool("showAnnotations", true);
@@ -1046,17 +1046,18 @@ void BoardView::ShowInfoPane(void) {
 	             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
 	                 ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoSavedSettings);
 
-	if ((m_dragging_token == 0) && (io.MousePos.x > m_board_surface.x) && (io.MousePos.x < (m_board_surface.x +DPIF(12.0f)))) {
-			ImDrawList *draw = ImGui::GetWindowDrawList();
-			draw->AddRectFilled(ImVec2(m_board_surface.x, m_menu_height), ImVec2(m_board_surface.x +DPIF(12.0f), m_board_surface.y +m_menu_height), ImColor(0x88888888));
-//			DrawHex( draw, io.MousePos, DPIF(10.0f), ImColor(0xFF0000FF) );
+	if ((m_dragging_token == 0) && (io.MousePos.x > m_board_surface.x) && (io.MousePos.x < (m_board_surface.x + DPIF(12.0f)))) {
+		ImDrawList *draw = ImGui::GetWindowDrawList();
+		draw->AddRectFilled(ImVec2(m_board_surface.x, m_menu_height),
+		                    ImVec2(m_board_surface.x + DPIF(12.0f), m_board_surface.y + m_menu_height),
+		                    ImColor(0x88888888));
+		//			DrawHex( draw, io.MousePos, DPIF(10.0f), ImColor(0xFF0000FF) );
 	}
 
 	if (ImGui::IsMouseDragging(0)) {
-		if (
-				(m_dragging_token == 0) && (io.MouseClickedPos[0].x > m_board_surface.x)
-				&& (io.MouseClickedPos[0].x < (m_board_surface.x +DPIF(20.0f)))
-				) m_dragging_token = 2; // own it.
+		if ((m_dragging_token == 0) && (io.MouseClickedPos[0].x > m_board_surface.x) &&
+		    (io.MouseClickedPos[0].x < (m_board_surface.x + DPIF(20.0f))))
+			m_dragging_token = 2; // own it.
 		if (m_dragging_token == 2) {
 			ImVec2 delta = ImGui::GetMouseDragDelta();
 			if ((abs(delta.x) > 500) || (abs(delta.y) > 500)) {
@@ -1081,7 +1082,7 @@ void BoardView::ShowInfoPane(void) {
 	}
 
 	if (m_board) {
-		RA("Statistics", m_info_surface.x -DPIF(20.0f));
+		RA("Statistics", m_info_surface.x - DPIF(20.0f));
 		ImGui::Text("Pins: %ld", m_board->Pins().size());
 		ImGui::Text("Parts: %ld", m_board->Components().size());
 		ImGui::Text("Parts: %ld", m_board->Nets().size());
@@ -1121,9 +1122,9 @@ void BoardView::ShowInfoPane(void) {
 			ImGui::PushItemWidth(-1);
 			std::string str = std::string("##") + part->name;
 			ImVec2 listSize;
-				int pc = part->pins.size();
-				if (pc > 20) pc = 20;
-				listSize = ImVec2(-1, pc *ImGui::GetFontSize() *1.45);
+			int pc          = part->pins.size();
+			if (pc > 20) pc = 20;
+			listSize        = ImVec2(-1, pc * ImGui::GetFontSize() * 1.45);
 			ImGui::ListBoxHeader(str.c_str(), listSize); //, ImVec2(m_board_surface.x/3 -5, m_board_surface.y/2));
 			for (auto pin : part->pins) {
 				char ss[1024];
