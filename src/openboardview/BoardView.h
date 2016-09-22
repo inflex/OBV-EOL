@@ -120,7 +120,7 @@ struct BoardView {
 	int history_file_has_changed = 0;
 	int dpi                      = 0;
 	double dpiscale              = 1.0f;
-	double fontSize				= 20.0f;
+	double fontSize              = 20.0f;
 	float zoomFactor             = 0.5f;
 	int zoomModifier             = 5;
 	int panFactor                = 30;
@@ -191,7 +191,7 @@ struct BoardView {
 	bool m_annotationnew_retain   = false;
 	bool m_annotationedit_retain  = false;
 	bool m_tooltips_enabled       = true;
-	bool m_parent_occluded	= false;
+	bool m_parent_occluded        = false;
 	int m_annotation_last_hovered = 0;
 	int m_annotation_clicked_id   = 0;
 	int m_hoverframes             = 0;

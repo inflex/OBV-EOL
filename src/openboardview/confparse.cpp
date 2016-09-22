@@ -212,7 +212,7 @@ int Confparse::SaveDefault(const std::string &utf8_filename) {
 
 	nested = true;
 	if (file.is_open()) {
-		file.write(default_conf, sizeof(default_conf)-1);
+		file.write(default_conf, sizeof(default_conf) - 1);
 		file.close();
 		Load(utf8_filename);
 
