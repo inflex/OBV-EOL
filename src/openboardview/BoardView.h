@@ -209,7 +209,7 @@ struct BoardView {
 	ImVec2 m_showContextMenuPos;
 
 	Pin *m_pinSelected = nullptr;
-//	vector<Net *> m_netHiglighted;
+	//	vector<Net *> m_netHiglighted;
 	vector<Pin *> m_pinHighlighted;
 	vector<Component *> m_partHighlighted;
 	char m_cachedDrawList[sizeof(ImDrawList)];
@@ -287,6 +287,7 @@ struct BoardView {
 	void DrawPins(ImDrawList *draw);
 	void DrawParts(ImDrawList *draw);
 	void DrawBoard();
+	void DrawSelectedWeb(ImDrawList *draw);
 	void DrawNetWeb(ImDrawList *draw);
 	void SetFile(BRDFile *file);
 	int LoadFile(const std::string &filename);
