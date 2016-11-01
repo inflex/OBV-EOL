@@ -142,6 +142,7 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 				part_idx = brd_pin.part;
 				pin_idx  = 1;
 			}
+
 			if (brd_pin.snum)
 				pin->number = brd_pin.snum;
 			else

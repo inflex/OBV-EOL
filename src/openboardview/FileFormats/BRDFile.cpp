@@ -93,11 +93,13 @@ bool BRDFile::verifyFormat(std::vector<char> &buf) {
 }
 
 BRDFile::BRDFile(std::vector<char> &buf) {
+	bool oddformat = false;
 	auto buffer_size = buf.size();
 	ENSURE(buffer_size > 4);
 	size_t file_buf_size = 3 * (1 + buffer_size);
 	file_buf             = (char *)calloc(1, file_buf_size);
 	ENSURE(file_buf != nullptr);
+
 
 	std::copy(buf.begin(), buf.end(), file_buf);
 	file_buf[buffer_size] = 0;
@@ -126,30 +128,31 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 	while (*lines) {
 		char *line = *lines;
 		++lines;
+	//	fprintf(stdout,"%s\n",line);
 
 		while (isspace((uint8_t)*line)) line++;
 		if (!line[0]) continue;
-		if (!strcmp(line, "str_length:")) {
+		if (!strcasecmp(line, "str_length:")) {
 			current_block = 1;
 			continue;
 		}
-		if (!strcmp(line, "var_data:")) {
+		if (!strcasecmp(line, "var_data:")) {
 			current_block = 2;
 			continue;
 		}
-		if (!strcmp(line, "Format:")) {
+		if (!strcasecmp(line, "Format:")) {
 			current_block = 3;
 			continue;
 		}
-		if (!strcmp(line, "Parts:")) {
+		if ((!strcasecmp(line, "Parts:")) || (!strcasecmp(line, "Pins1:"))) {
 			current_block = 4;
 			continue;
 		}
-		if (!strcmp(line, "Pins:")) {
+		if ((!strcasecmp(line, "Pins:")) || (!strcasecmp(line,  "Pins2:"))) {
 			current_block = 5;
 			continue;
 		}
-		if (!strcmp(line, "Nails:")) {
+		if (!strcasecmp(line, "Nails:")) {
 			current_block = 6;
 			continue;
 		}
@@ -176,7 +179,13 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 				BRDPart part;
 				part.name        = READ_STR();
 				part.type        = READ_UINT(); // Type and layer, actually.
-				part.end_of_pins = READ_UINT();
+				part.end_of_pins = READ_UINT(); // Last pin of the part.
+				if (parts.size()) {
+				   	if (oddformat) parts.back().end_of_pins = part.end_of_pins;
+				} else {
+					if (part.end_of_pins == 0) oddformat = true;
+				}
+
 				ENSURE(part.end_of_pins <= num_pins);
 				parts.push_back(part);
 			} break;
@@ -188,7 +197,7 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 				pin.probe = READ_INT(); // Can be negative (-99)
 				pin.part  = READ_UINT();
 				ENSURE(pin.part <= num_parts);
-				pin.net = READ_STR();
+				if (!oddformat) pin.net = READ_STR();
 				pins.push_back(pin);
 			} break;
 			case 6: { // Nails
@@ -199,9 +208,41 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 				nail.pos.y = READ_INT();
 				nail.side  = READ_UINT();
 				nail.net   = READ_STR();
+				//fprintf(stderr,"%d:%s\n", nails.size(), nail.net);
 				nails.push_back(nail);
 			} break;
 		}
 	}
+
+	if (oddformat) {
+//		fprintf(stderr,"ODDFORMAT\n");
+	   	parts.back().end_of_pins = num_pins;
+
+		// Map the networks
+		for (auto &p : pins) {
+//			fprintf(stderr,"p.probe = %d\n", p.probe);
+
+			if (p.probe) {
+			   	p.net = nails.at(p.probe -1).net;
+//				fprintf(stderr,"Map: %d -> %s\n", p.probe, nails.at(p.probe -1).net);
+			}
+			else p.net = "";
+
+		}
+
+		// Map the pins to parts
+		uint32_t lpp = 1;
+		uint32_t pix = 1;
+		for (auto &p : parts) {
+			while (lpp < p.end_of_pins) {
+				pins.at(lpp).part = pix;
+				lpp++;
+			}
+			pix++;
+		}
+	}
+
+//	fprintf(stderr,"format: %d, parts %d, pins %d, nails %d\n", format.size(), parts.size(), pins.size(), nails.size());
+
 	valid = current_block != 0;
 }
