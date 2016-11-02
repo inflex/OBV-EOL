@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Board.h"
+#include "Searcher.h"
+#include "SpellCorrector.h"
 #include "annotations.h"
 #include "confparse.h"
 #include "history.h"
 #include "imgui/imgui.h"
-#include "Searcher.h"
-#include "SpellCorrector.h"
 #include <stdint.h>
 #include <vector>
 
@@ -170,8 +170,12 @@ struct BoardView {
 	void SetFZKey(const char *keytext);
 	void HelpAbout(void);
 	void HelpControls(void);
-	template<class T> void ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
-	void SearchColumnGenerate(const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit);
+	template <class T>
+	void ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
+	void SearchColumnGenerate(const std::string &title,
+	                          std::pair<SharedVector<Component>, SharedVector<Net>> results,
+	                          char *search,
+	                          int limit);
 	void Preferences(void);
 	void SaveAllColors(void);
 	void ColorPreferencesItem(
@@ -322,7 +326,6 @@ struct BoardView {
 	void SearchCompound(const char *item);
 	void SearchCompoundNoClear(const char *item);
 	std::pair<SharedVector<Component>, SharedVector<Net>> SearchPartsAndNets(const char *search, int limit);
-
 
 	void SetLastFileOpenName(const std::string &name);
 	void FlipBoard(int mode = 0);

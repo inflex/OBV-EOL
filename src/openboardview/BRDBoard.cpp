@@ -116,8 +116,8 @@ BRDBoard::BRDBoard(const BRDFile *const boardFile)
 
 		for (size_t i = 0; i < pins.size(); i++) {
 			// (originally from BoardView::DrawPins)
-			const BRDPin &brd_pin = pins[i];
-			std::shared_ptr<Component> comp       = components_[brd_pin.part - 1];
+			const BRDPin &brd_pin           = pins[i];
+			std::shared_ptr<Component> comp = components_[brd_pin.part - 1];
 
 			if (!comp) continue;
 
