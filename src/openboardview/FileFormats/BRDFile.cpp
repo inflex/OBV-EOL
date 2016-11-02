@@ -226,7 +226,7 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 			   	p.net = nails.at(p.probe -1).net;
 //				fprintf(stderr,"Map: %d -> %s\n", p.probe, nails.at(p.probe -1).net);
 			}
-			else p.net = "";
+			else p.net = ""; //FIXME: Is this permittable? Needed to invoke the Unconnected status for when probe# is 0.
 
 		}
 

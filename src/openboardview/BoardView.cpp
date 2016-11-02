@@ -2120,8 +2120,13 @@ void BoardView::Update() {
 
 		{
 			if (m_validBoard) {
+				uint32_t cpx  = ImGui::GetCursorPosX();
+				uint32_t ww = ImGui::GetWindowWidth();
+				uint32_t rw = ww -cpx; // width available for our text
 				ImVec2 s = ImGui::CalcTextSize(fhistory.history[0]);
-				ImGui::SameLine(ImGui::GetWindowWidth() - s.x - 20);
+
+				if (s.x > rw) ImGui::SameLine( 0.0, 20 );
+				else ImGui::SameLine(ww - s.x - 20);
 				ImGui::Text("%s", fhistory.history[0]);
 				ImGui::SameLine();
 			}
