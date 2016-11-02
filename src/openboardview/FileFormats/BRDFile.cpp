@@ -225,7 +225,7 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 				p.net = nails.at(p.probe - 1).net;
 				//				fprintf(stderr,"Map: %d -> %s\n", p.probe, nails.at(p.probe -1).net);
 			} else
-				p.net = ""; // FIXME: Is this permittable? Needed to invoke the Unconnected status for when probe# is 0.
+				p.net = ""; // This needs to be set if there's no net so that BRDBoard.cpp will assign to an unconnected.
 		}
 
 		// Map the pins to parts
