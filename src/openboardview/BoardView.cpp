@@ -2125,9 +2125,23 @@ void BoardView::Update() {
 				uint32_t rw = ww -cpx; // width available for our text
 				ImVec2 s = ImGui::CalcTextSize(fhistory.history[0]);
 
-				if (s.x > rw) ImGui::SameLine( 0.0, 20 );
-				else ImGui::SameLine(ww - s.x - 20);
-				ImGui::Text("%s", fhistory.history[0]);
+				if ((rw > 20) && (s.x > rw)) {
+					char *p = fhistory.history[0];
+					int l = strlen(p);
+					int offset;
+
+					offset = (((s.x -rw) *13 / s.x) *l) / 10; // overallocate, to compensate for non-monospace font
+					if (offset < l) {
+						p += offset;
+						s = ImGui::CalcTextSize(p);
+						ImGui::SameLine( ww - s.x - 20 );
+						ImGui::Text("...%s", p);
+					}
+
+				} else {
+				   	ImGui::SameLine(ww - s.x - 20);
+					ImGui::Text("%s", fhistory.history[0]);
+				}
 				ImGui::SameLine();
 			}
 		}
