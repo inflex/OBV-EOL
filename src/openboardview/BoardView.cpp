@@ -4043,7 +4043,6 @@ int qsort_netstrings(const void *a, const void *b) {
  *
  */
 void BoardView::CenterView(void) {
-	// ImVec2 view = ImGui::GetIO().DisplaySize;
 	ImVec2 view = m_board_surface;
 
 	float dx = 1.1f * (m_boardWidth);
@@ -4229,7 +4228,7 @@ void BoardView::Mirror(void) {
 void BoardView::SetTarget(float x, float y) {
 	// ImVec2 view  = ImGui::GetIO().DisplaySize;
 	ImVec2 view  = m_board_surface;
-	ImVec2 coord = ScreenToCoord(view.x / 2.0f, view.y / 2.0f);
+	ImVec2 coord = ScreenToCoord(view.x / 2.0f, (view.y +m_menu_height +m_status_height) / 2.0f);
 	m_dx += coord.x - x;
 	m_dy += coord.y - y;
 }
