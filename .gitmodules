@@ -12,3 +12,6 @@
 	path = src/imgui
 	url = http://github.com/inflex/imgui
 	branch = master
+[submodule "src/tinyxml2"]
+	path = src/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
