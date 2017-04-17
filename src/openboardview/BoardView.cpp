@@ -286,6 +286,9 @@ int BoardView::ConfigParse(void) {
 	showAnnotations           = obvconfig.ParseBool("showAnnotations", true);
 	fillParts                 = obvconfig.ParseBool("fillParts", true);
 	m_centerZoomSearchResults = obvconfig.ParseBool("centerZoomSearchResults", true);
+	searchColumns			  = obvconfig.ParseInt("searchColumns", 3);
+	if (searchColumns > SEARCH_COLUMNS_MAX) { searchColumns = SEARCH_COLUMNS_MAX; }
+	if (searchColumns < 1) { searchColumns = 1; }
 	flipMode                  = obvconfig.ParseInt("flipMode", 0);
 
 	boardFill        = obvconfig.ParseBool("boardFill", true);
@@ -834,6 +837,14 @@ void BoardView::Preferences(void) {
 		if (ImGui::InputFloat("##partZoomScaleOutFactor", &partZoomScaleOutFactor)) {
 			if (partZoomScaleOutFactor < 1.1) partZoomScaleOutFactor = 1.1;
 			obvconfig.WriteFloat("partZoomScaleOutFactor", partZoomScaleOutFactor);
+		}
+
+		RA("Search Columns", DPI(200));
+		ImGui::SameLine();
+		if (ImGui::InputInt("##searchColumns", &searchColumns)) {
+			if (searchColumns > SEARCH_COLUMNS_MAX) { searchColumns = SEARCH_COLUMNS_MAX; }
+			if (searchColumns < 1) { searchColumns = 1; }
+			obvconfig.WriteInt("searchColumns", searchColumns);
 		}
 
 		if (ImGui::Checkbox("Center/Zoom Search Results", &m_centerZoomSearchResults)) {
@@ -1609,32 +1620,37 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 
 void BoardView::SearchComponent(void) {
 	bool dummy = true;
+	char *first_button[SEARCH_COLUMNS_MAX];
 
 	ImGui::SetNextWindowPos(ImVec2(-FLT_MAX, DPI(100))); // FIXME This will need changing in the future when ImGui gets proper
 	                                                     // per-axis centering ( see https://github.com/ocornut/imgui/issues/770 )
-	// ImGui::SetNextWindowPosCenter();
+														 //
 	if (ImGui::BeginPopupModal("Search for Component / Network",
 	                           &dummy,
 	                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
 	                               ImGuiWindowFlags_ShowBorders)) {
-		//		char cs[128];
-		const char *first_button[] = { m_search[0], m_search[1], m_search[2] };
+		{
+			int x;
+			for (x = 0; x < searchColumns; x++) {
+				first_button[x] = m_search[x];
+			}
+		}
 
 		if (m_showSearch) {
 			m_showSearch       = false;
 			m_tooltips_enabled = false;
-			//			fprintf(stderr, "Tooltips disabled\n");
 		}
 
 		// Column 1, implied.
 		//
 		//
 		if (ImGui::Button("Search")) {
+			int x;
 			// FindComponent(first_button);
 			m_tooltips_enabled = true;
 			SearchCompound(first_button[0]);
-			SearchCompoundNoClear(first_button[1]);
-			SearchCompoundNoClear(first_button[2]);
+			for (x = 1; x < searchColumns; x++) { SearchCompoundNoClear(first_button[x]); }
+//			SearchCompoundNoClear(first_button[2]);
 			CenterZoomSearchResults();
 			ImGui::CloseCurrentPopup();
 		} // search button
@@ -1642,15 +1658,14 @@ void BoardView::SearchComponent(void) {
 		ImGui::SameLine();
 		if (ImGui::Button("Reset")) {
 			FindComponent("");
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < searchColumns; i++)
 				m_search[i][0]  = '\0';
 		} // reset button
 
 		ImGui::SameLine();
 		if (ImGui::Button("Exit") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
 			FindComponent("");
-			for (int i = 0; i < 3; i++)
-				m_search[i][0]  = '\0';
+			for (int i = 0; i < searchColumns; i++) { m_search[i][0]  = '\0'; }
 			m_tooltips_enabled = true;
 			ImGui::CloseCurrentPopup();
 		} // exit button
@@ -1661,7 +1676,9 @@ void BoardView::SearchComponent(void) {
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
 
-		ImGui::Separator();
+//		ImGui::SameLine();
+
+//		ImGui::Separator();
 		ImGui::Checkbox("Components", &m_searchComponents);
 
 		ImGui::SameLine();
@@ -1679,18 +1696,21 @@ void BoardView::SearchComponent(void) {
 				searcher.setMode(SearchMode::Prefix);
 			}
 			ImGui::SameLine();
-			ImGui::PushItemWidth(-1);
+			//ImGui::PushItemWidth(-1);
 			if (ImGui::RadioButton("Whole", searcher.isMode(SearchMode::Whole))) {
 				searcher.setMode(SearchMode::Whole);
 			}
-			ImGui::PopItemWidth();
+			//ImGui::PopItemWidth();
+			ImGui::SameLine();
+			ImGui::Dummy(ImVec2(DPI(100*(searchColumns -3)), 1));
 		}
 
-		ImGui::Separator();
+//		ImGui::Separator();
 
-		ImGui::Columns(3);
 
-		for (int i = 1; i <= 3; i++) {
+		ImGui::Columns(searchColumns); // define how many columns are in the dialog box for searching
+
+		for (int i = 1; i <= searchColumns; i++) {
 			std::string istr = std::to_string(i);
 			std::string title = "Item #" + istr;
 			std::string searchLabel = "##search" + istr;
@@ -1717,8 +1737,9 @@ void BoardView::SearchComponent(void) {
 			ImGui::PushItemWidth(-1);
 			if (searching) SearchColumnGenerate("##SC" + istr, results, m_search[i-1], 30);
 			ImGui::PopItemWidth();
-			if (i == 1) ImGui::PushItemWidth(DPI(500));
-			else if (i == 2) ImGui::PopItemWidth();
+			//if (i == 1) ImGui::PushItemWidth(DPI(500 +((searchColumns-3) *150)));
+//			if (i == 1) ImGui::PushItemWidth(DPI(800));
+//			else if (i == 2) ImGui::PopItemWidth();
 
 			ImGui::NextColumn();
 		}
@@ -1726,16 +1747,18 @@ void BoardView::SearchComponent(void) {
 		ImGui::PopItemWidth();
 
 		ImGui::Columns(1); // reset back to single column mode
-		ImGui::Separator();
+//		ImGui::Separator();
 
 		// Enter and Esc close the search:
 		if (ImGui::IsKeyPressed(SDLK_RETURN)) {
+			int x;
 			// SearchCompound(first_button);
 			// SearchCompoundNoClear(first_button2);
 			// SearchCompoundNoClear(first_button3);
 			SearchCompound(m_search[0]);
-			SearchCompoundNoClear(m_search[1]);
-			SearchCompoundNoClear(m_search[2]);
+			for (x = 1; x < searchColumns; x++) { SearchCompoundNoClear(first_button[x]); }
+			//SearchCompoundNoClear(m_search[1]);
+			//SearchCompoundNoClear(m_search[2]);
 			CenterZoomSearchResults();
 			ImGui::CloseCurrentPopup();
 			m_tooltips_enabled = true;
@@ -1752,9 +1775,15 @@ void BoardView::ClearAllHighlights(void) {
 	m_pinSelected = nullptr;
 	FindNet("");
 	FindComponent("");
+
+
+	memset(m_search, '\0', sizeof(m_search));
+	/*
 	m_search[0][0]                                              = '\0';
 	m_search[1][0]                                             = '\0';
 	m_search[2][0]                                             = '\0';
+	*/
+
 	m_needsRedraw                                            = true;
 	m_tooltips_enabled                                       = true;
 	for (auto part : m_board->Components()) part->visualmode = part->CVMNormal;

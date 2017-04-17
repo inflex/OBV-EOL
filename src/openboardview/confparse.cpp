@@ -55,6 +55,7 @@ zoomModifier = 5\r\n\
 panFactor = 30\r\n\
 panModifier = 5\r\n\
 \r\n\
+searchColumns = 4\r\n\
 centerZoomSearchResults = true\r\n\
 infoPanelCenterZoomNets = true\r\n\
 infoPanelSelectPartsOnNet = true\r\n\

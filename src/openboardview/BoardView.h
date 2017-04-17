@@ -13,6 +13,8 @@
 #define DPIF(x) (((x)*dpi) / 100.f)
 #define DPI(x) (((x)*dpi) / 100)
 
+#define SEARCH_COLUMNS_MAX 5
+
 struct BRDPart;
 class BRDFile;
 
@@ -135,6 +137,8 @@ struct BoardView {
 	int annotationBoxOffset = 10;
 	int annotationBoxSize   = 10;
 
+	int searchColumns = 3;
+
 	float pinSizeThresholdLow = 0.0f;
 	bool pinShapeSquare       = false;
 	bool pinShapeCircle       = true;
@@ -220,7 +224,7 @@ struct BoardView {
 	char m_cachedDrawList[sizeof(ImDrawList)];
 	ImVector<char> m_cachedDrawCommands;
 	SharedVector<Net> m_nets;
-	char m_search[3][128];
+	char m_search[SEARCH_COLUMNS_MAX][128];
 	char m_netFilter[128];
 	std::string m_lastFileOpenName;
 	float m_dx; // display top-right coordinate?
