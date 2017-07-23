@@ -1,5 +1,7 @@
-cmake_policy(SET CMP0048 OLD)
-set(PROJECT_VERSION "R7.3")
+if(POLICY CMP0048)
+	cmake_policy(SET CMP0048 OLD)
+endif()
+set(PROJECT_VERSION "R7.4")
 project(OpenBoardView)
 cmake_minimum_required(VERSION 2.8.9)
 
@@ -11,34 +13,40 @@ if(DEFINED ENV{TERM})
 endif()
 
 # Build info
-execute_process(
-	COMMAND git rev-list HEAD --count
-	OUTPUT_VARIABLE GIT_REVISION
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-execute_process(
-	COMMAND git name-rev --name-only HEAD
-	OUTPUT_VARIABLE GIT_BRANCH
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-execute_process(
-	COMMAND git config branch.${GIT_BRANCH}.remote
-	OUTPUT_VARIABLE GIT_REMOTE
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-execute_process(
-	COMMAND git config remote.${GIT_REMOTE}.url
-	OUTPUT_VARIABLE GIT_URL
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-string(REGEX REPLACE ".*/(.+)/.+$" "\\1" GIT_REPO "${GIT_URL}") # Extract the user from a Github repo URL
-set(OBV_BUILD "R${GIT_REVISION} ${GIT_REPO}/${GIT_BRANCH}")
+if (NOT DEFINED OBV_BUILD)
+	if(EXISTS "${PROJECT_SOURCE_DIR}/.git/")
+		execute_process(
+			COMMAND git rev-list HEAD --count
+			OUTPUT_VARIABLE GIT_REVISION
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		execute_process(
+			COMMAND git name-rev --name-only HEAD
+			OUTPUT_VARIABLE GIT_BRANCH
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		execute_process(
+			COMMAND git config branch.${GIT_BRANCH}.remote
+			OUTPUT_VARIABLE GIT_REMOTE
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		execute_process(
+			COMMAND git config remote.${GIT_REMOTE}.url
+			OUTPUT_VARIABLE GIT_URL
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+		string(REGEX REPLACE ".*/(.+)/.+$" "\\1" GIT_REPO "${GIT_URL}") # Extract the user from a Github repo URL
+		set(OBV_BUILD "R${GIT_REVISION} ${GIT_REPO}/${GIT_BRANCH}")
+	else()
+		set(OBV_BUILD "${PROJECT_VERSION}")
+	endif()
+endif()
 message("${PROJECT_NAME} release:${CGreenB} ${OBV_BUILD}${CReset}")
 
 # GCC version check
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-		message(FATAL_ERROR "GCC version needs to be >= 4.9")
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
+		message(FATAL_ERROR "GCC version needs to be >= 4.8")
 	endif()
 endif()
 
@@ -65,7 +73,7 @@ endif()
 set(CMAKE_MACOSX_RPATH ON)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror=format-security")
 if(NOT MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")

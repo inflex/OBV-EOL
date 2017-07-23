@@ -1714,7 +1714,7 @@ void BoardView::SearchComponent(void) {
 			std::string istr = std::to_string(i);
 			std::string title = "Item #" + istr;
 			std::string searchLabel = "##search" + istr;
-			ImGui::Text(title.c_str());
+			ImGui::Text("%s", title.c_str());
 
 			ImGui::PushItemWidth(-1);
 
