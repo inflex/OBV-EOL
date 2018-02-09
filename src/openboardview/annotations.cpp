@@ -43,6 +43,14 @@ int Annotations::Init(void) {
 	    "SIDE INTEGER,"
 	    "NOTE TEXT );";
 
+	char sql_table_start_state_create = 
+		"CREATE TABLE startstate("
+		"posx integer,"
+		"posy integer,"
+		"side integer,"
+		"zoom integer"
+		");";
+
 	if (!sqldb) return 1;
 
 	/* Execute SQL statement */
@@ -51,7 +59,15 @@ int Annotations::Init(void) {
 		if (debug) fprintf(stderr, "SQL error: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);
 	} else {
-		if (debug) fprintf(stdout, "Table created successfully\n");
+		if (debug) fprintf(stdout, "Annotations table created successfully\n");
+	}
+
+	rc = sqlite3_exec(sqldb, sql_table_start_state_create, NULL, 0, &zErrMsg);
+	if (rc != SQLITE_OK) {
+		if (debug) fprintf(stderr, "SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+	} else {
+		if (debug) fprintf(stdout, "Start state table created successfully\n");
 	}
 
 	return 0;
