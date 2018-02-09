@@ -43,7 +43,7 @@ int Annotations::Init(void) {
 	    "SIDE INTEGER,"
 	    "NOTE TEXT );";
 
-	char sql_table_start_state_create = 
+	char sql_table_start_state_create[] = 
 		"CREATE TABLE startstate("
 		"posx integer,"
 		"posy integer,"

@@ -714,6 +714,7 @@ void BoardView::ColorPreferences(void) {
 
 void BoardView::Preferences(void) {
 	bool dummy = true;
+	char s[1024];
 	//	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(0xffe0e0e0));
 	ImGui::SetNextWindowPosCenter();
 	if (ImGui::BeginPopupModal("Preferences", &dummy, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -722,6 +723,9 @@ void BoardView::Preferences(void) {
 			m_showPreferences  = false;
 			m_tooltips_enabled = false;
 		}
+
+		ImGui::Text("Config File: %s", obvconfig.filename.c_str());
+		ImGui::NewLine();
 
 		t = obvconfig.ParseInt("windowX", 1100);
 		RA("Window Width", DPI(200));
@@ -1167,7 +1171,7 @@ void BoardView::ShowInfoPane(void) {
 
 	if (m_partHighlighted.size()) {
 		ImGui::Separator();
-		ImGui::Text("%d parts selected", m_partHighlighted.size());
+		ImGui::Text("%ld parts selected", m_partHighlighted.size());
 
 		for (auto part : m_partHighlighted) {
 
@@ -2212,6 +2216,7 @@ void BoardView::Pan(int direction, int amount) {
 
 	switch (direction) {
 		case DIR_UP: amount = -amount;
+					 break;
 		case DIR_DOWN:
 			if ((m_current_side) && (m_rotation % 2)) amount = -amount;
 			switch (m_rotation) {
@@ -2222,6 +2227,7 @@ void BoardView::Pan(int direction, int amount) {
 			}
 			break;
 		case DIR_LEFT: amount = -amount;
+					   break;
 		case DIR_RIGHT:
 			if ((m_current_side) && ((m_rotation % 2) == 0)) amount = -amount;
 			switch (m_rotation) {
