@@ -1,5 +1,24 @@
-#!/usr/bin/env bash
-PROJECT="$(tput bold ; tput setaf 3)OpenBoardView$(tput sgr0)"
+#!/bin/sh
+
+color() {
+  color="$1"
+  text="$2"
+  echo "$(tput bold; tput setaf ${color})${text}$(tput sgr0)"
+}
+
+helpMsg() {
+  cat << EOH
+Usage: $(color 4 ${0}) [--$(color 5 recompile)] [--$(color 1 debug)] — Build $PROJECT
+          --$(color 5 recompile)   — Delete $(color 6 \$COMPILEDIR) (release_build or debug_build with --$(color 1 debug)) before compiling $PROJECT again
+          --$(color 1 debug)       — Make a $(color 1 debug) build
+
+All extra parameters are passed to cmake.
+Environment variables:
+          CROSS         — Set to "mingw64" to cross-compile for Windows
+EOH
+}
+
+PROJECT="$(color 3 OpenBoardView)"
 if [ -z $THREADS ]; then
     THREADS=1
     case "$(uname -s)" in
@@ -14,77 +33,73 @@ if [ -z $THREADS ]; then
     esac
 fi
 ARG_LENGTH=$#
-if [ "$1" == "--help" ]; then
-  echo "Usage: $(tput bold ; tput setaf 4)$0$(tput sgr0) [--$(tput bold ; tput setaf 5)recompile$(tput sgr0)] [--$(tput bold ; tput setaf 1)debug$(tput sgr0)] — Build $PROJECT"
-  echo "          --$(tput bold ; tput setaf 5)recompile$(tput sgr0)   — Delete $(tput bold ; tput setaf 6)\$COMPILEDIR$(tput sgr0) (release_build or debug_build with --$(tput bold ; tput setaf 1)debug$(tput sgr0)) before compiling $PROJECT again" 
-  echo "          --$(tput bold ; tput setaf 1)debug$(tput sgr0)       — Make a $(tput bold ; tput setaf 1)debug$(tput sgr0) build"
-  echo ""
-  echo "All extra parameters are passed to cmake."
-  echo "Environment variables:"
-  echo "          CROSS         — Set to \"mingw64\" to cross-compile for Windows"
+if [ "$1" = "--help" ]; then
+  helpMsg
   exit
 fi
-STRCOMPILE="$(tput bold ; tput setaf 2)Compiling$(tput sgr0)"
+STRCOMPILE="$(color 2 Compiling)"
 COMPILEDIR="release_build"
 COMPILEFLAGS="-DCMAKE_INSTALL_PREFIX="
 export DESTDIR="$(cd "$(dirname "$0")" && pwd)"
-BUILDTYPE="$(tput bold ; tput setaf 6)release$(tput sgr0)"
+BUILDTYPE="$(color 6 release)"
 SCRIPT_ARGC=1 # number of arguments eaten by this script
-if [ "$ARG_LENGTH" -gt 0 -a "$1" == "--debug" -o "$2" == "--debug" ]; then
+if [ "$ARG_LENGTH" -gt 0 -a "$1" = "--debug" -o "$2" = "--debug" ]; then
   COMPILEDIR="debug_build"
   COMPILEFLAGS="$COMPILEFLAGS -DCMAKE_BUILD_TYPE=DEBUG"
-  BUILDTYPE="$(tput bold ; tput setaf 1)debug$(tput sgr0)"
+  BUILDTYPE="$(color 1 debug)"
   SCRIPT_ARGC=$((SCRIPT_ARGC+1))
 fi
-if [ "$ARG_LENGTH" -gt 0 -a "$1" == "--recompile" -o "$2" == "--recompile" ]; then
-  STRCOMPILE="$(tput bold ; tput setaf 5)Recompiling$(tput sgr0)"
+if [ "$ARG_LENGTH" -gt 0 -a "$1" = "--recompile" -o "$2" = "--recompile" ]; then
+  STRCOMPILE="$(color 5 Recompiling)"
   rm -rf $COMPILEDIR
   SCRIPT_ARGC=$((SCRIPT_ARGC+1))
 fi
-if [ "$CROSS" == "mingw64" ]; then
+if [ "$CROSS" = "mingw64" ]; then
   COMPILEFLAGS="$COMPILEFLAGS -DCMAKE_TOOLCHAIN_FILE=../Toolchain-mingw64.cmake"
 fi
-COMPILEFLAGS="$COMPILEFLAGS ${@:${SCRIPT_ARGC}}" # pass other arguments to CMAKE
+SUBSTRING=$(echo $@ | cut -d ' ' -f ${SCRIPT_ARGC}-)
+COMPILEFLAGS="$COMPILEFLAGS ${SUBSTRING}" # pass other arguments to CMAKE
 if [ $THREADS -lt 1 ]; then
-  echo "$(tput bold ; tput setaf 1)Unable to detect number of threads, using 1 thread.$(tput sgr0)"
+  color 1 "Unable to detect number of threads, using 1 thread."
   THREADS=1
 fi
 if [ ! -d $COMPILEDIR ]; then
   mkdir $COMPILEDIR
 fi
-pushd $COMPILEDIR
+LASTDIR=$PWD
+cd $COMPILEDIR
 STRTHREADS="threads"
 if [ $THREADS -eq 1 ]; then
   STRTHREADS="thread"
 fi
 
 # Now compile the source code and install it in server's directory
-echo "$STRCOMPILE $PROJECT using $(tput bold ; tput setaf 4)$THREADS$(tput sgr0) $STRTHREADS ($BUILDTYPE build)"
+echo "$STRCOMPILE $PROJECT using $(color 4 $THREADS) $STRTHREADS ($BUILDTYPE build)"
 echo "Extra flags passed to CMake: $COMPILEFLAGS"
 cmake $COMPILEFLAGS ..
-[[ "$?" != "0" ]] && echo "$(tput bold ; tput setaf 1)CMAKE FAILED$(tput sgr0)" && exit 1
+[ "$?" != "0" ] && color 1 "CMAKE FAILED" && exit 1
 if `echo "$COMPILEFLAGS" | grep -q "DEBUG"`; then
   make -j$THREADS install
-  [[ "$?" != "0" ]] && echo "$(tput bold ; tput setaf 1)MAKE INSTALL FAILED$(tput sgr0)" && exit 1
+  [ "$?" != "0" ] && color 1 "MAKE INSTALL FAILED" && exit 1
 else
   make -j$THREADS install/strip
-  [[ "$?" != "0" ]] && echo "$(tput bold ; tput setaf 1)MAKE INSTALL/STRIP FAILED$(tput sgr0)" && exit 1
+  [ "$?" != "0" ] && color 1 "MAKE INSTALL/STRIP FAILED" && exit 1
 fi
 
 case "$(uname -s)" in
   *Darwin*)
     # Generate DMG
     make package
-    [[ "$?" != "0" ]] && echo "$(tput bold ; tput setaf 1)MAKE PACKAGE FAILED$(tput sgr0)" && exit 1
+    [ "$?" != "0" ] && color 1 "MAKE PACKAGE FAILED" && exit 1
     ;;
   *)
     # Give right execution permissions to executables
-    popd
-    pushd bin
+    cd $LASTDIR
+    cd bin
     for i in openboardview; do chmod +x $i; done
 
     ;;
 esac
 
-popd
+cd $LASTDIR
 exit 0

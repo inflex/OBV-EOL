@@ -224,12 +224,12 @@ FZFile::FZFile(std::vector<char> &buf, uint32_t *fzkey) {
 	char *content = FZFile::split(file_buf, buffer_size, content_size, descr, descr_size); // then split it
 
 	/*
-if (!content) {
+  if (!content) {
 	 // Decryption must have failed, so try again now without decrypting the data
 	std::copy(buf.begin(), buf.end(), file_buf);
 	content = FZFile::split(file_buf, buffer_size, content_size, descr, descr_size); // then split it
-}
-*/
+  }
+  */
 
 	ENSURE(content != nullptr);
 	ENSURE(content_size > 0);
@@ -282,14 +282,22 @@ if (!content) {
 			line += 2;        // skip "A!"
 			if (!strncmp(line, "REFDES", 6)) {
 				current_block = 1;
-				continue;
 			} else if (!strncmp(line, "NET_NAME", 8)) {
 				current_block = 2;
-				continue;
 			} else if (!strncmp(line, "TESTVIA", 7)) {
 				current_block = 3;
-				continue;
+			} else if (!strncmp(line, "GRAPHIC_DATA_NAME", 17)) {
+				current_block = 4;
+			} else if (!strncmp(line, "CLASS", 5)) {
+				current_block = 5;
+			} else if (!strncmp(line, "LOGOInfo", 8)) {
+				current_block = 6;
+			} else if (!strncmp(line, "UnDrawSym", 9)) {
+				current_block = 7;
+			} else {
+				current_block = -1;
 			}
+			continue;
 		} else if (line[0] != 'S') // Unknown line type
 			continue;              // jump to next line
 		else
@@ -303,11 +311,12 @@ if (!content) {
 				/*char *sname =*/READ_STR();
 				char *smirror = READ_STR();
 				/*char *srotate =*/READ_STR();
+				part.part_type = BRDPartType::SMD;
 				if (!strcmp(smirror, "YES"))
-					part.type = 10; // SMD part on top
+					part.mounting_side = BRDPartMountingSide::Top; // SMD part on top
 				else
-					part.type    = 5; // SMD part on bottom
-				part.end_of_pins = 0;
+					part.mounting_side = BRDPartMountingSide::Bottom; // SMD part on bottom
+				part.end_of_pins       = 0;
 				parts.push_back(part);
 				parts_id[part.name] = parts.size();
 			} break;
@@ -348,6 +357,14 @@ if (!content) {
 					nail.side = 2; // on bottom
 				/*double radius =*/READ_DOUBLE();
 				nails.push_back(nail);
+			} break;
+			case 4: { // Drawing
+			} break;
+			case 5: { // Unknown
+			} break;
+			case 6: { // Logo/Info
+			} break;
+			case 7: { // Unknown
 			} break;
 		}
 	}

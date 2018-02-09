@@ -7,13 +7,15 @@
 #include <string.h>
 
 #include "confparse.h"
+#include "version.h"
 
 /*
  * XRayBlue theme - by Inflex
  */
 char default_conf[] =
     "#\r\n\
-# OpenBoardView configuration\r\n\
+# " OBV_NAME
+    " configuration\r\n\
 #\r\n\
 # Renderer options\r\n\
 #  1 = OpenGL1\r\n\
@@ -27,8 +29,8 @@ windowY=700\r\n\
 # Reference DPI is 100, increase if you have a higher density (ie, small 4K or 2K screen)\r\n\
 dpi=100\r\n\
 \r\n\
-#fontPath=FiraSans-Medium.ttf\r\n\
-fontSize=20\r\n\
+fontName = \r\n\
+fontSize = 20\r\n\
 showInfoPanel = true\r\n\
 infoPanelWidth = 300\r\n\
 showPins = true\r\n\
@@ -143,7 +145,7 @@ FZKey =   \r\n\
 /*
 char default_conf[] =
     "#\r\n\
-# OpenBoardView configuration file (inflex-ui)\r\n\
+# " OBV_NAME " configuration file (inflex-ui)\r\n\
 #\r\n\
 windowX=1280\r\n\
 windowY=900\r\n\

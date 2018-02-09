@@ -10,6 +10,7 @@
 
 #include "platform.h" // Should be kept first
 #include "utils.h"
+#include "version.h"
 
 #include "BoardView.h"
 #include "history.h"
@@ -22,6 +23,7 @@
 #else
 #include <SDL2/SDL.h>
 #endif
+#include <deque>
 #include <sstream>
 #include <stdio.h>
 #include <string>
@@ -77,7 +79,8 @@ char help[] =
 	-h : This help\n\
 	-V : Version information\n\
 	-l : slow CPU mode, disables AA and other items to try provide more FPS\n\
-	-c <config file> : alternative configuration file (default is ~/.config/openboardview/obv.conf)\n\
+	-c <config file> : alternative configuration file (default is ~/.config/" OBV_NAME
+    "/obv.conf)\n\
 	-i <input file> : board file to load\n\
 	-x <width> : Set window width\n\
 	-y <height> : Set window height\n\
@@ -198,7 +201,6 @@ void trykey(void)
 int parse_parameters(int argc, char **argv, struct globals *g) {
 	int param;
 
-
 	/*
 	 * When we're using file-associations, the OS usually just
 	 * passes the filename to be loaded as the single initial
@@ -206,12 +208,11 @@ int parse_parameters(int argc, char **argv, struct globals *g) {
 	 * single param is a valid file, and try load it.
 	 */
 	if (argc == 2) {
-		if( access( argv[1], F_OK ) != -1 ) {
+		if (access(argv[1], F_OK) != -1) {
 			g->input_file = argv[1];
 			return 0;
 		}
 	}
-
 
 	/**
 	 * Decode the input parameters.
@@ -401,12 +402,8 @@ int main(int argc, char **argv) {
 
 	SDL_DisplayMode current;
 	SDL_GetCurrentDisplayMode(0, &current);
-	window = SDL_CreateWindow("OpenBoardView",
-	                          SDL_WINDOWPOS_CENTERED,
-	                          SDL_WINDOWPOS_CENTERED,
-	                          g.width,
-	                          g.height,
-	                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	window = SDL_CreateWindow(
+	    OBV_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, g.width, g.height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (window == NULL) {
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create the sdlWindow: %s\n", SDL_GetError());
 		cleanupAndExit(1);
@@ -468,6 +465,9 @@ int main(int argc, char **argv) {
 	cleanupAndExit(1);
 #endif
 
+	// SDL disables screen saver by default which doesn't make sense for us.
+	SDL_EnableScreenSaver();
+
 	ImGuiIO &io    = ImGui::GetIO();
 	io.IniFilename = NULL;
 	//	io.Fonts->AddFontDefault();
@@ -496,7 +496,15 @@ int main(int argc, char **argv) {
 		style.ScrollbarSize *= app.dpi / 100;
 	}
 
-	for (auto name : {"Liberation Sans", "DejaVu Sans", "Arial", "Helvetica", ""}) { // Empty string = use system default font
+	// Font selection
+	std::deque<std::string> fontList(
+	    {"Liberation Sans", "DejaVu Sans", "Arial", "Helvetica", ""}); // Empty string = use system default font
+	std::string customFont(app.obvconfig.ParseStr("fontName", ""));
+
+	if (!customFont.empty()) fontList.push_front(customFont);
+
+	for (const auto &name : fontList) {
+		app.obvconfig.WriteStr("fontName", name.c_str());
 #ifdef _WIN32
 		ImFontConfig font_cfg{};
 		font_cfg.FontDataOwnedByAtlas = false;
@@ -617,7 +625,7 @@ int main(int argc, char **argv) {
 		// PLD20160618
 		if (app.history_file_has_changed) {
 			char scratch[1024];
-			snprintf(scratch, sizeof(scratch), "OpenBoardView - %s", app.fhistory.history[0]);
+			snprintf(scratch, sizeof(scratch), "%s - %s", OBV_NAME, app.fhistory.history[0]);
 			SDL_SetWindowTitle(window, scratch);
 			app.history_file_has_changed = 0;
 		}

@@ -1,7 +1,9 @@
-Debug
-Release
-release_build/
-bin/
+/Debug
+/Release
+/release_build/
+/build/
+/bin/
+/lib/
 test
 *.aps
 *.opensdf
@@ -22,3 +24,8 @@ imgui.ini
 *.tags
 .idea/
 tags
+
+# Do not track QtCreator imported project files
+OpenBoardView.config
+OpenBoardView.files
+OpenBoardView.includes
