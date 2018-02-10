@@ -321,6 +321,8 @@ void cleanupAndExit(int c) {
 }
 
 int main(int argc, char **argv) {
+	static Uint64       g_Time = 0.0f;
+	double current_time = SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency();
 	uint8_t sleepout;
 	std::string configDir;
 	globals g; // because some things we have to store *before* we load the config file in BoardView app.obvconf
@@ -470,6 +472,7 @@ int main(int argc, char **argv) {
 
 	ImGuiIO &io    = ImGui::GetIO();
 	io.IniFilename = NULL;
+
 	//	io.Fonts->AddFontDefault();
 
 	// Main loop
@@ -552,8 +555,16 @@ int main(int argc, char **argv) {
 	 * If you find some things aren't working properly without you having to move
 	 * the mouse or 'waking up' OBV then increase to 5 or more.
 	 */
-	sleepout = 3;
+	sleepout = 60; // set to 30 frames to try permit for double-click
+
+		// Setup time step
+	//io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f/60.0f);
+	io.DeltaTime = (float)(1.0f/30.0f);
+	g_Time = current_time;
+
+
 	while (!done) {
+	
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {

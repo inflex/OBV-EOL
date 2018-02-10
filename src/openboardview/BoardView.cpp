@@ -1556,19 +1556,29 @@ template<class T> const char *getcname(const T &t) {
 	return t->name.c_str();
 }
 
-template<class T> void BoardView::ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
+//template<class T> void BoardView::ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
+template<class T> int BoardView::ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
+	int res = 0;
 	for (auto &r : results) {
 		const char *cname = getcname(r);
-		if (ImGui::Selectable(cname, false)) {
-			(this->*onSelect)(cname);
-			snprintf(search, 128, "%s", cname);
+		if (ImGui::Selectable(cname, false, ImGuiSelectableFlags_AllowDoubleClick)) {
+				snprintf(search, 128, "%s", cname);
+			if (ImGui::IsMouseDoubleClicked(0)) {
+			   	m_go_for_search = true; 
+				break;
+			} else {
+				if (m_presearch) (this->*onSelect)(cname);
+			}
 			limit = 0;
 		}
 		limit--;
 	}
+	return res;
 }
 
 void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit) {
+	int r = 0;
+
 	ImGui::ListBoxHeader(title.c_str());
 
 	if (m_searchComponents) {
@@ -1576,10 +1586,11 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 			auto s = scparts.suggest(search);
 			if (s.size() > 0) {
 				ImGui::Text("Did you mean...");
-				ShowSearchResults(s, search, limit, &BoardView::FindComponent);
+				r = ShowSearchResults(s, search, limit, &BoardView::FindComponent);
 			}
-		} else
-			ShowSearchResults(results.first, search, limit, &BoardView::FindComponent);
+		} else {
+			r = ShowSearchResults(results.first, search, limit, &BoardView::FindComponent);
+		}
 	}
 
 	if (m_searchNets) {
@@ -1587,10 +1598,11 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 			auto s = scnets.suggest(search);
 			if (s.size() > 0) {
 				ImGui::Text("Did you mean...");
-				ShowSearchResults(s, search, limit, &BoardView::FindNet);
+				r= ShowSearchResults(s, search, limit, &BoardView::FindNet);
 			}
-		} else
-			ShowSearchResults(results.second, search, limit, &BoardView::FindNet);
+		} else {
+			r= ShowSearchResults(results.second, search, limit, &BoardView::FindNet);
+		}
 	}
 
 	ImGui::ListBoxFooter();
@@ -1599,6 +1611,8 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 void BoardView::SearchComponent(void) {
 	bool dummy = true;
 	char *first_button[SEARCH_COLUMNS_MAX];
+
+	m_go_for_search = false;
 
 	ImGui::SetNextWindowPos(ImVec2(-FLT_MAX, DPI(100))); // FIXME This will need changing in the future when ImGui gets proper
 	                                                     // per-axis centering ( see https://github.com/ocornut/imgui/issues/770 )
@@ -1622,9 +1636,10 @@ void BoardView::SearchComponent(void) {
 		// Column 1, implied.
 		//
 		//
-		if (ImGui::Button("Search")) {
+		if (ImGui::Button("Search") || m_go_for_search) {
 			int x;
 			// FindComponent(first_button);
+			m_go_for_search = false;
 			m_tooltips_enabled = true;
 			SearchCompound(first_button[0]);
 			for (x = 1; x < searchColumns; x++) { SearchCompoundNoClear(first_button[x]); }
@@ -1728,8 +1743,11 @@ void BoardView::SearchComponent(void) {
 //		ImGui::Separator();
 
 		// Enter and Esc close the search:
-		if (ImGui::IsKeyPressed(SDLK_RETURN)) {
+		if (ImGui::IsKeyPressed(SDLK_RETURN)|| m_go_for_search) {
 			int x;
+
+			//ClearAllHighlights();
+			m_go_for_search = false;
 			// SearchCompound(first_button);
 			// SearchCompoundNoClear(first_button2);
 			// SearchCompoundNoClear(first_button3);
@@ -2216,7 +2234,6 @@ void BoardView::Pan(int direction, int amount) {
 
 	switch (direction) {
 		case DIR_UP: amount = -amount;
-					 break;
 		case DIR_DOWN:
 			if ((m_current_side) && (m_rotation % 2)) amount = -amount;
 			switch (m_rotation) {
@@ -2227,7 +2244,6 @@ void BoardView::Pan(int direction, int amount) {
 			}
 			break;
 		case DIR_LEFT: amount = -amount;
-					   break;
 		case DIR_RIGHT:
 			if ((m_current_side) && ((m_rotation % 2) == 0)) amount = -amount;
 			switch (m_rotation) {

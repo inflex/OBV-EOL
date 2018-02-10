@@ -174,7 +174,8 @@ struct BoardView {
 	void SetFZKey(const char *keytext);
 	void HelpAbout(void);
 	void HelpControls(void);
-	template<class T> void ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
+	//template<class T> void ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
+	template<class T> int ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
 	void SearchColumnGenerate(const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit);
 	void Preferences(void);
 	void SaveAllColors(void);
@@ -264,6 +265,8 @@ struct BoardView {
 	bool m_draggingLastFrame;
 	bool m_showContextMenu;
 	//	bool m_showNetfilterSearch;
+	bool m_go_for_search	= false;
+	bool m_presearch = false;
 	bool m_showSearch;
 	bool m_searchComponents = true;
 	bool m_searchNets       = true;
