@@ -1687,6 +1687,7 @@ void BoardView::SearchColumnGenerate(int col_idx, const std::string& title, std:
 
 void BoardView::SearchComponent(void) {
 	bool dummy = true;
+	bool ignore_return = false;
 	int i;
 	int pickle_only = -1;
 	static int next_empty_column = 1;
@@ -1849,9 +1850,12 @@ void BoardView::SearchComponent(void) {
 		ImGui::Columns(1); // reset back to single column mode
 
 		/*
-      ImGuiIO& io = ImGui::GetIO();
-		if (io.KeyAlt) {
+		 * Provide a way to quickly clear ALL columns with a
+		 * keyboard move.  For now  we're using SHIFT+RETURN
+		 */
+		if (io.KeyShift) {
 			if (ImGui::IsKeyPressed(SDLK_RETURN)) {
+				ignore_return = true;
 				for (int x = 0; x <= SEARCH_COLUMNS_MAX; x++) {
 					m_search[x][0] = 0;
 					pish[x].previous = -1;
@@ -1862,13 +1866,11 @@ void BoardView::SearchComponent(void) {
 			next_empty_column = 1;
 			}
 		}
-		*/
-
-
-			fprintf(stderr,"Keys mods: %s%s%s%s", io.KeyCtrl ? "CTRL " : "", io.KeyShift ? "SHIFT " : "", io.KeyAlt ? "ALT " : "", io.KeySuper ? "SUPER " : "");
 
 		// Enter and Esc close the search:
-		if (ImGui::IsKeyPressed(SDLK_RETURN)|| m_go_for_search) {
+		if (ignore_return) {
+			ignore_return = false;
+		} else if (ImGui::IsKeyPressed(SDLK_RETURN)|| m_go_for_search) {
 			int x;
 			int pickle_only = 0;
 
