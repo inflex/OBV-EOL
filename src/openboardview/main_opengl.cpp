@@ -563,6 +563,16 @@ int main(int argc, char **argv) {
 	g_Time = current_time;
 
 
+	/*
+	 * Initialise the boardview search, really should do this somewhere better
+	 */
+	for (int i = 0; i <= SEARCH_COLUMNS_MAX; i++ ){
+			pish[i].previous = -1;
+			pish[i].current = -1;
+			pish[i].selected = -1;
+			pish[i].search[0] = 0;
+	}
+
 	while (!done) {
 	
 
@@ -649,7 +659,8 @@ int main(int argc, char **argv) {
 #endif
 		ImGui::Render();
 		SDL_GL_SwapWindow(window);
-	}
+	} // while !done.
+
 
 // Cleanup
 #ifdef ENABLE_GL1

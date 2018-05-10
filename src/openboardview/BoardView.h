@@ -13,7 +13,19 @@
 #define DPIF(x) (((x)*dpi) / 100.f)
 #define DPI(x) (((x)*dpi) / 100)
 
+#define SHORTSTR_SIZE 128
+#define LONGSTR_SIZE 1024
+
 #define SEARCH_COLUMNS_MAX 5
+struct presearcher {
+	int previous;
+	int current;
+	int selected;
+	char search[LONGSTR_SIZE];
+};
+
+extern struct presearcher pish[SEARCH_COLUMNS_MAX+1];
+extern int m_search_current_column;
 
 struct BRDPart;
 class BRDFile;
@@ -144,6 +156,7 @@ struct BoardView {
 	bool pinShapeCircle       = true;
 	bool pinSelectMasks       = true;
 	bool slowCPU              = false;
+	bool showMenubarActions		= false;
 	bool showFPS              = false;
 	bool showNetWeb           = true;
 	bool showInfoPanel        = true;
@@ -175,12 +188,12 @@ struct BoardView {
 	void HelpAbout(void);
 	void HelpControls(void);
 	//template<class T> void ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
-	template<class T> int ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *));
-	void SearchColumnGenerate(const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit);
+	template<class T> int ShowSearchResults(std::vector<T> results, int list_offset, int col_idx, char *search, int &limit, void (BoardView::*onSelect)(const char *));
+	void SearchColumnGenerate(int col_idx, const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit);
 	void Preferences(void);
 	void SaveAllColors(void);
-	void ColorPreferencesItem(
-	    const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c);
+	//void ColorPreferencesItem( const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, ImVec4 *c);
+	void ColorPreferencesItem( const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c);
 	void ColorPreferences(void);
 	bool AnyItemVisible(void);
 	void ThemeSetStyle(const char *name);
@@ -225,8 +238,8 @@ struct BoardView {
 	char m_cachedDrawList[sizeof(ImDrawList)];
 	ImVector<char> m_cachedDrawCommands;
 	SharedVector<Net> m_nets;
-	char m_search[SEARCH_COLUMNS_MAX][128];
-	char m_netFilter[128];
+	char m_search[SEARCH_COLUMNS_MAX+1][SHORTSTR_SIZE];
+	char m_netFilter[SHORTSTR_SIZE];
 	std::string m_lastFileOpenName;
 	float m_dx; // display top-right coordinate?
 	float m_dy;
@@ -267,6 +280,7 @@ struct BoardView {
 	//	bool m_showNetfilterSearch;
 	bool m_go_for_search	= false;
 	bool m_presearch = false;
+	bool m_renderSearchHits = true;
 	bool m_showSearch;
 	bool m_searchComponents = true;
 	bool m_searchNets       = true;
@@ -320,6 +334,7 @@ struct BoardView {
 	// bool IsVisibleScreen(float x, float y, float radius = 0.0f);
 
 	bool PartIsHighlighted(const std::shared_ptr<Component> component);
+	void SearchClear( void );
 	void FindNet(const char *net);
 	void FindNetNoClear(const char *name);
 	void FindComponent(const char *name);
@@ -333,4 +348,8 @@ struct BoardView {
 
 	void SetLastFileOpenName(const std::string &name);
 	void FlipBoard(int mode = 0);
+
 };
+
+//	int TextEditCallbackStub(ImGuiTextEditCallbackData* data);
+//	int TextEditCallback(ImGuiTextEditCallbackData* data);

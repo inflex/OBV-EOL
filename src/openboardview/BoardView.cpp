@@ -37,6 +37,17 @@
 using namespace std;
 using namespace std::placeholders;
 
+struct presearcher pish[SEARCH_COLUMNS_MAX+1];
+int m_search_current_column;
+
+
+#ifdef _WIN32
+#define KM(x) (x)
+#else
+#define KM(x) (((x)&0xFF) | 0x100)
+#endif
+
+
 #if _MSC_VER
 #define stricmp _stricmp
 #endif
@@ -89,7 +100,7 @@ void BoardView::ThemeSetStyle(const char *name) {
 		style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.40f, 0.40f, 0.80f, 0.30f);
 		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.80f, 0.40f);
 		style.Colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.80f, 0.50f, 0.50f, 0.40f);
-		style.Colors[ImGuiCol_ComboBg]              = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
+		style.Colors[ImGuiCol_PopupBg]              = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
 		style.Colors[ImGuiCol_CheckMark]            = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
 		style.Colors[ImGuiCol_SliderGrab]           = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
 		style.Colors[ImGuiCol_SliderGrabActive]     = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
@@ -105,9 +116,9 @@ void BoardView::ThemeSetStyle(const char *name) {
 		style.Colors[ImGuiCol_ResizeGrip]           = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
 		style.Colors[ImGuiCol_ResizeGripHovered]    = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
 		style.Colors[ImGuiCol_ResizeGripActive]     = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-		style.Colors[ImGuiCol_CloseButton]          = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
-		style.Colors[ImGuiCol_CloseButtonHovered]   = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
-		style.Colors[ImGuiCol_CloseButtonActive]    = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+		style.Colors[ImGuiCol_Button]          = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
+		style.Colors[ImGuiCol_ButtonHovered]   = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
+		style.Colors[ImGuiCol_ButtonActive]    = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
 		style.Colors[ImGuiCol_PlotLines]            = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -178,7 +189,7 @@ void BoardView::ThemeSetStyle(const char *name) {
 		style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
 		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
 		style.Colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-		style.Colors[ImGuiCol_ComboBg]              = ImVec4(0.86f, 0.86f, 0.86f, 0.99f);
+		style.Colors[ImGuiCol_PopupBg]              = ImVec4(0.86f, 0.86f, 0.86f, 0.99f);
 		style.Colors[ImGuiCol_CheckMark]            = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 		style.Colors[ImGuiCol_SliderGrab]           = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
 		style.Colors[ImGuiCol_SliderGrabActive]     = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
@@ -194,9 +205,9 @@ void BoardView::ThemeSetStyle(const char *name) {
 		style.Colors[ImGuiCol_ResizeGrip]           = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
 		style.Colors[ImGuiCol_ResizeGripHovered]    = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
 		style.Colors[ImGuiCol_ResizeGripActive]     = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-		style.Colors[ImGuiCol_CloseButton]          = ImVec4(0.59f, 0.59f, 0.59f, 0.50f);
-		style.Colors[ImGuiCol_CloseButtonHovered]   = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
-		style.Colors[ImGuiCol_CloseButtonActive]    = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
+		style.Colors[ImGuiCol_Button]          = ImVec4(0.59f, 0.59f, 0.59f, 0.50f);
+		style.Colors[ImGuiCol_ButtonHovered]   = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
+		style.Colors[ImGuiCol_ButtonActive]    = ImVec4(0.98f, 0.39f, 0.36f, 1.00f);
 		style.Colors[ImGuiCol_PlotLines]            = ImVec4(0.39f, 0.39f, 0.39f, 1.00f);
 		style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -276,10 +287,11 @@ int BoardView::ConfigParse(void) {
 	pinSelectMasks   = obvconfig.ParseBool("pinSelectMasks", true);
 
 	showFPS                   = obvconfig.ParseBool("showFPS", false);
+	showMenubarActions		  = obvconfig.ParseBool("showMenubarActions", false);
 	showInfoPanel             = obvconfig.ParseBool("showInfoPanel", true);
 	infoPanelSelectPartsOnNet = obvconfig.ParseBool("infoPanelSelectPartsOnNet", true);
 	infoPanelCenterZoomNets   = obvconfig.ParseBool("infoPanelCenterZoomNets", true);
-	partZoomScaleOutFactor    = obvconfig.ParseDouble("partZoomScaleOutFactor", 3.0f);
+	partZoomScaleOutFactor    = obvconfig.ParseDouble("partZoomScaleOutFactor", 25.0f);
 
 	m_info_surface.x          = obvconfig.ParseInt("infoPanelWidth", 350);
 	showPins                  = obvconfig.ParseBool("showPins", true);
@@ -322,7 +334,7 @@ int BoardView::ConfigParse(void) {
 	 */
 	slowCPU |= obvconfig.ParseBool("slowCPU", false);
 	if (slowCPU == true) {
-		style.AntiAliasedShapes = false;
+		style.AntiAliasedLines = false;
 		boardFill               = false;
 		fillParts               = false;
 	}
@@ -407,15 +419,12 @@ int BoardView::LoadFile(const std::string &filename) {
 			for (auto &p : m_board->Components()) {
 				if (p->hull) free(p->hull);
 			}
-			m_pinHighlighted.clear();
-			m_partHighlighted.clear();
+			SearchClear();
 			m_annotations.Close();
 			m_board->Nets().clear();
 			m_board->Pins().clear();
 			m_board->Components().clear();
 			m_board->OutlinePoints().clear();
-			//	delete m_file;
-			// delete m_board;
 		}
 
 		SetLastFileOpenName(filename);
@@ -425,18 +434,12 @@ int BoardView::LoadFile(const std::string &filename) {
 
 			if (check_fileext(filename, ".fz")) { // Since it is encrypted we cannot use the below logic. Trust the ext.
 				file = new FZFile(buffer, FZKey);
-			} else if (check_fileext(filename, ".bom") || check_fileext(filename, ".asc"))
-				file = new ASCFile(buffer, filename);
-			else if (check_fileext(filename, ".cst"))
-				file = new CSTFile(buffer);
-			else if (BRDFile::verifyFormat(buffer))
-				file = new BRDFile(buffer);
-			else if (BRD2File::verifyFormat(buffer))
-				file = new BRD2File(buffer);
-			else if (BDVFile::verifyFormat(buffer))
-				file = new BDVFile(buffer);
-			else if (BVRFile::verifyFormat(buffer))
-				file = new BVRFile(buffer);
+			} else if (check_fileext(filename, ".bom") || check_fileext(filename, ".asc")) file = new ASCFile(buffer, filename);
+			else if (check_fileext(filename, ".cst")) file = new CSTFile(buffer);
+			else if (BRDFile::verifyFormat(buffer)) file = new BRDFile(buffer);
+			else if (BRD2File::verifyFormat(buffer)) file = new BRD2File(buffer);
+			else if (BDVFile::verifyFormat(buffer)) file = new BDVFile(buffer);
+			else if (BVRFile::verifyFormat(buffer)) file = new BVRFile(buffer);
 
 			if (file && file->valid) {
 				SetFile(file);
@@ -509,6 +512,9 @@ void BoardView::SetFZKey(const char *keytext) {
 }
 
 void RA(const char *t, int w) {
+	/*
+	 * Right align text in a window of 'w' pixels width
+	 */
 	ImVec2 s = ImGui::CalcTextSize(t);
 	s.x      = w - s.x;
 	ImGui::Dummy(s);
@@ -517,6 +523,10 @@ void RA(const char *t, int w) {
 }
 
 void u32tof4(uint32_t c, float *f) {
+	/*
+	 * Organise 4 byte block of memory to
+	 * float type.
+	 */
 	f[0] = (c & 0xff) / 0xff;
 	c >>= 8;
 	f[1] = (c & 0xff) / 0xff;
@@ -525,13 +535,18 @@ void u32tof4(uint32_t c, float *f) {
 	c >>= 8;
 	f[3] = (c & 0xff) / 0xff;
 }
+
 void BoardView::ColorPreferencesItem(
     const char *label, int label_width, const char *butlabel, const char *conflabel, int var_width, uint32_t *c) {
+	/*
+	 * UI widget builder; generate a colour preference item
+	 */
 	char buf[20];
 	snprintf(buf, sizeof(buf), "%08X", byte4swap(*c));
 	RA(label, label_width);
 	ImGui::SameLine();
-	ImGui::ColorButton(ImColor(*c));
+	//ImGui::ColorButton(ImColor(*c));
+//	ImGui::ColorButton(ImU32(*c));
 	ImGui::SameLine();
 	ImGui::PushItemWidth(var_width);
 	if (ImGui::InputText(
@@ -584,7 +599,7 @@ void BoardView::SaveAllColors(void) {
 
 void BoardView::ColorPreferences(void) {
 	bool dummy = true;
-	//	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(0xffe0e0e0));
+	//	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(0xffe0e0e0));
 	ImGui::SetNextWindowPosCenter();
 	if (ImGui::BeginPopupModal("Colour Preferences", &dummy, ImGuiWindowFlags_AlwaysAutoResize)) {
 
@@ -714,8 +729,8 @@ void BoardView::ColorPreferences(void) {
 
 void BoardView::Preferences(void) {
 	bool dummy = true;
-	char s[1024];
-	//	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(0xffe0e0e0));
+	//char s[1024];
+	//	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(0xffe0e0e0));
 	ImGui::SetNextWindowPosCenter();
 	if (ImGui::BeginPopupModal("Preferences", &dummy, ImGuiWindowFlags_AlwaysAutoResize)) {
 		int t;
@@ -764,7 +779,8 @@ void BoardView::Preferences(void) {
 		if (ImGui::InputInt("##dpi", &t)) {
 			if ((t > 25) && (t < 600)) obvconfig.WriteInt("dpi", t);
 		}
-		ImGui::PushStyleColor(ImGuiCol_Text, ImColor(0xff4040ff));
+		//ImGui::PushStyleColor(ImGuiCol_Text, ImColor(ImU32(0xff4040ff)));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImU32(0xff4040ff));
 		ImGui::Text("(Program restart is required to properly apply font and DPI changes)");
 		ImGui::PopStyleColor();
 
@@ -847,7 +863,7 @@ void BoardView::Preferences(void) {
 			obvconfig.WriteFloat("pinHaloThickness", pinHaloThickness);
 		}
 
-		RA("Info Panel Zoom", DPI(200));
+		RA("Search results zoom", DPI(200));
 		ImGui::SameLine();
 		if (ImGui::InputFloat("##partZoomScaleOutFactor", &partZoomScaleOutFactor)) {
 			if (partZoomScaleOutFactor < 1.1) partZoomScaleOutFactor = 1.1;
@@ -1113,14 +1129,14 @@ void BoardView::ShowInfoPane(void) {
 	ImGui::Begin("Info Panel",
 	             NULL,
 	             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-	                 ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoSavedSettings);
+	                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 
 	if ((m_dragging_token == 0) && (io.MousePos.x > m_board_surface.x) && (io.MousePos.x < (m_board_surface.x + DPIF(12.0f)))) {
 		ImDrawList *draw = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(ImVec2(m_board_surface.x, m_menu_height),
 		                    ImVec2(m_board_surface.x + DPIF(12.0f), m_board_surface.y + m_menu_height),
 		                    ImColor(0x88888888));
-		//			DrawHex( draw, io.MousePos, DPIF(10.0f), ImColor(0xFF0000FF) );
+		//			DrawHex( draw, io.MousePos, DPIF(10.0f), ImU32(0xFF0000FF) );
 	}
 
 	if (ImGui::IsMouseDragging(0)) {
@@ -1169,7 +1185,7 @@ void BoardView::ShowInfoPane(void) {
 		ImGui::Text("No board currently loaded.");
 	}
 
-	if (m_partHighlighted.size()) {
+	if (m_partHighlighted.size() && m_renderSearchHits) {
 		ImGui::Separator();
 		ImGui::Text("%ld parts selected", m_partHighlighted.size());
 
@@ -1263,7 +1279,7 @@ void BoardView::ShowInfoPane(void) {
 					}
 					m_needsRedraw = true;
 				}
-				ImGui::PushStyleColor(ImGuiCol_Border, ImColor(0xffeeeeee));
+				ImGui::PushStyleColor(ImGuiCol_Border, ImU32(0xffeeeeee));
 				ImGui::Separator();
 				ImGui::PopStyleColor();
 			}
@@ -1307,7 +1323,7 @@ void BoardView::ContextMenu(void) {
 	 */
 	ImGui::SetNextWindowPos(ImVec2(DPIF(50), DPIF(50)));
 
-	if (ImGui::BeginPopupModal("Annotations", &dummy, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders)) {
+	if (ImGui::BeginPopupModal("Annotations", &dummy, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
 
 		if (m_showContextMenu) {
 			contextbuf[0]      = 0;
@@ -1540,6 +1556,42 @@ void BoardView::ContextMenu(void) {
 	}
 }
 
+
+int TextEditCallback(ImGuiTextEditCallbackData* data) {
+
+	struct presearcher *p = &pish[m_search_current_column];
+        //AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart, data->SelectionEnd);
+        switch (data->EventFlag)
+        {
+        case ImGuiInputTextFlags_CallbackHistory:
+            {
+                if (data->EventKey == ImGuiKey_UpArrow)
+                {
+						 if (p->current > 0) {
+							 (p->current)--;
+						 }
+//						 if (debug) fprintf(stderr,"UpArrow %d\n", p->current);
+                }
+                else if (data->EventKey == ImGuiKey_DownArrow)
+                {
+						 (p->current)++;
+//						 if (debug) fprintf(stderr,"DownArrow %d\n", p->current);
+                }
+
+        }
+        return 0;
+    }
+	return 0;
+}
+
+static int TextEditCallbackStub(ImGuiTextEditCallbackData* data)  {
+	// In C++11 you are better off using lambdas for this sort of forwarding callbacks
+        //ExampleAppConsole* console = (ExampleAppConsole*)data->UserData;
+        return TextEditCallback(data);
+    }
+
+
+
 std::pair<SharedVector<Component>, SharedVector<Net>> BoardView::SearchPartsAndNets(const char *search, int limit) {
 	SharedVector<Component> parts;
 	SharedVector<Net> nets;
@@ -1557,14 +1609,33 @@ template<class T> const char *getcname(const T &t) {
 }
 
 //template<class T> void BoardView::ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
-template<class T> int BoardView::ShowSearchResults(std::vector<T> results, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
+template<class T> int BoardView::ShowSearchResults(std::vector<T> results, int list_offset, int col_idx, char *search, int &limit, void (BoardView::*onSelect)(const char *)) {
+	struct presearcher *p = &pish[col_idx];
 	int res = 0;
+	int i = list_offset;
+	int *ki = &(p->current);
+	int rz = results.size() +list_offset;
+	if (rz < 1) return res;
+
+	if (*ki >= rz) *ki = rz -1;
+	if (*ki < -1) *ki = -1;
+
 	for (auto &r : results) {
 		const char *cname = getcname(r);
-		if (ImGui::Selectable(cname, false, ImGuiSelectableFlags_AllowDoubleClick)) {
-				snprintf(search, 128, "%s", cname);
+		if (*ki == i) {
+			ImGui::SetScrollHere();
+			if (p->previous != i) {
+				snprintf(p->search,sizeof(p->search),"%s",cname);
+				if (debug) fprintf(stderr,"Set col %d to '%s'\n", col_idx, p->search);
+				p->previous = i;
+			}
+		}
+
+		if (ImGui::Selectable(cname, (i == *ki), ImGuiSelectableFlags_AllowDoubleClick)) {
+				snprintf(search, SHORTSTR_SIZE, "%s", cname);
+
 			if (ImGui::IsMouseDoubleClicked(0)) {
-			   	m_go_for_search = true; 
+			   m_go_for_search = true; 
 				break;
 			} else {
 				if (m_presearch) (this->*onSelect)(cname);
@@ -1572,12 +1643,14 @@ template<class T> int BoardView::ShowSearchResults(std::vector<T> results, char 
 			limit = 0;
 		}
 		limit--;
+		i++;
 	}
 	return res;
 }
 
-void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit) {
+void BoardView::SearchColumnGenerate(int col_idx, const std::string& title, std::pair<SharedVector<Component>, SharedVector<Net>> results, char *search, int limit) {
 	int r = 0;
+	int roffset = 0; 
 
 	ImGui::ListBoxHeader(title.c_str());
 
@@ -1586,10 +1659,12 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 			auto s = scparts.suggest(search);
 			if (s.size() > 0) {
 				ImGui::Text("Did you mean...");
-				r = ShowSearchResults(s, search, limit, &BoardView::FindComponent);
+				r = ShowSearchResults(s, 0, col_idx, search, limit, &BoardView::FindComponent);
+				roffset = s.size();
 			}
 		} else {
-			r = ShowSearchResults(results.first, search, limit, &BoardView::FindComponent);
+			r = ShowSearchResults(results.first, 0, col_idx, search, limit, &BoardView::FindComponent);
+			roffset = results.first.size();
 		}
 	}
 
@@ -1598,39 +1673,41 @@ void BoardView::SearchColumnGenerate(const std::string& title, std::pair<SharedV
 			auto s = scnets.suggest(search);
 			if (s.size() > 0) {
 				ImGui::Text("Did you mean...");
-				r= ShowSearchResults(s, search, limit, &BoardView::FindNet);
+				r= ShowSearchResults(s, roffset, col_idx, search, limit, &BoardView::FindNet);
 			}
 		} else {
-			r= ShowSearchResults(results.second, search, limit, &BoardView::FindNet);
+			r= ShowSearchResults(results.second, roffset, col_idx, search, limit, &BoardView::FindNet);
 		}
 	}
 
 	ImGui::ListBoxFooter();
+
+
 }
 
 void BoardView::SearchComponent(void) {
 	bool dummy = true;
-	char *first_button[SEARCH_COLUMNS_MAX];
+	int i;
+	int pickle_only = -1;
+	static int next_empty_column = 1;
+	ImGuiIO &io = ImGui::GetIO();
+
 
 	m_go_for_search = false;
 
-	ImGui::SetNextWindowPos(ImVec2(-FLT_MAX, DPI(100))); // FIXME This will need changing in the future when ImGui gets proper
+//	ImGui::SetNextWindowPosCenter();
+	ImGui::SetNextWindowPos(ImVec2(DPI(100), DPI(100))); // FIXME This will need changing in the future when ImGui gets proper
 	                                                     // per-axis centering ( see https://github.com/ocornut/imgui/issues/770 )
 														 //
 	if (ImGui::BeginPopupModal("Search for Component / Network",
 	                           &dummy,
 	                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
-	                               ImGuiWindowFlags_ShowBorders)) {
-		{
-			int x;
-			for (x = 0; x < searchColumns; x++) {
-				first_button[x] = m_search[x];
-			}
-		}
+	                               ImGuiWindowFlags_NoMove)) {
 
 		if (m_showSearch) {
 			m_showSearch       = false;
 			m_tooltips_enabled = false;
+			m_renderSearchHits = false;
 		}
 
 		// Column 1, implied.
@@ -1638,42 +1715,63 @@ void BoardView::SearchComponent(void) {
 		//
 		if (ImGui::Button("Search") || m_go_for_search) {
 			int x;
-			// FindComponent(first_button);
-			m_go_for_search = false;
-			m_tooltips_enabled = true;
-			SearchCompound(first_button[0]);
-			for (x = 1; x < searchColumns; x++) { SearchCompoundNoClear(first_button[x]); }
-//			SearchCompoundNoClear(first_button[2]);
-			CenterZoomSearchResults();
-			ImGui::CloseCurrentPopup();
+			bool first_search_done = false;
+
+				for (x = 0; x <= searchColumns; x++) {
+
+					if (m_search[x][0]) {
+						if (!first_search_done) {
+							first_search_done = true;
+							SearchCompound(m_search[x]);
+						} else {
+							SearchCompoundNoClear(m_search[x]); 
+						}
+					}
+
+					pish[x].previous = -1;
+					pish[x].current = -1;
+					pish[x].selected = -1;
+					pish[x].search[0] = 0;
+
+				}
+
+				//SearchClear();
+				next_empty_column = 1;
+				m_renderSearchHits = true;
+				CenterZoomSearchResults();
+				ImGui::CloseCurrentPopup();
+				m_tooltips_enabled = true;
+
+
+
 		} // search button
 
 		ImGui::SameLine();
 		if (ImGui::Button("Reset")) {
-			FindComponent("");
-			for (int i = 0; i < searchColumns; i++)
+			SearchClear();
+			for (int i = 0; i <= SEARCH_COLUMNS_MAX; i++) {
+				next_empty_column = 1;
 				m_search[i][0]  = '\0';
+				pish[i].selected = -1;
+				pish[i].current = -1;
+				pish[i].search[0] = 0;
+			}
 		} // reset button
 
 		ImGui::SameLine();
 		if (ImGui::Button("Exit") || ImGui::IsKeyPressed(SDLK_ESCAPE)) {
-			FindComponent("");
-			for (int i = 0; i < searchColumns; i++) { m_search[i][0]  = '\0'; }
+			for (i = 0; i <= SEARCH_COLUMNS_MAX; i++) { pish[i].selected = -1; } // blank the selected suggestions
+			next_empty_column = 1;
 			m_tooltips_enabled = true;
+			m_renderSearchHits = true;
+			ClearAllHighlights();
 			ImGui::CloseCurrentPopup();
 		} // exit button
 
 		ImGui::SameLine();
-		//		ImGui::Dummy(ImVec2(DPI(200), 1));
-		//		ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
-
-//		ImGui::SameLine();
-
-//		ImGui::Separator();
 		ImGui::Checkbox("Components", &m_searchComponents);
-
 		ImGui::SameLine();
 		ImGui::Checkbox("Nets", &m_searchNets);
 
@@ -1689,17 +1787,12 @@ void BoardView::SearchComponent(void) {
 				searcher.setMode(SearchMode::Prefix);
 			}
 			ImGui::SameLine();
-			//ImGui::PushItemWidth(-1);
 			if (ImGui::RadioButton("Whole", searcher.isMode(SearchMode::Whole))) {
 				searcher.setMode(SearchMode::Whole);
 			}
-			//ImGui::PopItemWidth();
 			ImGui::SameLine();
 			ImGui::Dummy(ImVec2(DPI(100*(searchColumns -3)), 1));
 		}
-
-//		ImGui::Separator();
-
 
 		ImGui::Columns(searchColumns); // define how many columns are in the dialog box for searching
 
@@ -1711,82 +1804,142 @@ void BoardView::SearchComponent(void) {
 
 			ImGui::PushItemWidth(-1);
 
+			m_search_current_column = i; // need this so our callback knows which column to use
+
 			bool searching = m_search[i-1][0] != '\0'; // Text typed in the search box
 			auto results = SearchPartsAndNets(m_search[i-1], 30); // Perform the search for both nets and parts
 			bool hasResults = !results.first.empty() || !results.second.empty(); // We found some nets or some parts
 
-			if (searching && !hasResults) ImGui::PushStyleColor(ImGuiCol_FrameBg, ImColor(0xFF6666FF));
-			auto ret = ImGui::InputText(searchLabel.c_str(), m_search[i-1], 128, ImGuiInputTextFlags_CharsNoBlank|(m_search[0]?ImGuiInputTextFlags_AutoSelectAll:0));
-			if (searching && !hasResults) ImGui::PopStyleColor();
+			if (searching && !hasResults) ImGui::PushStyleColor(ImGuiCol_FrameBg, ImU32(0xFF6666FF));
 
-			if (ret) SearchCompound(m_search[i-1]);
-
-			ImGui::PopItemWidth();
-
-			if (i == 1 && ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-				ImGui::SetKeyboardFocusHere(-1);
+			if (i==next_empty_column && ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+//				fprintf(stderr,"Focusing on i=%d\n",i);
+				ImGui::SetKeyboardFocusHere(0);
 			} // set keyboard focus
 
-			ImGui::PushItemWidth(-1);
-			if (searching) SearchColumnGenerate("##SC" + istr, results, m_search[i-1], 30);
-			ImGui::PopItemWidth();
-			//if (i == 1) ImGui::PushItemWidth(DPI(500 +((searchColumns-3) *150)));
-//			if (i == 1) ImGui::PushItemWidth(DPI(800));
-//			else if (i == 2) ImGui::PopItemWidth();
+			//auto ret = ImGui::InputText(searchLabel.c_str(), m_search[i-1], 128, ImGuiInputTextFlags_CharsNoBlank|(m_search[0]?ImGuiInputTextFlags_AutoSelectAll:0));
+			auto ret = ImGui::InputText(searchLabel.c_str(), m_search[i-1], SHORTSTR_SIZE, ImGuiInputTextFlags_CallbackHistory|ImGuiInputTextFlags_CharsNoBlank|(m_search[0]?ImGuiInputTextFlags_AutoSelectAll:0), &TextEditCallbackStub, (void*)this);
 
+
+			if (searching && !hasResults) ImGui::PopStyleColor();
+
+			if (ret) {
+				SearchCompound(m_search[i-1]);
+			}
+
+			ImGui::PopItemWidth();
+
+			/*
+			if (pickle_only == i && ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+				pickle_only = -1;
+				ImGui::SetKeyboardFocusHere(1);
+			}
+			*/
+
+
+
+			ImGui::PushItemWidth(-1);
+			if (searching) SearchColumnGenerate( i, "##SC" + istr, results, m_search[i-1], 30);
+			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 		}
 
 		ImGui::PopItemWidth();
 
 		ImGui::Columns(1); // reset back to single column mode
-//		ImGui::Separator();
+
+		/*
+      ImGuiIO& io = ImGui::GetIO();
+		if (io.KeyAlt) {
+			if (ImGui::IsKeyPressed(SDLK_RETURN)) {
+				for (int x = 0; x <= SEARCH_COLUMNS_MAX; x++) {
+					m_search[x][0] = 0;
+					pish[x].previous = -1;
+					pish[x].current = -1;
+					pish[x].selected = -1;
+					pish[x].search[0] = 0;
+				}
+			next_empty_column = 1;
+			}
+		}
+		*/
+
+
+			fprintf(stderr,"Keys mods: %s%s%s%s", io.KeyCtrl ? "CTRL " : "", io.KeyShift ? "SHIFT " : "", io.KeyAlt ? "ALT " : "", io.KeySuper ? "SUPER " : "");
 
 		// Enter and Esc close the search:
 		if (ImGui::IsKeyPressed(SDLK_RETURN)|| m_go_for_search) {
 			int x;
+			int pickle_only = 0;
 
-			//ClearAllHighlights();
-			m_go_for_search = false;
-			// SearchCompound(first_button);
-			// SearchCompoundNoClear(first_button2);
-			// SearchCompoundNoClear(first_button3);
-			SearchCompound(m_search[0]);
-			for (x = 1; x < searchColumns; x++) { SearchCompoundNoClear(first_button[x]); }
-			//SearchCompoundNoClear(m_search[1]);
-			//SearchCompoundNoClear(m_search[2]);
-			CenterZoomSearchResults();
-			ImGui::CloseCurrentPopup();
-			m_tooltips_enabled = true;
+
+			for (x = 1; x <= searchColumns; x++) {
+				if ((pish[x].current >= 0)&&(pish[x].selected == -1)) {
+					if (strcmp(pish[x].search, m_search[x])) {
+						snprintf(m_search[x-1], SHORTSTR_SIZE, "%s",pish[x].search);
+//						fprintf(stderr,"Loading %s in to search pos %d\n", pish[x].search, x);
+						if (x < searchColumns) next_empty_column = x+1; else next_empty_column = 1;
+						pish[x].selected = pish[x].current;
+						pish[x].current = -1;
+						pickle_only = x;
+					}
+				}
+			}
+
+			if (pickle_only) {
+				m_go_for_search = false;
+
+			} else {
+				bool first_search_done=false;
+				m_go_for_search = false;
+
+				for (x = 0; x <= searchColumns; x++) {
+
+					if (m_search[x][0]) {
+						if (!first_search_done) {
+							first_search_done = true;
+							SearchCompound(m_search[x]);
+						} else {
+							SearchCompoundNoClear(m_search[x]); 
+						}
+					}
+
+					pish[x].previous = -1;
+					pish[x].current = -1;
+					pish[x].selected = -1;
+					pish[x].search[0] = 0;
+
+				}
+
+				next_empty_column = 1;
+				m_renderSearchHits = true;
+				CenterZoomSearchResults();
+				ImGui::CloseCurrentPopup();
+				m_tooltips_enabled = true;
+			}
 		} // response to keyboard ENTER
 
 		ImGui::EndPopup();
 	}
 	if (!dummy) {
+		ClearAllHighlights();
 		m_tooltips_enabled = true;
+		m_renderSearchHits = true;
 	}
 }
 
 void BoardView::ClearAllHighlights(void) {
 	m_pinSelected = nullptr;
-	FindNet("");
-	FindComponent("");
-
+	SearchClear();
 
 	memset(m_search, '\0', sizeof(m_search));
-	/*
-	m_search[0][0]                                              = '\0';
-	m_search[1][0]                                             = '\0';
-	m_search[2][0]                                             = '\0';
-	*/
 
 	m_needsRedraw                                            = true;
 	m_tooltips_enabled                                       = true;
 	if (m_board != NULL) {
 		for (auto part : m_board->Components()) part->visualmode = part->CVMNormal;
 	}
-	m_partHighlighted.clear();
-	m_pinHighlighted.clear();
+	SearchClear();
 }
 
 /** UPDATE Logic region
@@ -1899,6 +2052,11 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 
+			if (ImGui::Checkbox("Show Menubar Actions", &showMenubarActions)) {
+				obvconfig.WriteBool("showMenubarActions", showMenubarActions);
+				m_needsRedraw = true;
+			}
+
 			ImGui::Separator();
 			if (ImGui::Checkbox("Show FPS", &showFPS)) {
 				obvconfig.WriteBool("showFPS", showFPS);
@@ -1912,6 +2070,11 @@ void BoardView::Update() {
 
 			if (ImGui::Checkbox("Net web", &showNetWeb)) {
 				obvconfig.WriteBool("showNetWeb", showNetWeb);
+				m_needsRedraw = true;
+			}
+
+			if (ImGui::Checkbox("Pins", &showPins)) {
+				obvconfig.WriteBool("showPins", showPins);
 				m_needsRedraw = true;
 			}
 
@@ -1930,6 +2093,9 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 
+			/*
+			 * 20180507:PLD:Deprecated
+			 *
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Info Pane", "i")) {
@@ -1941,6 +2107,7 @@ void BoardView::Update() {
 			if (ImGui::MenuItem("Part List", "k")) {
 				m_showPartList = !m_showPartList;
 			}
+			*/
 
 			ImGui::EndMenu();
 		}
@@ -1957,6 +2124,9 @@ void BoardView::Update() {
 
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(DPI(10), 1));
+		/*
+		 * 20180504:PLD:Deprecated 
+		 *
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Annotations", &showAnnotations)) {
 			obvconfig.WriteBool("showAnnotations", showAnnotations);
@@ -1976,7 +2146,9 @@ void BoardView::Update() {
 				m_needsRedraw = true;
 			}
 		}
+		*/
 
+		if (showMenubarActions) {
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(DPI(40), 1));
 
@@ -2025,6 +2197,7 @@ void BoardView::Update() {
 		if (ImGui::Button("CLEAR")) {
 			ClearAllHighlights();
 		}
+		} // If showMenubarActions
 
 		/*
 		ImGui::SameLine();
@@ -2033,7 +2206,7 @@ void BoardView::Update() {
 		ImGui::Text("Search");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(-DPI(1));
-		if (ImGui::InputText("##ansearch", m_search, 128, 0)) {
+		if (ImGui::InputText("##ansearch", m_search, SHORTSTR_SIZE, 0)) {
 		}
 		ImGui::PopItemWidth();
 		*/
@@ -2108,7 +2281,7 @@ void BoardView::Update() {
 	}
 
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-	                         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
+	                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
 	                         ImGuiWindowFlags_NoSavedSettings;
 
 	ImGuiWindowFlags draw_surface_flags = flags | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -2182,7 +2355,7 @@ void BoardView::Update() {
 	ImGui::SetNextWindowSize(m_board_surface);
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(m_colors.backgroundColor));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImU32(m_colors.backgroundColor));
 
 	ImGui::Begin("surface", nullptr, draw_surface_flags);
 	if (m_validBoard) {
@@ -2265,13 +2438,6 @@ void BoardView::Pan(int direction, int amount) {
  * for menus is handled within the menu generation itself.
  */
 void BoardView::HandleInput() {
-
-#ifdef _WIN32
-#define KM(x) (x)
-#else
-#define KM(x) (((x)&0xFF) | 0x100)
-#endif
-
 	if (!m_board || (!m_file)) return;
 
 	const ImGuiIO &io = ImGui::GetIO();
@@ -2279,6 +2445,23 @@ void BoardView::HandleInput() {
 	if (ImGui::IsWindowHovered()) {
 
 		if (ImGui::IsMouseDragging(0)) {
+
+			/*
+			 * Enable zoom while panning 
+			 *
+			 */
+			float mwheel = io.MouseWheel;
+			if (mwheel != 0.0f) {
+				mwheel *= zoomFactor;
+				Zoom(io.MousePos.x, io.MousePos.y, mwheel);
+			}
+
+			/*
+			 * Enable board flipping while panning
+			 *
+			 */
+			if (!m_lastFileOpenWasInvalid && m_file && m_board && ImGui::IsMouseReleased(2)) FlipBoard();
+
 			if ((m_dragging_token == 0) && (io.MouseClickedPos[0].x < m_board_surface.x)) m_dragging_token = 1; // own it.
 			if (m_dragging_token == 1) {
 				//		   if ((io.MouseClickedPos[0].x < m_info_surface.x)) {
@@ -2295,6 +2478,7 @@ void BoardView::HandleInput() {
 				m_draggingLastFrame = true;
 				m_needsRedraw       = true;
 			}
+
 		} else {
 			m_dragging_token = 0;
 
@@ -2940,7 +3124,7 @@ void BoardView::DrawDiamond(ImDrawList *draw, ImVec2 c, double r, uint32_t color
 	dia[2] = ImVec2(c.x, c.y + r);
 	dia[3] = ImVec2(c.x - r, c.y);
 
-	draw->AddPolyline(dia, 4, color, true, 1.0f, true);
+	draw->AddPolyline(dia, 4, ImU32(color), true, 1.0f );
 }
 
 void BoardView::DrawHex(ImDrawList *draw, ImVec2 c, double r, uint32_t color) {
@@ -2957,7 +3141,7 @@ void BoardView::DrawHex(ImDrawList *draw, ImVec2 c, double r, uint32_t color) {
 	hex[4] = ImVec2(c.x + da, c.y + db);
 	hex[5] = ImVec2(c.x - da, c.y + db);
 
-	draw->AddPolyline(hex, 6, color, true, 1.0f, true);
+	draw->AddPolyline(hex, 6, ImU32(color), true, 1.0f );
 }
 
 inline void BoardView::DrawOutline(ImDrawList *draw) {
@@ -3132,7 +3316,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 				show_text = true;
 				draw_ring = true;
 				threshold = 0;
-				//				draw->AddCircle(ImVec2(pos.x, pos.y), psz * pinHaloDiameter, ImColor(0xff0000ff), 32);
+				//				draw->AddCircle(ImVec2(pos.x, pos.y), psz * pinHaloDiameter, ImU32(0xff0000ff), 32);
 			}
 
 			if (!pin->net || pin->type == Pin::kPinTypeNotConnected) {
@@ -3738,8 +3922,8 @@ void BoardView::DrawPartTooltips(ImDrawList *draw) {
 				float pd = pin->diameter * m_scale;
 
 				draw->AddCircle(CoordToScreen(pin->position.x, pin->position.y), pd, m_colors.pinHaloColor, 32, pinHaloThickness);
-				ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
+				ImGui::PushStyleColor(ImGuiCol_Text, ImU32(m_colors.annotationPopupTextColor));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(m_colors.annotationPopupBackgroundColor));
 				ImGui::BeginTooltip();
 				ImGui::Text("TP[%s]%s", pin->number.c_str(), pin->net->name.c_str());
 				ImGui::EndTooltip();
@@ -3813,8 +3997,8 @@ void BoardView::DrawPartTooltips(ImDrawList *draw) {
 				                m_colors.pinHaloColor,
 				                32,
 				                pinHaloThickness);
-			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
+			ImGui::PushStyleColor(ImGuiCol_Text, ImU32(m_colors.annotationPopupTextColor));
+			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(m_colors.annotationPopupBackgroundColor));
 			ImGui::BeginTooltip();
 			if (currentlyHoveredPin) {
 				ImGui::Text("%s\n[%s]%s",
@@ -3836,8 +4020,8 @@ inline void BoardView::DrawPinTooltips(ImDrawList *draw) {
 	draw->ChannelsSetCurrent(kChannelAnnotations);
 
 	if (HighlightedPinIsHovered()) {
-		ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImU32(m_colors.annotationPopupTextColor));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(m_colors.annotationPopupBackgroundColor));
 		ImGui::BeginTooltip();
 		ImGui::Text("%s[%s]\n%s",
 		            m_pinHighlightedHovered->component->name.c_str(),
@@ -3870,8 +4054,8 @@ inline void BoardView::DrawAnnotations(ImDrawList *draw) {
 				snprintf(buf, sizeof(buf), "%s", ann.note.c_str());
 				buf[50] = '\0';
 
-				ImGui::PushStyleColor(ImGuiCol_Text, ImColor(m_colors.annotationPopupTextColor));
-				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImColor(m_colors.annotationPopupBackgroundColor));
+				ImGui::PushStyleColor(ImGuiCol_Text, ImU32(m_colors.annotationPopupTextColor));
+				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImU32(m_colors.annotationPopupBackgroundColor));
 				ImGui::BeginTooltip();
 				ImGui::Text("%c(%0.0f,%0.0f) %s %s%c%s%c\n%s%s",
 				            m_current_side ? 'B' : 'T',
@@ -3988,12 +4172,13 @@ void BoardView::DrawSelectedPins(ImDrawList *draw) {
 	}
 	hpc = VHConvexHull(hull, pl, i);
 	if (hpc > 3) {
-		draw->AddConvexPolyFilled(hull, hpc, ImColor(0x660000ff), false);
+		draw->AddConvexPolyFilled(hull, hpc, ImU32(0x660000ff));
 	}
 }
 
 void BoardView::DrawBoard() {
 	if (!m_file || !m_board) return;
+
 
 	ImDrawList *draw = ImGui::GetWindowDrawList();
 	if (!m_needsRedraw) {
@@ -4012,11 +4197,11 @@ void BoardView::DrawBoard() {
 	OutlineGenFillDraw(draw, boardFillSpacing, 1);
 	DrawOutline(draw);
 	DrawParts(draw);
-	//	DrawSelectedPins(draw);
-	DrawPins(draw);
-	// DrawPinTooltips(draw);
-	DrawPartTooltips(draw);
-	DrawAnnotations(draw);
+	if (m_renderSearchHits) {
+		DrawPins(draw);
+		DrawPartTooltips(draw);
+		DrawAnnotations(draw);
+	}
 
 	draw->ChannelsMerge();
 
@@ -4312,12 +4497,17 @@ void BoardView::FindComponentNoClear(const char *name) {
 	m_needsRedraw = true;
 }
 
-void BoardView::FindComponent(const char *name) {
+void BoardView::SearchClear( void ) {
 	if (!m_file || !m_board) return;
 
 	m_pinHighlighted.clear();
 	m_partHighlighted.clear();
+}
 
+void BoardView::FindComponent(const char *name) {
+	if (!m_file || !m_board) return;
+
+	SearchClear();
 	FindComponentNoClear(name);
 }
 
@@ -4331,10 +4521,9 @@ void BoardView::SearchCompoundNoClear(const char *item) {
 
 void BoardView::SearchCompound(const char *item) {
 	if (*item == '\0') return;
-	m_pinHighlighted.clear();
-	m_partHighlighted.clear();
-	//	ClearAllHighlights();
 
+	//	ClearAllHighlights();
+	SearchClear();
 	SearchCompoundNoClear(item);
 }
 

@@ -364,6 +364,7 @@ void ImGui_ImplSdlGLES2_InvalidateDeviceObjects() {
 bool ImGui_ImplSdlGLES2_Init(SDL_Window *window) {
 	g_Window = window;
 
+	ImGui::CreateContext();
 	ImGuiIO &io                   = ImGui::GetIO();
 	io.KeyMap[ImGuiKey_Tab]       = SDLK_TAB; // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
 	io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
@@ -397,12 +398,13 @@ bool ImGui_ImplSdlGLES2_Init(SDL_Window *window) {
 
 void ImGui_ImplSdlGLES2_Shutdown() {
 	ImGui_ImplSdlGLES2_InvalidateDeviceObjects();
-	ImGui::Shutdown();
+	ImGui::DestroyContext();
 }
 
 void ImGui_ImplSdlGLES2_NewFrame() {
 	if (!g_FontTexture) ImGui_ImplSdlGLES2_CreateDeviceObjects();
 
+	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
 
 	// Setup display size (every frame to accommodate for window resizing)
