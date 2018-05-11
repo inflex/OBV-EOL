@@ -1766,7 +1766,6 @@ void BoardView::SearchComponent(void) {
 			next_empty_column = 1;
 			m_tooltips_enabled = true;
 			m_renderSearchHits = true;
-			ClearAllHighlightsAndSearchStrings();
 			ImGui::CloseCurrentPopup();
 		} // exit button
 
@@ -1935,7 +1934,7 @@ void BoardView::SearchComponent(void) {
 		ImGui::EndPopup();
 	}
 	if (!dummy) {
-		ClearAllHighlightsAndSearchStrings();
+//		ClearAllHighlightsAndSearchStrings();
 		m_tooltips_enabled = true;
 		m_renderSearchHits = true;
 	}
