@@ -2066,7 +2066,7 @@ void BoardView::Update() {
 			}
 
 			if (ImGui::Checkbox("Show Position", &showPosition)) {
-				obvconfig.WriteBool("showNetWeb", showPosition);
+				obvconfig.WriteBool("showPosition", showPosition);
 				m_needsRedraw = true;
 			}
 
