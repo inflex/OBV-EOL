@@ -144,7 +144,7 @@ struct BoardView {
 	int zoomModifier             = 5;
 	int panFactor                = 30;
 	int panModifier              = 5;
-	int flipMode                 = 0;
+	int flipMode                 = flipModeVP;
 
 	int annotationBoxOffset = 10;
 	int annotationBoxSize   = 10;
@@ -159,6 +159,7 @@ struct BoardView {
 	bool showMenubarActions		= false;
 	bool showFPS              = false;
 	bool showNetWeb           = true;
+	int showNextWeb           = 1;
 	bool showInfoPanel        = true;
 	bool showPins             = true;
 	bool showAnnotations      = true;
@@ -311,7 +312,8 @@ struct BoardView {
 	void DrawParts(ImDrawList *draw);
 	void DrawBoard();
 	void DrawSelectedWeb(ImDrawList *draw);
-	void DrawNetWeb(ImDrawList *draw);
+	void DrawNetWeb(ImDrawList *draw, std::shared_ptr<Pin> pinSelected, int max_pin_count, int depth);
+//	void DrawNetWeb(ImDrawList *draw);
 	void SetFile(BRDFile *file);
 	int LoadFile(const std::string &filename);
 	ImVec2 CoordToScreen(float x, float y, float w = 1.0f);

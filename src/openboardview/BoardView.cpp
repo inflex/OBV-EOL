@@ -3193,56 +3193,51 @@ inline void BoardView::DrawOutline(ImDrawList *draw) {
 	} // for
 }
 
-void BoardView::DrawSelectedWeb(ImDrawList *draw) {
+void BoardView::DrawNetWeb(ImDrawList *draw, std::shared_ptr<Pin> pinSelected, int max_pin_count, int depth) {
 	if (!showNetWeb) return;
+	if (depth < 0) return; // This is redundant but I've included it simply as a failsafe.
 
-	bool first = true;
-	Point fp;
-	/*
-	 * Some nets we don't bother showing, because they're not relevant or
-	 * produce too many results (such as ground!)
-	 */
-	for (auto &p : m_pinHighlighted) {
-		if (first) {
-			fp    = p->position;
-			first = false;
-		}
-		uint32_t col = m_colors.pinNetWebColor;
-		if (!ComponentIsVisible(p->component)) {
-			col = m_colors.pinNetWebOSColor;
-			draw->AddCircle(CoordToScreen(p->position.x, p->position.y), p->diameter * m_scale, col, 16);
-		}
-
-		draw->AddLine(CoordToScreen(fp.x, fp.y), CoordToScreen(p->position.x, p->position.y), ImColor(col), 1);
-	}
-
-	return;
-}
-
-void BoardView::DrawNetWeb(ImDrawList *draw) {
-	if (!showNetWeb) return;
+	depth--;
 
 	/*
 	 * Some nets we don't bother showing, because they're not relevant or
 	 * produce too many results (such as ground!)
 	 */
-	if (m_pinSelected->type == Pin::kPinTypeNotConnected) return;
-	if (m_pinSelected->type == Pin::kPinTypeUnkown) return;
-	if (m_pinSelected->net->is_ground) return;
+	if (pinSelected->type == Pin::kPinTypeNotConnected) return;
+	if (pinSelected->type == Pin::kPinTypeUnkown) return;
+	if (pinSelected->net->is_ground) return;
 
 	for (auto &p : m_board->Pins()) {
 
-		if (p->net == m_pinSelected->net) {
+		if (p->net == pinSelected->net) {
 			uint32_t col = m_colors.pinNetWebColor;
 			if (!ComponentIsVisible(p->component)) {
 				col = m_colors.pinNetWebOSColor;
 				draw->AddCircle(CoordToScreen(p->position.x, p->position.y), p->diameter * m_scale, col, 16);
 			}
 
-			draw->AddLine(CoordToScreen(m_pinSelected->position.x, m_pinSelected->position.y),
+			draw->AddLine(CoordToScreen(pinSelected->position.x, pinSelected->position.y),
 			              CoordToScreen(p->position.x, p->position.y),
 			              ImColor(col),
 			              1);
+
+			/*
+			 * Experimenting with next-pin network display, but so far it
+			 * doesn't really look at all appealing or technically useful
+			 * in assisting the debugging process, however I'll leave
+			 * the code in here for perhaps when some epiphany occurs or
+			 * it finds another use.
+			 */
+			if (depth > 0) {
+				if (p->component->pins.size() == 2) {
+					for (auto &pnext : p->component->pins) {
+						if (pnext->net != p->net) {
+							DrawNetWeb( draw, pnext, 2, depth );
+						}
+					}
+				} // if component has only 2 pins
+			} // if depth > 0
+
 		}
 	}
 
@@ -3280,8 +3275,7 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 
 	draw->ChannelsSetCurrent(kChannelPins);
 
-	if (m_pinSelected) DrawNetWeb(draw);
-	//	if (m_pinHighlighted.size()) DrawSelectedWeb(draw);
+	if (m_pinSelected) DrawNetWeb(draw, m_pinSelected, 2, 1); // follow through only on parts with 2 pins, max-depth of 1.
 
 	for (auto &pin : m_board->Pins()) {
 		float psz           = pin->diameter * m_scale;
