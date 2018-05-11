@@ -322,6 +322,7 @@ struct BoardView {
 	void Rotate(int count);
 	void DrawSelectedPins(ImDrawList *draw);
 	void ClearAllHighlights(void);
+	void ClearAllHighlightsAndSearchStrings(void);
 
 	// Sets the center of the screen to (x,y) in board space
 	void SetTarget(float x, float y);

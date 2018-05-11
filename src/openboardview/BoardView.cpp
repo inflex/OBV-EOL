@@ -1718,6 +1718,8 @@ void BoardView::SearchComponent(void) {
 			int x;
 			bool first_search_done = false;
 
+			ClearAllHighlights();
+
 				for (x = 0; x <= searchColumns; x++) {
 
 					if (m_search[x][0]) {
@@ -1736,7 +1738,6 @@ void BoardView::SearchComponent(void) {
 
 				}
 
-				//SearchClear();
 				next_empty_column = 1;
 				m_renderSearchHits = true;
 				CenterZoomSearchResults();
@@ -1765,7 +1766,7 @@ void BoardView::SearchComponent(void) {
 			next_empty_column = 1;
 			m_tooltips_enabled = true;
 			m_renderSearchHits = true;
-			ClearAllHighlights();
+			ClearAllHighlightsAndSearchStrings();
 			ImGui::CloseCurrentPopup();
 		} // exit button
 
@@ -1824,9 +1825,18 @@ void BoardView::SearchComponent(void) {
 
 			if (searching && !hasResults) ImGui::PopStyleColor();
 
+			/*
+			 * Presearch while in the search phase.  This can
+			 * use a lot of CPU, particularly when all of the
+			 * R/C/L type single letter items get selected
+			 *
+			 * Leaving out for now.
+			 *
+			 *
 			if (ret) {
 				SearchCompound(m_search[i-1]);
 			}
+			*/
 
 			ImGui::PopItemWidth();
 
@@ -1879,7 +1889,6 @@ void BoardView::SearchComponent(void) {
 				if ((pish[x].current >= 0)&&(pish[x].selected == -1)) {
 					if (strcmp(pish[x].search, m_search[x])) {
 						snprintf(m_search[x-1], SHORTSTR_SIZE, "%s",pish[x].search);
-//						fprintf(stderr,"Loading %s in to search pos %d\n", pish[x].search, x);
 						if (x < searchColumns) next_empty_column = x+1; else next_empty_column = 1;
 						pish[x].selected = pish[x].current;
 						pish[x].current = -1;
@@ -1894,6 +1903,8 @@ void BoardView::SearchComponent(void) {
 			} else {
 				bool first_search_done=false;
 				m_go_for_search = false;
+
+				ClearAllHighlights();
 
 				for (x = 0; x <= searchColumns; x++) {
 
@@ -1924,18 +1935,19 @@ void BoardView::SearchComponent(void) {
 		ImGui::EndPopup();
 	}
 	if (!dummy) {
-		ClearAllHighlights();
+		ClearAllHighlightsAndSearchStrings();
 		m_tooltips_enabled = true;
 		m_renderSearchHits = true;
 	}
 }
 
+void BoardView::ClearAllHighlightsAndSearchStrings(void) {
+	ClearAllHighlights();
+	memset(m_search, '\0', sizeof(m_search));
+}
+
 void BoardView::ClearAllHighlights(void) {
 	m_pinSelected = nullptr;
-	SearchClear();
-
-	memset(m_search, '\0', sizeof(m_search));
-
 	m_needsRedraw                                            = true;
 	m_tooltips_enabled                                       = true;
 	if (m_board != NULL) {
@@ -4518,7 +4530,6 @@ void BoardView::SearchCompoundNoClear(const char *item) {
 void BoardView::SearchCompound(const char *item) {
 	if (*item == '\0') return;
 
-	//	ClearAllHighlights();
 	SearchClear();
 	SearchCompoundNoClear(item);
 }
