@@ -3558,7 +3558,28 @@ inline void BoardView::DrawParts(ImDrawList *draw) {
 			 */
 			if ((pincount < 4) && (part->name[0] != 'U') && (part->name[0] != 'Q')) {
 
-				if ((distance > 52) && (distance < 57)) {
+				if (distance < 15 ) {
+					// 01005
+					pin_radius = 2;
+					for (auto &pin : part->pins) {
+						pin->diameter = pin_radius; // * 0.05;
+					}
+
+				} else if (distance < 25) {
+					// 0201
+					pin_radius = 5;
+					for (auto &pin : part->pins) {
+						pin->diameter = pin_radius; // * 0.05;
+					}
+
+				} else if (distance < 45) {
+					// 0402
+					pin_radius = 10;
+					for (auto &pin : part->pins) {
+						pin->diameter = pin_radius; // * 0.05;
+					}
+
+				} else if (distance < 65) {
 					// 0603
 					pin_radius = 15;
 					for (auto &pin : part->pins) {
