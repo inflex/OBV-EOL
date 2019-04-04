@@ -3,18 +3,15 @@
 """
 Uses the official Khronos-XML specs to generate a
 GL/GLES/EGL/GLX/WGL Loader made for your needs. Glad currently supports
-the languages C, D, Nim and Volt.
+the languages C, D, Nim, Pascal and Volt.
 """
-from collections import namedtuple
 import logging
-import sys
 
 from glad.opener import URLOpener
 from glad.spec import SPECS
 import glad.lang
-
-
-Version = namedtuple('Version', ['major', 'minor'])
+import glad.files
+from glad.util import Version
 
 logger = logging.getLogger('glad')
 
@@ -26,17 +23,26 @@ def main():
 
     opener = URLOpener()
 
-    def get_spec(value):
+    def get_spec(value, reproducible=False):
         if value not in SPECS:
             raise argparse.ArgumentTypeError('Unknown specification')
 
         spec_cls = SPECS[value]
 
+        if reproducible:
+            logger.info('reproducible build, using packaged specification: \'%s.xml\'', value)
+            try:
+                return spec_cls.from_file(glad.files.open_local(value + '.xml'))
+            except IOError:
+                raise ValueError('unable to open reproducible copy of {}.xml, '
+                                 'try dropping --reproducible'.format(value))
+
         if os.path.exists(value + '.xml'):
             logger.info('using local specification: \'%s.xml\'', value)
             return spec_cls.from_file(value + '.xml')
-        logger.info('getting \'%s\' specification from SVN', value)
-        return spec_cls.from_svn(opener=opener)
+
+        logger.info('downloading latest \'%s\' specification', value)
+        return spec_cls.from_remote(opener=opener)
 
     def ext_file(value):
         msg = 'Invalid extensions argument'
@@ -92,7 +98,7 @@ def main():
                         help='API type/version pairs, like "gl=3.2,gles=", '
                              'no version means latest')
     parser.add_argument('--generator', dest='generator', default='d',
-                        choices=['c', 'c-debug', 'd', 'nim', 'volt'], required=True,
+                        choices=['c', 'c-debug', 'd', 'nim', 'pascal', 'volt'], required=True,
                         help='Language to generate the binding for')
     parser.add_argument('--extensions', dest='extensions',
                         default=None, type=ext_file,
@@ -102,6 +108,9 @@ def main():
     parser.add_argument('--spec', dest='spec', default='gl',
                         choices=['gl', 'egl', 'glx', 'wgl'],
                         help='Name of the spec')
+    parser.add_argument('--reproducible', default=False, action='store_true',
+                        help='Makes the build reproducible by not fetching '
+                             'the latest specification from Khronos')
     parser.add_argument('--no-loader', dest='no_loader', action='store_true')
     parser.add_argument('--omit-khrplatform', dest='omit_khrplatform', action='store_true',
                         help='Omits inclusion of the khrplatform.h '
@@ -124,7 +133,11 @@ def main():
             datefmt='%m/%d/%Y %H:%M:%S', level=logging.DEBUG
         )
 
-    spec = get_spec(ns.spec)
+    if ns.omit_khrplatform:
+        logger.warn('--omit-khrplatform enabled, with recent changes to the specification '
+                    'this is not very well supported by Khronos anymore and may break your build.')
+
+    spec = get_spec(ns.spec, reproducible=ns.reproducible)
     if spec.NAME == 'gl':
         spec.profile = ns.profile
 
@@ -150,7 +163,8 @@ def main():
             loader=loader,
             opener=opener,
             local_files=ns.local_files,
-            omit_khrplatform=ns.omit_khrplatform
+            omit_khrplatform=ns.omit_khrplatform,
+            reproducible=ns.reproducible
     ) as generator:
         generator.generate()
 

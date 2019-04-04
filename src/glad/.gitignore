@@ -1,8 +1,9 @@
 *.pyc
-*.xml
+/*.xml
 *.kdev4
 build/
 *.o
+*.a
 a.out
 *.kdev_include_paths
 main.c
@@ -10,5 +11,8 @@ main.c
 .idea
 dist/
 *.egg-info
-khrplatform.h
-eglplatform.h
+/khrplatform.h
+/eglplatform.h
+/vk_platform.h
+rust/
+glad-rs/

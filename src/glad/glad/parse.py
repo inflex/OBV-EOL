@@ -58,6 +58,11 @@ class Spec(object):
 
     @classmethod
     def from_svn(cls, opener=None):
+        """deprecated"""
+        return cls.from_remote(opener=opener)
+
+    @classmethod
+    def from_remote(cls, opener=None):
         return cls.from_url(cls.API + cls.NAME + '.xml', opener=opener)
 
     @classmethod
@@ -298,6 +303,17 @@ class OGLType(object):
           if self.is_pointer == 1:
             default  = 'ptr ' + s
             s = self.NIM_POINTER_MAP.get(s, default)
+        return s
+
+    def to_pascal(self):
+        s = self.type
+        if self.is_pointer == 2:
+            s = 'PPointer' if s == 'void' else 'PP' + s
+        elif self.is_pointer == 1:
+            if s[0:6] == 'struct':
+                s = s[7:]
+            else:
+                s = 'Pointer' if s == 'void' else 'P' + s
         return s
 
     __str__ = to_d
